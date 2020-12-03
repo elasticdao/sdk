@@ -16,7 +16,7 @@
     "dev": "yarn artifacts && yarn lint && rollup -c -w",
     "prettier": "yarn artifacts && npx prettier --write src/*.js --write src/**/*.js --write src/**/**/*.js --write src/**/**/**/*.js",
     "start": "sirv public",
-    "workflow:lint": "bash ./scripts/setupArtifacts.sh && yarn lint"
+    "workflow:lint": "bash ./scripts/setupArtifacts.sh && npx eslint src/*.js src/**/*.js src/**/**/*.js src/**/**/**/*.js"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^14.0.0",
