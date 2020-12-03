@@ -1,7 +1,5 @@
 /* eslint global-require: 0 */
 import commonjs from '@rollup/plugin-commonjs';
-import livereload from 'rollup-plugin-livereload';
-import { terser } from 'rollup-plugin-terser';
 import json from '@rollup/plugin-json';
 import resolve from '@rollup/plugin-node-resolve';
 import babel from '@rollup/plugin-babel';
