@@ -120,6 +120,10 @@ export class SDK {
     this.signer = signer;
   }
 
+  get elasticDAOFactory() {
+    return new ElasticDAOFactory(this);
+  }
+
   get models() {
     return new Models(this);
   }

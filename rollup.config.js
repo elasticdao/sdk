@@ -1,10 +1,12 @@
 /* eslint global-require: 0 */
 import commonjs from '@rollup/plugin-commonjs';
-import livereload from 'rollup-plugin-livereload';
-import { terser } from 'rollup-plugin-terser';
 import json from '@rollup/plugin-json';
-
+import resolve from '@rollup/plugin-node-resolve';
+import babel from '@rollup/plugin-babel';
+import pkg from './package.json';
 const production = !process.env.ROLLUP_WATCH;
+
+const extensions = ['.js'];
 
 function serve() {
   let server;
@@ -32,36 +34,24 @@ function serve() {
 }
 
 export default {
-  context: 'window',
   input: 'src/index.js',
-  output: {
-    sourcemap: true,
-    format: 'iife',
-    name: 'app',
-    file: 'index.js',
-  },
+  output: [
+    {
+      file: pkg.main,
+      format: 'cjs',
+      exports: 'named',
+    },
+  ],
   plugins: [
-    // Rollup plugin JSON
-    json(),
-
-    // If you have external dependencies installed from
-    // npm, you'll most likely need these plugins. In
-    // some cases you'll need additional configuration -
-    // consult the documentation for details:
-    // https://github.com/rollup/plugins/tree/master/packages/commonjs
     commonjs(),
-
-    // In dev mode, call `npm run start` once
-    // the bundle has been generated
-    !production && serve(),
-
-    // Watch the `public` directory and refresh the
-    // browser on changes when not in production
-    !production && livereload('public'),
-
-    // If we're building for production (npm run build
-    // instead of npm run dev), minify
-    production && terser(),
+    json(),
+    resolve({
+      extensions,
+    }),
+    babel({
+      exclude: 'node_modules/**',
+      extensions,
+    }),
   ],
   watch: {
     clearScreen: false,

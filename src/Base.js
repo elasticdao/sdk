@@ -85,7 +85,7 @@ export default class Base {
       BigNumber(value.toString())
         .multipliedBy(10 ** decimalShift)
         .dp(0)
-        .toString(),
+        .toFixed(),
     );
   }
 

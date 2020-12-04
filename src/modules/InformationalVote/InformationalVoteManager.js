@@ -70,7 +70,7 @@ export default class InformationalVoteManager extends Base {
   }
 
   async getSettings() {
-    return InformationalVoteSettings.deserialize(this);
+    return InformationalVoteSettings.deserialize(this.sdk, this);
   }
 
   async settingsModelAddress() {
