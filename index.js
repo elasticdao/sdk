@@ -29947,7 +29947,7 @@ class Base {
   }
 
   toEthersBigNumber(value, decimalShift = 0) {
-    return BigNumber$1.from(BigNumber(value.toString()).multipliedBy(10 ** decimalShift).dp(0).toString());
+    return BigNumber$1.from(BigNumber(value.toString()).multipliedBy(10 ** decimalShift).dp(0).toFixed());
   }
 
   toNumber(value, decimalShift = 0) {
@@ -35778,7 +35778,7 @@ class DAO extends ElasticModel {
     let ecosystem = _ecosystem;
 
     if (!isEcosystem(ecosystem)) {
-      ecosystem = await Ecosystem.deserialize(uuid);
+      ecosystem = await Ecosystem.deserialize(sdk, uuid);
     }
 
     const daoModel = await this.contract(sdk, ecosystem.daoModelAddress);
@@ -36063,11 +36063,6 @@ var ElasticDAOFactoryContract = {
 };
 
 class ElasticDAOFactory extends Base {
-  constructor(sdk) {
-    super(sdk);
-    this.address = sdk.env.elasticDAO.factoryAddress;
-  }
-
   static contract(sdk, address) {
     return sdk.contract({
       abi: ElasticDAOFactoryContract.abi,
@@ -36085,7 +36080,7 @@ class ElasticDAOFactory extends Base {
 
   async deployDAOAndToken(summoners, nameOfDAO, numberOfSummoners, nameOfToken, symbol, capitalDelta, elasticity, k, maxLambdaPurchase, overrides = {}) {
     const payload = [summoners, nameOfDAO, numberOfSummoners, nameOfToken, symbol, this.toEthersBigNumber(capitalDelta, 18), this.toEthersBigNumber(elasticity, 18), this.toEthersBigNumber(k, 18), this.toEthersBigNumber(maxLambdaPurchase, 18)];
-    const factory = await this.contract();
+    const factory = await this.contract;
     const daoDeployedFilter = factory.filters.DAODeployed();
     const daoDeployedFilterPromise = new Promise(async (resolve, reject) => {
       let tx = {};
@@ -36107,7 +36102,7 @@ class ElasticDAOFactory extends Base {
       await tx.wait(2);
       reject();
     });
-    return DAO.deserialize(await daoDeployedFilterPromise);
+    return DAO.deserialize(this.sdk, await daoDeployedFilterPromise);
   }
 
   async deployedDAOAddresses() {
@@ -40195,7 +40190,7 @@ class InformationalVoteManager extends Base {
   }
 
   async getSettings() {
-    return InformationalVoteSettings.deserialize(this);
+    return InformationalVoteSettings.deserialize(this.sdk, this);
   }
 
   async settingsModelAddress() {
@@ -43817,7 +43812,7 @@ class TransactionalVoteManager extends Base {
   }
 
   async getSettings() {
-    return TransactionalVoteSettings.deserialize(this);
+    return TransactionalVoteSettings.deserialize(this.sdk, this);
   }
 
   async initialized() {
@@ -44047,6 +44042,10 @@ class SDK {
     this.env = env;
     this.provider = provider;
     this.signer = signer;
+  }
+
+  get elasticDAOFactory() {
+    return new ElasticDAOFactory$1(this);
   }
 
   get models() {

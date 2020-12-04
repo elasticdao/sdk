@@ -4,11 +4,6 @@ import DAO from './models/DAO';
 import ElasticDAOFactoryContract from '../artifacts/ElasticDAOFactory.json';
 
 export default class ElasticDAOFactory extends Base {
-  constructor(sdk) {
-    super(sdk);
-    this.address = sdk.env.elasticDAO.factoryAddress;
-  }
-
   static contract(sdk, address) {
     return sdk.contract({ abi: ElasticDAOFactoryContract.abi, address });
   }
@@ -44,21 +39,17 @@ export default class ElasticDAOFactory extends Base {
       this.toEthersBigNumber(k, 18),
       this.toEthersBigNumber(maxLambdaPurchase, 18),
     ];
-    const factory = await this.contract();
-
+    const factory = await this.contract;
     const daoDeployedFilter = factory.filters.DAODeployed();
     const daoDeployedFilterPromise = new Promise(async (resolve, reject) => {
       let tx = {};
-
       const handler = ({ transactionHash, topics }) => {
         if (transactionHash === tx.hash) {
           this.sdk.provider.off(daoDeployedFilter, handler);
           resolve(`0x${topics[1].substring(26)}`);
         }
       };
-
       this.sdk.provider.on(daoDeployedFilter, handler);
-
       tx = await factory.deployDAOAndToken(
         ...payload,
         this.sanitizeOverrides({
@@ -66,12 +57,11 @@ export default class ElasticDAOFactory extends Base {
           value: this.sdk.env.fees.deploy,
         }),
       );
-
       await tx.wait(2);
       reject();
     });
 
-    return DAO.deserialize(await daoDeployedFilterPromise);
+    return DAO.deserialize(this.sdk, await daoDeployedFilterPromise);
   }
 
   async deployedDAOAddresses() {

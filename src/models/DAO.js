@@ -41,7 +41,7 @@ export default class DAO extends ElasticModel {
 
     let ecosystem = _ecosystem;
     if (!isEcosystem(ecosystem)) {
-      ecosystem = await Ecosystem.deserialize(uuid);
+      ecosystem = await Ecosystem.deserialize(sdk, uuid);
     }
 
     const daoModel = await this.contract(sdk, ecosystem.daoModelAddress);

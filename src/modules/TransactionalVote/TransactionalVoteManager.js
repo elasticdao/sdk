@@ -108,7 +108,7 @@ export default class TransactionalVoteManager extends Base {
   }
 
   async getSettings() {
-    return TransactionalVoteSettings.deserialize(this);
+    return TransactionalVoteSettings.deserialize(this.sdk, this);
   }
 
   async initialized() {
