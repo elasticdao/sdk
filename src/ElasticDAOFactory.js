@@ -65,7 +65,7 @@ export default class ElasticDAOFactory extends Base {
   }
 
   async deployedDAOAddresses() {
-    const factory = await this.contract();
+    const factory = await this.contract;
     const deployedDAOCount = await factory.deployedDAOCount();
 
     const promises = upTo(deployedDAOCount.toNumber()).map((i) =>

@@ -33,7 +33,7 @@ export default class TransactionalVoteManager extends Base {
       validateIsAddress(addressesToPenalize[i], { prefix });
     }
 
-    const manager = await this.contract();
+    const manager = await this.contract;
     await manager.applyPenalty(
       index,
       addressesToPenalize,
