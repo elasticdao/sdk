@@ -4,6 +4,8 @@ import json from '@rollup/plugin-json';
 import resolve from '@rollup/plugin-node-resolve';
 import babel from '@rollup/plugin-babel';
 import pkg from './package.json';
+import nodePolyfills from 'rollup-plugin-node-polyfills';
+
 const production = !process.env.ROLLUP_WATCH;
 
 const extensions = ['.js'];
@@ -38,12 +40,14 @@ export default {
   output: [
     {
       file: pkg.main,
-      format: 'cjs',
+      format: 'umd',
+      name: 'elastic-dao-sdk',
       exports: 'named',
     },
   ],
   plugins: [
     commonjs(),
+    nodePolyfills(),
     json(),
     resolve({
       extensions,
