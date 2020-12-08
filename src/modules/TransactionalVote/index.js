@@ -55,6 +55,10 @@ export class Models extends Base {
 }
 
 export default class extends Base {
+  get models() {
+    return new Models(this.sdk);
+  }
+
   get transactionalVoteFactory() {
     return new TransactionalVoteFactory(
       this.sdk,
@@ -62,14 +66,7 @@ export default class extends Base {
     );
   }
 
-  get transactionalVoteManager() {
-    return new TransactionalVoteManager(
-      this.sdk,
-      this.sdk.env.elasticDAO.modules.transactionalVote.managerAddress,
-    );
-  }
-
-  get models() {
-    return new Models(this.sdk);
+  transactionalVoteManager(address) {
+    return new TransactionalVoteManager(this.sdk, address);
   }
 }

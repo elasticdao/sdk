@@ -62,14 +62,11 @@ export default class extends Base {
     );
   }
 
-  get informationalVoteManager() {
-    return new InformationalVoteManager(
-      this.sdk,
-      this.sdk.env.elasticDAO.modules.informationalVote.managerAddress,
-    );
-  }
-
   get models() {
     return new Models(this.sdk);
+  }
+
+  informationalVoteManager(address) {
+    return new InformationalVoteManager(this.sdk, address);
   }
 }

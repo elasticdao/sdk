@@ -32,7 +32,7 @@ export default class InformationalVoteManager extends Base {
       validateIsAddress(addressesToPenalize[i], { prefix });
     }
 
-    const manager = await this.contract();
+    const manager = await this.contract;
     await manager.applyPenalty(
       index,
       addressesToPenalize,
@@ -70,7 +70,7 @@ export default class InformationalVoteManager extends Base {
   }
 
   async getSettings() {
-    return InformationalVoteSettings.deserialize(this.sdk, this);
+    return InformationalVoteSettings.deserialize(this.sdk, this.address);
   }
 
   async settingsModelAddress() {

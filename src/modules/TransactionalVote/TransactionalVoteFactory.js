@@ -96,6 +96,9 @@ export default class TransactionalVoteFactory extends Base {
       },
     );
 
-    return new TransactionalVoteManager(await managerDeployedFilterPromise);
+    return new TransactionalVoteManager(
+      this.sdk,
+      await managerDeployedFilterPromise,
+    );
   }
 }

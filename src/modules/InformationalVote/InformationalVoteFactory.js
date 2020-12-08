@@ -3,6 +3,8 @@ import Base from '../../Base';
 import InformationalVoteFactoryContract from '../../../artifacts/InformationalVoteFactory.json';
 import InformationalVoteManager from './InformationalVoteManager';
 
+window.validateIsAddress = validateIsAddress;
+
 const prefix = '@elastic-dao/sdk - InformationalVoteFactory';
 
 export default class InformationalVoteFactory extends Base {
@@ -92,6 +94,9 @@ export default class InformationalVoteFactory extends Base {
       },
     );
 
-    return new InformationalVoteManager(await managerDeployedFilterPromise);
+    return new InformationalVoteManager(
+      this.sdk,
+      await managerDeployedFilterPromise,
+    );
   }
 }

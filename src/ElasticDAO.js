@@ -33,7 +33,7 @@ export default class ElasticDAO extends Base {
 
   async initializeModule(address, name, overrides = {}) {
     this.onlyBeforeSummoning();
-    const elasticDAO = await this.contract();
+    const elasticDAO = await this.contract;
     await elasticDAO.initializeModule(
       address,
       name,
@@ -44,7 +44,7 @@ export default class ElasticDAO extends Base {
 
   async join(deltaLambda, overrides = {}) {
     this.onlyAfterSummoning();
-    const elasticDAO = await this.contract();
+    const elasticDAO = await this.contract;
     await elasticDAO.join(
       this.toEthersBigNumber(deltaLambda, 18),
       this.sanitizeOverrides(overrides),
@@ -66,7 +66,7 @@ export default class ElasticDAO extends Base {
 
   async seedSummoning(overrides = {}) {
     this.onlyBeforeSummoning();
-    const elasticDAO = await this.contract();
+    const elasticDAO = await this.contract;
     if (overrides.value && BigNumber(overrides.value).isGreaterThan(0)) {
       return elasticDAO.seedSummoning(this.sanitizeOverrides(overrides));
     }
@@ -75,7 +75,7 @@ export default class ElasticDAO extends Base {
 
   async summon(deltaLambda, overrides = {}) {
     this.onlyBeforeSummoning();
-    const elasticDAO = await this.contract();
+    const elasticDAO = await this.contract;
     return elasticDAO.summon(
       this.toEthersBigNumber(deltaLambda, 18),
       this.sanitizeOverrides(overrides),
@@ -83,9 +83,8 @@ export default class ElasticDAO extends Base {
   }
 
   async summoners() {
-    const elasticDAO = await this.contract();
+    const elasticDAO = await this.contract;
 
-    console.log('summoners', this.dao, this.dao.numberOfSummoners);
     return Promise.all(
       upTo(this.dao.numberOfSummoners).map((i) => elasticDAO.summoners(i)),
     );

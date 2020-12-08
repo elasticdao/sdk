@@ -67,10 +67,10 @@ export default class InformationalVoteSettings extends ElasticModel {
 
   static async deserialize(sdk, managerAddress) {
     validateIsAddress(managerAddress, { prefix });
-    const manager = this.managerContract(sdk, managerAddress);
+    const manager = await this.managerContract(sdk, managerAddress);
 
     const settingsModelAddress = await manager.settingsModelAddress();
-    const informationalVoteSettingsModel = this.contract(
+    const informationalVoteSettingsModel = await this.contract(
       sdk,
       settingsModelAddress,
     );
