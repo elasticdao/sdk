@@ -48,7 +48,7 @@ export default class InformationalVoteBallot extends ElasticModel {
     validateIsInformationalVoteSettings(settings);
 
     const ballotModelAddress = await settings.manager.ballotModelAddress();
-    const informationalVoteBallotModel = this.contract(sdk, ballotModelAddress);
+    const informationalVoteBallotModel = await this.contract(sdk, ballotModelAddress);
 
     const {
       lambda,
