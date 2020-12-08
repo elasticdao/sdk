@@ -12,7 +12,6 @@ const prefix = '@elastic-dao/sdk - InformationalVoteManager';
 export default class InformationalVoteManager extends Base {
   constructor(sdk, address) {
     super(sdk);
-    console.log('InformationalVoteManager address', address, sdk);
     validateIsAddress(address, { prefix });
     this.address = address;
   }

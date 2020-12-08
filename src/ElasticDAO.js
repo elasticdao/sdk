@@ -85,7 +85,6 @@ export default class ElasticDAO extends Base {
   async summoners() {
     const elasticDAO = await this.contract;
 
-    console.log('summoners', this.dao, this.dao.numberOfSummoners);
     return Promise.all(
       upTo(this.dao.numberOfSummoners).map((i) => elasticDAO.summoners(i)),
     );
