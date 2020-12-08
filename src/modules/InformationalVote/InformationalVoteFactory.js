@@ -94,6 +94,9 @@ export default class InformationalVoteFactory extends Base {
       },
     );
 
-    return new InformationalVoteManager(this.sdk, await managerDeployedFilterPromise);
+    return new InformationalVoteManager(
+      this.sdk,
+      await managerDeployedFilterPromise,
+    );
   }
 }

@@ -48,7 +48,10 @@ export default class TransactionalVoteBallot extends ElasticModel {
     validateIsTransactionalVote(vote);
 
     const ballotModelAddress = await settings.manager.ballotModelAddress();
-    const transactionalVoteBallotModel = await this.contract(sdk, ballotModelAddress);
+    const transactionalVoteBallotModel = await this.contract(
+      sdk,
+      ballotModelAddress,
+    );
 
     const {
       lambda,
