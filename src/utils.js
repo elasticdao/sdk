@@ -2,7 +2,7 @@ import { validateIsNumber } from '@pie-dao/utils';
 
 export const buildError = ({
   message,
-  prefix = 'elasticdao.org/utils - validations',
+  prefix = '@elastic-dao/sdk - validations',
 }) => `${prefix}: ${message}`;
 
 export const upTo = (n) => {

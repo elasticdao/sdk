@@ -1,3 +1,5 @@
+import { validateIsAddress } from '@pie-dao/utils';
+
 import BalanceClass from './models/Balance';
 import BalanceMultipliersClass from './models/BalanceMultipliers';
 import Base from './Base';
@@ -11,6 +13,8 @@ import TokenClass from './models/Token';
 import TokenHolderClass from './models/TokenHolder';
 
 import { buildError, upTo, validate } from './utils';
+
+const prefix = '@elastic-dao/sdk';
 
 export { isBalance, validateIsBalance } from './models/Balance';
 export {
@@ -113,6 +117,34 @@ export class Models extends Base {
 
 export class SDK {
   constructor({ account, contract, env, provider, signer }) {
+    if (!env.elasticDAO) {
+      const message = "env is missing key 'elasticDAO'";
+      throw new TypeError(buildError({ message, prefix }));
+    }
+
+    validateIsAddress(env.elasticDAO.balanceModelAddress, { prefix });
+    validateIsAddress(env.elasticDAO.balanceMultipliersModelAddress, {
+      prefix,
+    });
+    validateIsAddress(env.elasticDAO.daoModelAddress, { prefix });
+    validateIsAddress(env.elasticDAO.ecosystemModelAddress, { prefix });
+    validateIsAddress(env.elasticDAO.elasticModuleModelAddress, { prefix });
+    validateIsAddress(env.elasticDAO.factoryAddress, { prefix });
+    validateIsAddress(env.elasticDAO.tokenModelAddress, { prefix });
+    validateIsAddress(env.elasticDAO.tokenHolderModelAddress, { prefix });
+
+    if (!env.elasticDAO.modules || !env.elasticDAO.modules.informationalVote) {
+      console.warn(
+        `${prefix}: env is missing configuration info for modules.informationalVote`,
+      );
+    }
+
+    if (!env.elasticDAO.modules || !env.elasticDAO.modules.transactionalVote) {
+      console.warn(
+        `${prefix}: env is missing configuration info for modules.transactionalVote`,
+      );
+    }
+
     this.account = account;
     this.contract = contract;
     this.env = env;

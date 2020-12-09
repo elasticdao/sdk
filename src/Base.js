@@ -21,7 +21,7 @@ export default class Base {
 
     if (requested.from && isAddress(requested.from)) {
       overrides.from = requested.from;
-    } else {
+    } else if (requested.from) {
       console.warn(
         `${prefix}: Requested override 'from' (${requested.from}) is not a valid address and was excluded`,
       );
@@ -49,7 +49,7 @@ export default class Base {
 
     if (requested.nonce && isNumber(requested.nonce)) {
       overrides.nonce = requested.nonce;
-    } else {
+    } else if (requested.nonce) {
       console.warn(
         `${prefix}: Requested override 'nonce' (${requested.nonce}) is not a valid number and was excluded`,
       );
