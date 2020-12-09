@@ -1,6 +1,6 @@
 {
   "name": "@elastic-dao/sdk",
-  "version": "0.0.1",
+  "version": "0.0.6",
   "description": "SDK for ElasticDAO contracts and core modules",
   "main": "dist/index.js",
   "repository": "https://github.com/elasticdao/sdk",
@@ -9,11 +9,12 @@
   "private": false,
   "scripts": {
     "artifacts": "bash ./scripts/copyArtifacts.sh",
-    "lint": "yarn prettier && npx eslint src/*.js src/**/*.js src/**/**/*.js src/**/**/**/*.js",
-    "prerelease": "yarn workflow:lint && yarn build",
     "build": "npx webpack",
     "dev": "yarn artifacts && yarn lint && npx webpack --watch",
+    "lint": "yarn prettier && npx eslint src/*.js src/**/*.js src/**/**/*.js src/**/**/**/*.js",
+    "prerelease": "yarn build",
     "prettier": "yarn artifacts && npx prettier --write src/*.js --write src/**/*.js --write src/**/**/*.js --write src/**/**/**/*.js",
+    "release": "npm publish --access=public",
     "workflow:lint": "bash ./scripts/setupArtifacts.sh && npx eslint src/*.js src/**/*.js src/**/**/*.js src/**/**/**/*.js"
   },
   "devDependencies": {
