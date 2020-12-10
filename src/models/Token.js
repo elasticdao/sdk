@@ -3,6 +3,7 @@ import { validate } from '../utils';
 import { validateIsEcosystem } from './Ecosystem';
 import ElasticModel from './ElasticModel';
 import TokenContract from '../../artifacts/Token.json';
+import ElasticGovernanceToken from '../tokens/ElasticGovernanceToken';
 
 const cache = {};
 const prefix = '@elastic-dao/sdk - Token';
@@ -115,7 +116,7 @@ export default class Token extends ElasticModel {
   }
 
   get elasticGovernanceToken() {
-    return new ElasticDAO(this);
+    return new ElasticGovernanceToken(this);
   }
 
   get elasticity() {
