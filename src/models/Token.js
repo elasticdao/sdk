@@ -114,6 +114,10 @@ export default class Token extends ElasticModel {
     return cache[this.id].ecosystem;
   }
 
+  get elasticGovernanceToken() {
+    return new ElasticDAO(this);
+  }
+
   get elasticity() {
     return this.toBigNumber(cache[this.id].elasticity, 18);
   }

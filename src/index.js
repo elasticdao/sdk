@@ -146,7 +146,7 @@ export class SDK {
     }
 
     this.account = account;
-    this.contract = contract;
+    this._contract = contract;
     this.env = env;
     this.provider = provider;
     this.signer = signer;
@@ -162,6 +162,10 @@ export class SDK {
 
   get modules() {
     return new Modules(this);
+  }
+
+  async contract(...args) {
+    return this._contract(...args);
   }
 }
 
