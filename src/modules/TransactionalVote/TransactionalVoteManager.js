@@ -4,6 +4,7 @@ import {
   validateIsNumber,
   validateIsString,
 } from '@pie-dao/utils';
+import { upTo } from '../../utils';
 import Base from '../../Base';
 import TransactionalVoteManagerContract from '../../../artifacts/TransactionalVoteManager.json';
 import TransactionalVoteSettings from './models/TransactionalVoteSettings';
@@ -109,6 +110,18 @@ export default class TransactionalVoteManager extends Base {
 
   async getSettings() {
     return TransactionalVoteSettings.deserialize(this.sdk, this.address);
+  }
+
+  async getVotes() {
+    const settings = await this.getSettings();
+    return Promise.all(
+      upTo(settings.counter).map((i) =>
+        this.sdk.modules.transactionalVote.models.TransactionalVote.deserialize(
+          i,
+          settings,
+        ),
+      ),
+    );
   }
 
   async initialized() {
