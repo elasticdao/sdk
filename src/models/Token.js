@@ -77,7 +77,7 @@ export default class Token extends ElasticModel {
       symbol,
     } = await tokenModel.deserialize(uuid, ecosystem.toObject(false));
 
-    return new Token(sdk, {
+    const token = new Token(sdk, {
       capitalDelta,
       counter,
       ecosystem,
@@ -91,6 +91,8 @@ export default class Token extends ElasticModel {
       symbol,
       uuid,
     });
+    console.log('token-deserialize', token);
+    return token;
   }
 
   // Getters

@@ -76,8 +76,7 @@ export default class Ecosystem extends ElasticModel {
       tokenHolderModelAddress,
       tokenModelAddress,
     } = await ecosystemModel.deserialize(daoAddress);
-
-    return new Ecosystem(sdk, {
+    const ecosystem = new Ecosystem(sdk, {
       balanceModelAddress,
       balanceMultipliersModelAddress,
       configuratorAddress,
@@ -90,6 +89,8 @@ export default class Ecosystem extends ElasticModel {
       tokenHolderModelAddress,
       tokenModelAddress,
     });
+    console.log('eco-deserialize: ', ecosystem);
+    return ecosystem;
   }
 
   // Getters

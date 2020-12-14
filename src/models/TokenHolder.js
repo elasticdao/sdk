@@ -39,18 +39,25 @@ export default class TokenHolder extends ElasticModel {
     validateIsAddress(uuid, { prefix });
     validateIsEcosystem(ecosystem);
     validateIsToken(token);
-
+    console.log('a', ecosystem.tokenHolderModelAddress);
     const tokenHolderModel = await this.contract(
       sdk,
       ecosystem.tokenHolderModelAddress,
     );
+    console.log('b', uuid);
+    const uuidVariable = uuid;
+    const ecosystemObject = ecosystem.toObject();
+    const tokenObject = token.toObject(false);
+    console.log('uuidVariable: ', uuidVariable);
+    console.log('ecosystemObject: ', ecosystemObject);
+    console.log('tokenObject: ', tokenObject);
 
     const { account, counter, lambda } = await tokenHolderModel.deserialize(
-      uuid,
-      ecosystem.toObject(false),
-      token.toObject(false),
+      uuidVariable,
+      ecosystemObject,
+      tokenObject,
     );
-
+    console.log('c');
     return new TokenHolder(sdk, {
       account,
       counter,
