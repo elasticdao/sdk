@@ -3,6 +3,7 @@ import {
   validateIsNumber,
   validateIsString,
 } from '@pie-dao/utils';
+import { upTo } from '../../utils';
 import Base from '../../Base';
 import InformationalVoteManagerContract from '../../../artifacts/InformationalVoteManager.json';
 import InformationalVoteSettings from './models/InformationalVoteSettings';
@@ -71,6 +72,18 @@ export default class InformationalVoteManager extends Base {
 
   async getSettings() {
     return InformationalVoteSettings.deserialize(this.sdk, this.address);
+  }
+
+  async getVotes() {
+    const settings = await this.getSettings();
+    return Promise.all(
+      upTo(settings.counter).map((i) =>
+        this.sdk.modules.informationalVote.models.InformationalVote.deserialize(
+          i,
+          settings,
+        ),
+      ),
+    );
   }
 
   async settingsModelAddress() {
