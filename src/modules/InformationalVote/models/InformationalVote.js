@@ -85,7 +85,8 @@ export default class InformationalVote extends ElasticModel {
     validateIsNumber(index, { prefix });
     validateIsInformationalVoteSettings(settings);
 
-    const voteModelAddress = await settings.manager.voteModelAddress();
+    const manager = await settings.manager;
+    const voteModelAddress = await manager.voteModelAddress();
     const informationalVoteModel = await this.contract(sdk, voteModelAddress);
 
     const {

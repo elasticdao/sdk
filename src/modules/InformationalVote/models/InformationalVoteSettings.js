@@ -17,24 +17,28 @@ export const validateIsInformationalVoteSettings = (thing) => {
 };
 
 export default class InformationalVoteSettings extends ElasticModel {
-  constructor({
-    approval,
-    counter,
-    hasPenalty,
-    managerAddress,
-    maxSharesPerTokenHolder,
-    minBlocksForPenalty,
-    minDurationInBlocks,
-    minPenaltyInShares,
-    minRewardInShares,
-    minSharesToCreate,
-    penalty,
-    quorum,
-    reward,
-    settingsModelAddress,
-    votingTokenAddress,
-  }) {
-    super();
+  constructor(
+    sdk,
+    {
+      approval,
+      counter,
+      hasPenalty,
+      managerAddress,
+      maxSharesPerTokenHolder,
+      minBlocksForPenalty,
+      minDurationInBlocks,
+      minPenaltyInShares,
+      minRewardInShares,
+      minSharesToCreate,
+      penalty,
+      quorum,
+      reward,
+      settingsModelAddress,
+      votingTokenAddress,
+    },
+  ) {
+    super(sdk);
+
     this.id = managerAddress.toLowerCase();
     cache[this.id] = {
       approval,
@@ -91,7 +95,7 @@ export default class InformationalVoteSettings extends ElasticModel {
       votingTokenAddress,
     } = await informationalVoteSettingsModel.deserialize(managerAddress);
 
-    return new InformationalVoteSettings({
+    return new InformationalVoteSettings(sdk, {
       approval,
       counter,
       hasPenalty,

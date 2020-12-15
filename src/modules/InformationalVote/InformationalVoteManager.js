@@ -71,19 +71,31 @@ export default class InformationalVoteManager extends Base {
   }
 
   async getSettings() {
+    console.log('getSettings', this, this.sdk);
     return InformationalVoteSettings.deserialize(this.sdk, this.address);
   }
 
   async getVotes() {
+    console.log('before', this.sdk);
     const settings = await this.getSettings();
-    return Promise.all(
-      upTo(settings.counter).map((i) =>
-        this.sdk.modules.informationalVote.models.InformationalVote.deserialize(
+    console.log('after', settings);
+    const upToValues = upTo(settings.counter);
+    console.log('upTo', upToValues);
+    const self = this;
+    console.log('self', self.sdk);
+
+    const votes = Promise.all(
+      upToValues.map((i) =>
+        self.sdk.modules.informationalVote.models.InformationalVote.deserialize(
           i,
           settings,
         ),
       ),
     );
+
+    console.log('votes', await votes);
+
+    return votes;
   }
 
   async settingsModelAddress() {

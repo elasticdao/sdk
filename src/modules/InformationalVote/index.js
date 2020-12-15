@@ -26,30 +26,36 @@ export const InformationalVoteSettings = InformationalVoteSettingsClass;
 
 export class Models extends Base {
   get InformationalVote() {
+    const { sdk } = this;
+
     return {
-      contract: (...args) => InformationalVote.contract(this.sdk, ...args),
-      deserialize: (...args) =>
-        InformationalVote.deserialize(this.sdk, ...args),
+      contract: (...args) => InformationalVote.contract(sdk, ...args),
+      deserialize: (...args) => {
+        console.log('ivd', ...args, sdk);
+        return InformationalVote.deserialize(sdk, ...args);
+      },
     };
   }
 
   get InformationalVoteBallot() {
+    const { sdk } = this;
+
     return {
-      contract: (...args) =>
-        InformationalVoteBallot.contract(this.sdk, ...args),
+      contract: (...args) => InformationalVoteBallot.contract(sdk, ...args),
       deserialize: (...args) =>
-        InformationalVoteBallot.deserialize(this.sdk, ...args),
+        InformationalVoteBallot.deserialize(sdk, ...args),
     };
   }
 
   get InformationalVoteSettings() {
+    const { sdk } = this;
+
     return {
-      contract: (...args) =>
-        InformationalVoteSettings.contract(this.sdk, ...args),
+      contract: (...args) => InformationalVoteSettings.contract(sdk, ...args),
       deserialize: (...args) =>
-        InformationalVoteSettings.deserialize(this.sdk, ...args),
+        InformationalVoteSettings.deserialize(sdk, ...args),
       managerContract: (...args) =>
-        InformationalVoteSettings.managerContract(this.sdk, ...args),
+        InformationalVoteSettings.managerContract(sdk, ...args),
     };
   }
 }
@@ -63,10 +69,12 @@ export default class extends Base {
   }
 
   get models() {
+    console.log('MODELS', this.sdk);
     return new Models(this.sdk);
   }
 
   informationalVoteManager(address) {
+    console.log('IVM', this.sdk);
     return new InformationalVoteManager(this.sdk, address);
   }
 }
