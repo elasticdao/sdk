@@ -31,7 +31,6 @@ export class Models extends Base {
     return {
       contract: (...args) => InformationalVote.contract(sdk, ...args),
       deserialize: (...args) => {
-        console.log('ivd', ...args, sdk);
         return InformationalVote.deserialize(sdk, ...args);
       },
     };
@@ -69,12 +68,10 @@ export default class extends Base {
   }
 
   get models() {
-    console.log('MODELS', this.sdk);
     return new Models(this.sdk);
   }
 
   informationalVoteManager(address) {
-    console.log('IVM', this.sdk);
     return new InformationalVoteManager(this.sdk, address);
   }
 }

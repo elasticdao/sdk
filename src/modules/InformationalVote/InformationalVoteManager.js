@@ -71,18 +71,13 @@ export default class InformationalVoteManager extends Base {
   }
 
   async getSettings() {
-    console.log('getSettings', this, this.sdk);
     return InformationalVoteSettings.deserialize(this.sdk, this.address);
   }
 
   async getVotes() {
-    console.log('before', this.sdk);
     const settings = await this.getSettings();
-    console.log('after', settings);
     const upToValues = upTo(settings.counter);
-    console.log('upTo', upToValues);
     const self = this;
-    console.log('self', self.sdk);
 
     const votes = Promise.all(
       upToValues.map((i) =>
@@ -92,8 +87,6 @@ export default class InformationalVoteManager extends Base {
         ),
       ),
     );
-
-    console.log('votes', await votes);
 
     return votes;
   }
