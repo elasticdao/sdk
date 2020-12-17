@@ -53,8 +53,7 @@ export default class InformationalVoteManager extends Base {
     validateIsNumber(yna, { prefix });
 
     const manager = await this.contract;
-    await manager.castBallot(index, yna, this.sanitizeOverrides(overrides));
-    return true; // TODO: Return ballot model
+    return manager.castBallot(index, yna, this.sanitizeOverrides(overrides));
   }
 
   async createVote(proposal, endOnBlock, overrides = {}) {
@@ -62,12 +61,11 @@ export default class InformationalVoteManager extends Base {
     validateIsNumber(endOnBlock, { prefix });
 
     const manager = await this.contract;
-    await manager.createVote(
+    return manager.createVote(
       proposal,
       endOnBlock,
       this.sanitizeOverrides(overrides),
     );
-    return true; // TODO: Return vote model
   }
 
   async getSettings() {

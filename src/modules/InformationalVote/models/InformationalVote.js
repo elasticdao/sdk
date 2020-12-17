@@ -46,7 +46,8 @@ export default class InformationalVote extends ElasticModel {
     },
   ) {
     super(sdk);
-    this.id = `${settings.uuid}|${index}`.toLowerCase();
+    this.id = `${settings.id}|${index}`.toLowerCase();
+
     cache[this.id] = {
       abstainLambda,
       approval,
