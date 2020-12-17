@@ -20,6 +20,7 @@ export default class InformationalVote extends ElasticModel {
     {
       abstainLambda,
       approval,
+      approvalLambda,
       author,
       endOnBlock,
       hasPenalty,
@@ -49,6 +50,7 @@ export default class InformationalVote extends ElasticModel {
     cache[this.id] = {
       abstainLambda,
       approval,
+      approvalLambda,
       author,
       endOnBlock,
       hasPenalty,
@@ -92,6 +94,7 @@ export default class InformationalVote extends ElasticModel {
     const {
       abstainLambda,
       approval,
+      approvalLambda,
       author,
       endOnBlock,
       hasPenalty,
@@ -119,6 +122,7 @@ export default class InformationalVote extends ElasticModel {
     return new InformationalVote(sdk, {
       abstainLambda,
       approval,
+      approvalLambda,
       author,
       endOnBlock,
       hasPenalty,
@@ -156,6 +160,10 @@ export default class InformationalVote extends ElasticModel {
 
   get approval() {
     return this.toBigNumber(cache[this.id].approval, 18);
+  }
+
+  get approvalLambda() {
+    return this.toBigNumber(cache[this.id].approvalLambda, 18);
   }
 
   get author() {

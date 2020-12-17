@@ -30,9 +30,7 @@ export class Models extends Base {
 
     return {
       contract: (...args) => InformationalVote.contract(sdk, ...args),
-      deserialize: (...args) => {
-        return InformationalVote.deserialize(sdk, ...args);
-      },
+      deserialize: (...args) => InformationalVote.deserialize(sdk, ...args),
     };
   }
 
