@@ -31,6 +31,7 @@ export default class TransactionalVote extends ElasticModel {
       proposal,
       abstainLambda,
       approval,
+      approvalLambda,
       baseGas,
       endOnBlock,
       index,
@@ -68,6 +69,7 @@ export default class TransactionalVote extends ElasticModel {
       proposal,
       abstainLambda,
       approval,
+      approvalLambda,
       baseGas,
       endOnBlock,
       index,
@@ -118,6 +120,7 @@ export default class TransactionalVote extends ElasticModel {
       proposal,
       abstainLambda,
       approval,
+      approvalLambda,
       baseGas,
       endOnBlock,
       maxSharesPerTokenHolder,
@@ -153,6 +156,7 @@ export default class TransactionalVote extends ElasticModel {
       proposal,
       abstainLambda,
       approval,
+      approvalLambda,
       baseGas,
       endOnBlock,
       index,
@@ -187,6 +191,10 @@ export default class TransactionalVote extends ElasticModel {
 
   get approval() {
     return this.toBigNumber(cache[this.id].approval, 18);
+  }
+
+  get approvalLambda() {
+    return this.toBigNumber(cache[this.id].approvalLambda, 18);
   }
 
   get author() {
