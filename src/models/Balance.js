@@ -45,6 +45,7 @@ export default class Balance extends ElasticModel {
   static async deserialize(sdk, blockNumber, ecosystem, token, tokenHolder) {
     validateIsNumber(blockNumber, { prefix });
     validateIsEcosystem(ecosystem);
+    console.log(token);
     validateIsToken(token);
     validateIsTokenHolder(tokenHolder);
 
@@ -53,11 +54,15 @@ export default class Balance extends ElasticModel {
       ecosystem.balanceModelAddress,
     );
 
+    const ecosystemObject = ecosystem.toObject(false);
+    const tokenObject = token.toObject(false);
+    const tokenHolderObject = tokenHolder.toObject(false);
+    const tokenPayload = { ...tokenObject, ecosystem: ecosystemObject };
     const { index, k, lambda, m } = await balanceModel.deserialize(
       blockNumber,
-      ecosystem.toObject(false),
-      token.toObject(false),
-      tokenHolder.toObject(false),
+      ecosystemObject,
+      tokenPayload,
+      { ...tokenHolderObject, ecosystem: ecosystemObject, token: tokenPayload },
     );
 
     return new Balance(sdk, {
