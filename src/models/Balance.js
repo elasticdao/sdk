@@ -45,7 +45,6 @@ export default class Balance extends ElasticModel {
   static async deserialize(sdk, blockNumber, ecosystem, token, tokenHolder) {
     validateIsNumber(blockNumber, { prefix });
     validateIsEcosystem(ecosystem);
-    console.log(token);
     validateIsToken(token);
     validateIsTokenHolder(tokenHolder);
 
