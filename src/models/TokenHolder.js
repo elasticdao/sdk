@@ -45,11 +45,16 @@ export default class TokenHolder extends ElasticModel {
       ecosystem.tokenHolderModelAddress,
     );
 
-    const { account, counter, lambda } = await tokenHolderModel.deserialize(
-      uuid,
-      ecosystem.toObject(false),
-      token.toObject(false),
-    );
+    const ecosystemObject = ecosystem.toObject(false);
+
+    const {
+      account,
+      counter,
+      lambda,
+    } = await tokenHolderModel.deserialize(uuid, ecosystemObject, {
+      ...token.toObject(false),
+      ecosystem: ecosystemObject,
+    });
 
     return new TokenHolder(sdk, {
       account,

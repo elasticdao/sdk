@@ -18,8 +18,8 @@ export default class Token extends ElasticModel {
   constructor(
     sdk,
     {
-      capitalDelta,
       counter,
+      eByL,
       ecosystem,
       elasticity,
       k,
@@ -35,8 +35,8 @@ export default class Token extends ElasticModel {
     super(sdk);
     this.id = uuid.toLowerCase();
     cache[this.id] = {
-      capitalDelta,
       counter,
+      eByL,
       ecosystem,
       elasticity,
       k,
@@ -64,8 +64,8 @@ export default class Token extends ElasticModel {
     const tokenModel = await this.contract(sdk, ecosystem.tokenModelAddress);
 
     const {
-      capitalDelta,
       counter,
+      eByL,
       elasticity,
       k,
       lambda,
@@ -77,8 +77,8 @@ export default class Token extends ElasticModel {
     } = await tokenModel.deserialize(uuid, ecosystem.toObject(false));
 
     return new Token(sdk, {
-      capitalDelta,
       counter,
+      eByL,
       ecosystem,
       elasticity,
       k,
@@ -98,16 +98,16 @@ export default class Token extends ElasticModel {
     return this.ecosystem.tokenModelAddress;
   }
 
-  get capitalDelta() {
-    return this.toBigNumber(cache[this.id].capitalDelta, 18);
-  }
-
   get contract() {
     return this.constructor.contract(this.sdk, this.address);
   }
 
   get counter() {
     return this.toNumber(cache[this.id].counter);
+  }
+
+  get eByL() {
+    return this.toBigNumber(cache[this.id].eByL, 18);
   }
 
   get ecosystem() {
