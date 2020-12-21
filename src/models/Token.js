@@ -76,8 +76,6 @@ export default class Token extends ElasticModel {
       symbol,
     } = await tokenModel.deserialize(uuid, ecosystem.toObject(false));
 
-    console.log('eByL', eByL);
-
     return new Token(sdk, {
       counter,
       eByL,
