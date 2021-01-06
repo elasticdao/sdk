@@ -5,6 +5,7 @@ import Ecosystem, { isEcosystem } from './Ecosystem';
 import ElasticDAO from '../ElasticDAO';
 import ElasticModel from './ElasticModel';
 import Token from './Token';
+import ElasticGovernanceToken from '../tokens/ElasticGovernanceToken';
 
 const cache = {};
 const prefix = '@elastic-dao/sdk - DAO';
@@ -76,6 +77,10 @@ export default class DAO extends ElasticModel {
 
   get elasticDAO() {
     return new ElasticDAO(this);
+  }
+
+  get elasticGovernanceToken() {
+    return new ElasticGovernanceToken(this);
   }
 
   get name() {

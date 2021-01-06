@@ -117,7 +117,6 @@ export class Models extends Base {
 
 export class SDK {
   constructor({ account, contract, env, provider, signer }) {
-    console.log(env);
     if (!env.elasticDAO) {
       const message = "env is missing key 'elasticDAO'";
       throw new TypeError(buildError({ message, prefix }));
