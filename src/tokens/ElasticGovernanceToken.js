@@ -30,7 +30,7 @@ export default class ElasticGovernanceToken extends Base {
       spenderAddress,
       this.sanitizeOverrides(overrides),
     );
-    return allowance;
+    return this.toBigNumber(allowance.toString(), 18);
   }
 
   async approve(spenderAddress, amount, overrides = {}) {
@@ -50,7 +50,7 @@ export default class ElasticGovernanceToken extends Base {
       this.sanitizeOverrides(overrides),
     );
 
-    return balance;
+    return this.toBigNumber(balance.toString(), 18);
   }
 
   async balanceOfInShares(accountAddress, overrides = {}) {
@@ -59,8 +59,7 @@ export default class ElasticGovernanceToken extends Base {
       accountAddress,
       this.sanitizeOverrides(overrides),
     );
-
-    return balanceOfInShares;
+    return this.toBigNumber(balanceOfInShares.toString(), 18);
   }
 
   async balanceOfAt(accountAddress, blockNumber, overrides = {}) {
@@ -71,7 +70,7 @@ export default class ElasticGovernanceToken extends Base {
       this.sanitizeOverrides(overrides),
     );
 
-    return balanceOfAt;
+    return this.toBigNumber(balanceOfAt.toString(), 18);
   }
 
   async balanceOfInSharesAt(accountAddress, blockNumber, overrides = {}) {
@@ -82,7 +81,7 @@ export default class ElasticGovernanceToken extends Base {
       this.sanitizeOverrides(overrides),
     );
 
-    return balanceOfInSharesAt;
+    return this.toBigNumber(balanceOfInSharesAt.toString(), 18);
   }
 
   async burn(address, amount, overrides = {}) {
@@ -97,7 +96,6 @@ export default class ElasticGovernanceToken extends Base {
 
   async burnShares(address, amount, overrides = {}) {
     const elasticGovernanceToken = await this.contract;
-    console.log('sdk: elasticGovernanceToken: ', elasticGovernanceToken);
     const burnSharesStatus = await elasticGovernanceToken.burnShares(
       address,
       this.toEthersBigNumber(amount, 18),
@@ -159,7 +157,7 @@ export default class ElasticGovernanceToken extends Base {
     const number = await elasticGovernanceToken.numberOfTokenHolders(
       this.sanitizeOverrides(overrides),
     );
-    return number;
+    return this.toBigNumber(number.toString(), 18);
   }
 
   async symbol(overrides = {}) {
@@ -175,7 +173,7 @@ export default class ElasticGovernanceToken extends Base {
     const totalSupply = await elasticGovernanceToken.totalSupply(
       this.sanitizeOverrides(overrides),
     );
-    return totalSupply;
+    return this.toBigNumber(totalSupply.toString(), 18);
   }
 
   async totalSupplyInShares(overrides = {}) {
@@ -183,7 +181,7 @@ export default class ElasticGovernanceToken extends Base {
     const totalSupplyInShares = await elasticGovernanceToken.totalSupplyInShares(
       this.sanitizeOverrides(overrides),
     );
-    return totalSupplyInShares;
+    return this.toBigNumber(totalSupplyInShares.toString(), 18);
   }
 
   async transfer(address, amount, overrides = {}) {

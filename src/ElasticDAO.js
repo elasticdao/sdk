@@ -31,6 +31,17 @@ export default class ElasticDAO extends Base {
     return this.dao.ecosystem.refresh();
   }
 
+  async exitDAO(deltaLambda, overrides = {}) {
+    this.onlyAfterSummoning();
+    const elasticDAO = await this.contract;
+    await elasticDAO.exitDAO(
+      this.toEthersBigNumber(deltaLambda, 18),
+      this.sanitizeOverrides(overrides),
+    );
+
+    return true;
+  }
+
   async initializeModule(address, name, overrides = {}) {
     this.onlyBeforeSummoning();
     const elasticDAO = await this.contract;
