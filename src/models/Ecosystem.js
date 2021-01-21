@@ -25,9 +25,7 @@ export default class Ecosystem extends ElasticModel {
       daoAddress,
       daoModelAddress,
       ecosystemModelAddress,
-      elasticModuleModelAddress,
       governanceTokenAddress,
-      registratorAddress,
       tokenHolderModelAddress,
       tokenModelAddress,
     },
@@ -41,9 +39,7 @@ export default class Ecosystem extends ElasticModel {
       daoAddress,
       daoModelAddress,
       ecosystemModelAddress,
-      elasticModuleModelAddress,
       governanceTokenAddress,
-      registratorAddress,
       tokenHolderModelAddress,
       tokenModelAddress,
     };
@@ -70,9 +66,7 @@ export default class Ecosystem extends ElasticModel {
       configuratorAddress,
       daoModelAddress,
       ecosystemModelAddress,
-      elasticModuleModelAddress,
       governanceTokenAddress,
-      registratorAddress,
       tokenHolderModelAddress,
       tokenModelAddress,
     } = await ecosystemModel.deserialize(daoAddress);
@@ -84,9 +78,7 @@ export default class Ecosystem extends ElasticModel {
       daoAddress,
       daoModelAddress,
       ecosystemModelAddress,
-      elasticModuleModelAddress,
       governanceTokenAddress,
-      registratorAddress,
       tokenHolderModelAddress,
       tokenModelAddress,
     });
@@ -126,16 +118,8 @@ export default class Ecosystem extends ElasticModel {
     return cache[this.id].ecosystemModelAddress;
   }
 
-  get elasticModuleModelAddress() {
-    return cache[this.id].elasticModuleModelAddress;
-  }
-
   get governanceTokenAddress() {
     return cache[this.id].governanceTokenAddress;
-  }
-
-  get registratorAddress() {
-    return cache[this.id].registratorAddress;
   }
 
   get tokenHolderModelAddress() {

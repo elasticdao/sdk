@@ -23,14 +23,6 @@ export default class ElasticDAO extends Base {
     return this.constructor.contract(this.sdk, this.dao.uuid);
   }
 
-  async getDAO() {
-    return this.dao.refresh();
-  }
-
-  async getEcosystem() {
-    return this.dao.ecosystem.refresh();
-  }
-
   async exitDAO(deltaLambda, overrides = {}) {
     this.onlyAfterSummoning();
     const elasticDAO = await this.contract;
@@ -42,15 +34,12 @@ export default class ElasticDAO extends Base {
     return true;
   }
 
-  async initializeModule(address, name, overrides = {}) {
-    this.onlyBeforeSummoning();
-    const elasticDAO = await this.contract;
-    await elasticDAO.initializeModule(
-      address,
-      name,
-      this.sanitizeOverrides(overrides),
-    );
-    return true;
+  async getDAO() {
+    return this.dao.refresh();
+  }
+
+  async getEcosystem() {
+    return this.dao.ecosystem.refresh();
   }
 
   async join(deltaLambda, overrides = {}) {

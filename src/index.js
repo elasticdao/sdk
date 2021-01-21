@@ -6,8 +6,6 @@ import DAOClass from './models/DAO';
 import EcosystemClass from './models/Ecosystem';
 import ElasticDAOClass from './ElasticDAO';
 import ElasticDAOFactoryClass from './ElasticDAOFactory';
-import ElasticModuleClass from './models/ElasticModule';
-import ModulesClass from './modules';
 import TokenClass from './models/Token';
 import TokenHolderClass from './models/TokenHolder';
 
@@ -31,26 +29,8 @@ export {
 } from './models/BalanceMultipliers';
 export { isDAO, validateIsDAO } from './models/DAO';
 export { isEcosystem, validateIsEcosystem } from './models/Ecosystem';
-export {
-  isElasticModule,
-  validateIsElasticModule,
-} from './models/ElasticModule';
 export { isToken, validateIsToken } from './models/Token';
 export { isTokenHolder, validateIsTokenHolder } from './models/TokenHolder';
-
-export {
-  InformationalVote,
-  InformationalVoteBallot,
-  InformationalVoteFactory,
-  InformationalVoteManager,
-  InformationalVoteSettings,
-  isInformationalVote,
-  isInformationalVoteBallot,
-  isInformationalVoteSettings,
-  validateIsInformationalVote,
-  validateIsInformationalVoteBallot,
-  validateIsInformationalVoteSettings,
-} from './modules';
 
 export const Balance = BalanceClass;
 export const BalanceMultipliers = BalanceMultipliersClass;
@@ -58,8 +38,6 @@ export const DAO = DAOClass;
 export const Ecosystem = EcosystemClass;
 export const ElasticDAO = ElasticDAOClass;
 export const ElasticDAOFactory = ElasticDAOFactoryClass;
-export const ElasticModule = ElasticModuleClass;
-export const Modules = ModulesClass;
 export const Token = TokenClass;
 export const TokenHolder = TokenHolderClass;
 
@@ -99,15 +77,6 @@ export class Models extends Base {
     };
   }
 
-  get ElasticModule() {
-    return {
-      contract: (...args) => ElasticModule.contract(this.sdk, ...args),
-      deserialize: (...args) => ElasticModule.deserialize(this.sdk, ...args),
-      deserializeByName: (...args) =>
-        ElasticModule.deserializeByName(this.sdk, ...args),
-    };
-  }
-
   get Token() {
     return {
       contract: (...args) => Token.contract(this.sdk, ...args),
@@ -136,22 +105,9 @@ export class SDK {
     });
     validateIsAddress(env.elasticDAO.daoModelAddress, { prefix });
     validateIsAddress(env.elasticDAO.ecosystemModelAddress, { prefix });
-    validateIsAddress(env.elasticDAO.elasticModuleModelAddress, { prefix });
     validateIsAddress(env.elasticDAO.factoryAddress, { prefix });
     validateIsAddress(env.elasticDAO.tokenModelAddress, { prefix });
     validateIsAddress(env.elasticDAO.tokenHolderModelAddress, { prefix });
-
-    if (!env.elasticDAO.modules || !env.elasticDAO.modules.informationalVote) {
-      console.warn(
-        `${prefix}: env is missing configuration info for modules.informationalVote`,
-      );
-    }
-
-    if (!env.elasticDAO.modules || !env.elasticDAO.modules.transactionalVote) {
-      console.warn(
-        `${prefix}: env is missing configuration info for modules.transactionalVote`,
-      );
-    }
 
     this.account = account;
     this.contract = contract;
@@ -166,9 +122,5 @@ export class SDK {
 
   get models() {
     return new Models(this);
-  }
-
-  get modules() {
-    return new Modules(this);
   }
 }
