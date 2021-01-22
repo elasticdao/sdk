@@ -1,4 +1,4 @@
-import ethers from 'ethers';
+import { ethers } from 'ethers';
 import Base from './Base';
 
 const base = new Base();
