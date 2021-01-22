@@ -11,7 +11,6 @@ module.exports = (env, argv) => ({
     path: path.join(__dirname, '/dist'),
     filename: '[name].js',
     library: 'SDK',
-    libraryExport: 'default',
     libraryTarget: 'umd',
     globalObject: 'this',
   },
