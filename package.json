@@ -1,6 +1,6 @@
 {
   "name": "@elastic-dao/sdk",
-  "version": "0.9.0-beta1",
+  "version": "0.9.0-beta2",
   "description": "SDK for ElasticDAO contracts and core modules",
   "main": "src/index.js",
   "repository": "https://github.com/elasticdao/sdk",
