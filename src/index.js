@@ -164,6 +164,3 @@ export class SDK {
     return new Modules(this);
   }
 }
-
-export default ({ account, contract, env, provider, signer }) =>
-  new SDK({ account, contract, env, provider, signer });
