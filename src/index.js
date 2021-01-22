@@ -16,6 +16,15 @@ import { buildError, upTo, validate } from './utils';
 
 const prefix = '@elastic-dao/sdk';
 
+export {
+  capitalDelta,
+  deltaE,
+  lambdaFromT,
+  mDash,
+  revamp,
+  t,
+} from './elasticMath';
+
 export { isBalance, validateIsBalance } from './models/Balance';
 export {
   isBalanceMultipliers,
