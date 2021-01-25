@@ -57,7 +57,7 @@ export default class ElasticDAO extends Base {
     this.onlyAfterSummoning();
     const elasticDAO = await this.contract;
     await elasticDAO.join(
-      this.toEthersBigNumber(deltaLambda, 19),
+      this.toEthersBigNumber(deltaLambda, 18),
       this.sanitizeOverrides(overrides),
     );
     return true;

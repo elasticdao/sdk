@@ -1,9 +1,9 @@
-import { ethers } from 'ethers';
+// import { ethers } from 'ethers';
 import BigNumber from 'bignumber.js';
-import Base from './Base';
+// import Base from './Base';
 
 // const bigNumber = new BigNumber();
-const base = new Base();
+// const base = new Base();
 
 export const capitalDelta = (totalEthValue, totalSupplyOfTokens) => {
   const capitalDeltaValue = BigNumber(totalEthValue.toString())
