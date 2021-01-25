@@ -1,5 +1,4 @@
 import { validateIsAddress } from '@pie-dao/utils';
-
 import BalanceClass from './models/Balance';
 import BalanceMultipliersClass from './models/BalanceMultipliers';
 import Base from './Base';
@@ -13,6 +12,15 @@ import TokenHolderClass from './models/TokenHolder';
 import { buildError, upTo, validate } from './utils';
 
 const prefix = '@elastic-dao/sdk';
+
+export {
+  capitalDelta,
+  deltaE,
+  lambdaFromT,
+  mDash,
+  revamp,
+  t,
+} from './elasticMath';
 
 export { isBalance, validateIsBalance } from './models/Balance';
 export {
