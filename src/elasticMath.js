@@ -58,16 +58,16 @@ export const mDash = (lambdaDash, lambda, m) => {
   // a = lambdaDash / lambda
   // mDash = a * m
 
-  const a = BigNumber(lambdaDash.toString()).div(lambda.toString());
-  const mDashValue = a.times(m.toString()).dp(18, BigNumber.ROUND_DOWN);
+  const a = BigNumber(lambdaDash.toString())
+    .div(lambda.toString())
+    .dp(18, BigNumber.ROUND_DOWN);
+  const mDashValue = a.times(m.toString());
   return mDashValue;
 };
 
 export const revamp = (elasticity) => {
   // revamp = 1 + elasticity
-  const revampValue = BigNumber('1')
-    .plus(elasticity.toString())
-    .dp(18, BigNumber.ROUND_DOWN);
+  const revampValue = BigNumber('1').plus(elasticity.toString());
 
   return revampValue;
 };
@@ -78,7 +78,7 @@ export const t = (lambda, m, k) => {
   // t = a * k
 
   const a = BigNumber(lambda.toString()).times(m.toString());
-  const tValue = a.times(k.toString()).dp(18, BigNumber.ROUND_DOWN);
+  const tValue = a.times(k.toString());
   return tValue;
 };
 
