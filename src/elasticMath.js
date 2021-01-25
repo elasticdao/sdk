@@ -1,16 +1,15 @@
 import { ethers } from 'ethers';
+import BigNumber from 'bignumber.js';
 import Base from './Base';
 
+// const bigNumber = new BigNumber();
 const base = new Base();
 
 export const capitalDelta = (totalEthValue, totalSupplyOfTokens) => {
-  // capitalDelta =  eth / lambda
-  const capitalDeltaValueEthers = ethers.BigNumber.div(
-    base.toEthersBigNumber(totalEthValue, 18),
-    base.toEthersBigNumber(totalSupplyOfTokens, 18),
-  );
-
-  return base.toBigNumber(capitalDeltaValueEthers, 18);
+  const capitalDeltaValue = BigNumber(totalEthValue.toString())
+    .dividedBy(totalSupplyOfTokens.toString())
+    .dp(18, BigNumber.ROUND_DOWN);
+  return capitalDeltaValue;
 };
 
 export const deltaE = (
@@ -29,56 +28,29 @@ export const deltaE = (
   //     d - lambdaDash * mDash
   // deltaE = ( a * ( ( d * b ) - c ) ) )
 
-  const lambdaDash = ethers.BigNumber.sum(
-    base.toEthersBigNumber(deltaLambda, 18),
-    base.toEthersBigNumber(lambda, 18),
+  const a = BigNumber(capitalDeltaValue.toString()).times(k.toString());
+  const b = BigNumber('1').plus(elasticity.toString());
+  const c = BigNumber(lambda.toString()).times(m.toString());
+  const lambdaDash = BigNumber(lambda.toString()).plus(deltaLambda.toString());
+  const mDash = BigNumber(lambdaDash.div(lambda.toString())).times(
+    m.toString(),
   );
-  const mDash = ethers.BigNumber.mul(
-    ethers.BigNumber.div(lambdaDash, base.toEthersBigNumber(lambda, 18)),
-    base.toEthersBigNumber(m, 18),
-  );
+  const d = lambdaDash.times(mDash.toString());
 
-  const a = ethers.BigNumber.mul(
-    base.toEthersBigNumber(capitalDeltaValue, 18),
-    base.toEthersBigNumber(k, 18),
-  );
-
-  const b = ethers.BigNumber.add(
-    base.toEthersBigNumber(1, 18),
-    base.toEthersBigNumber(elasticity, 18),
-  );
-
-  const c = ethers.BigNumber.mul(
-    base.toEthersBigNumber(lambda, 18),
-    base.toEthersBigNumber(m, 18),
-  );
-
-  const d = ethers.BigNumber.mul(lambdaDash, mDash);
-  const dMultipliedByb = ethers.BigNumber.mul(d, b);
-
-  const deltaEValueEthers = ethers.BigNumber.mul(
-    a,
-    ethers.BigNumber.sub(dMultipliedByb, c),
-  );
-
-  return base.toBigNumber(deltaEValueEthers, 18);
+  const deltaEValue = a.times(d.times(b).minus(c)).dp(18, BigNumber.ROUND_DOWN);
+  return deltaEValue;
 };
 
 export const lambdaFromT = (t, k, m) => {
   // lambda = t / ( m * k)
   // a = m * k
   // lambda = t / a
-  const a = ethers.BigNumber.mul(
-    base.toEthersBigNumber(m, 18),
-    base.toEthersBigNumber(k, 18),
-  );
 
-  const lambdaFromTEthersValue = ethers.BigNumber.div(
-    base.toEthersBigNumber(t, 18),
-    a,
-  );
-
-  return base.toBigNumber(lambdaFromTEthersValue, 18);
+  const a = BigNumber(m.toString()).times(k.toString());
+  const lambdaValue = BigNumber(t.toString())
+    .div(a)
+    .dp(18, BigNumber.ROUND_DOWN);
+  return lambdaValue;
 };
 
 export const mDash = (lambdaDash, lambda, m) => {
@@ -86,27 +58,18 @@ export const mDash = (lambdaDash, lambda, m) => {
   // a = lambdaDash / lambda
   // mDash = a * m
 
-  const a = ethers.BigNumber.div(
-    base.toEthersBigNumber(lambdaDash, 18),
-    base.toEthersBigNumber(lambda, 18),
-  );
-
-  const mDashValueEthers = ethers.BigNumber.mul(
-    a,
-    base.toEthersBigNumber(m, 18),
-  );
-
-  return base.toBigNumber(mDashValueEthers, 18);
+  const a = BigNumber(lambdaDash.toString()).div(lambda.toString());
+  const mDashValue = a.times(m.toString()).dp(18, BigNumber.ROUND_DOWN);
+  return mDashValue;
 };
 
 export const revamp = (elasticity) => {
   // revamp = 1 + elasticity
-  const revampValueEthers = ethers.BigNumber.add(
-    base.toEthersBigNumber(1, 18),
-    base.toEthersBigNumber(elasticity, 18),
-  );
+  const revampValue = BigNumber('1')
+    .plus(elasticity.toString())
+    .dp(18, BigNumber.ROUND_DOWN);
 
-  return base.toBigNumber(revampValueEthers, 18);
+  return revampValue;
 };
 
 export const t = (lambda, m, k) => {
@@ -114,13 +77,9 @@ export const t = (lambda, m, k) => {
   // a = lambda * m
   // t = a * k
 
-  const a = ethers.BigNumber.mul(
-    base.toEthersBigNumber(lambda, 18),
-    base.toEthersBigNumber(m, 18),
-  );
-  const tValueEthers = ethers.BigNumbers.mul(a, base.toEthersBigNumber(k, 18));
-
-  return base.toBigNumber(tValueEthers, 18);
+  const a = BigNumber(lambda.toString()).times(m.toString());
+  const tValue = a.times(k.toString()).dp(18, BigNumber.ROUND_DOWN);
+  return tValue;
 };
 
 export default { capitalDelta, deltaE, lambdaFromT, mDash, revamp, t };

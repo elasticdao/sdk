@@ -1,5 +1,4 @@
 import { validateIsAddress } from '@pie-dao/utils';
-
 import BalanceClass from './models/Balance';
 import BalanceMultipliersClass from './models/BalanceMultipliers';
 import Base from './Base';
