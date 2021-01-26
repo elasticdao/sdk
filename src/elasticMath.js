@@ -47,19 +47,19 @@ export const deltaE = (
   const c = BigNumber(lambda.toString()).times(m.toString()).dp(18);
   console.log('sdk: c:', c.toFixed());
 
-  const d = mDash(lambdaDash, lambda, m);
+  const d = mDash(lambdaDash, lambda, m).dp(18);
   console.log('sdk: d: ', d.toFixed());
 
-  const e = d.times(b);
+  const e = d.times(b).dp(18);
   console.log('sdk: e: ', e.toFixed());
 
-  const f = lambdaDash.times(e);
+  const f = lambdaDash.times(e).dp(18);
   console.log('sdk: f: ', f.toFixed());
 
-  const g = f.minus(c);
+  const g = f.minus(c).dp(18);
   console.log('sdk: g: ', g.toFixed());
 
-  const deltaValue = a.times(g);
+  const deltaValue = a.times(g).dp(18);
   console.log('sdk: deltaValue: ', deltaValue.toFixed());
 
   return deltaValue;
