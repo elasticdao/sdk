@@ -23,10 +23,10 @@ export default class ElasticDAO extends Base {
     return this.constructor.contract(this.sdk, this.dao.uuid);
   }
 
-  async exitDAO(deltaLambda, overrides = {}) {
+  async exit(deltaLambda, overrides = {}) {
     this.onlyAfterSummoning();
     const elasticDAO = await this.contract;
-    await elasticDAO.exitDAO(
+    await elasticDAO.exit(
       this.toEthersBigNumber(deltaLambda, 18),
       this.sanitizeOverrides(overrides),
     );
