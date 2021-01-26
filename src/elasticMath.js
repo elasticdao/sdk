@@ -27,6 +27,14 @@ export const deltaE = (
   //     c - lambda * m
   //     d - lambdaDash * mDash
   // deltaE = ( a * ( ( d * b ) - c ) ) )
+
+  console.log('test: deltaLambda: ', deltaLambda.toFixed());
+  console.log('test: capitalDeltaValue: ', capitalDeltaValue.toFixed());
+  console.log('test: k: ', k.toFixed());
+  console.log('test: elasticity: ', elasticity.toFixed());
+  console.log('test: lambda: ', lambda.toFixed());
+  console.log('test: m: ', m.toFixed());
+
   const lambdaDash = BigNumber(lambda.toString()).plus(deltaLambda.toString());
   console.log('sdk: lambdadash: ', lambdaDash.toFixed());
 
