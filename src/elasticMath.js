@@ -27,18 +27,34 @@ export const deltaE = (
   //     c - lambda * m
   //     d - lambdaDash * mDash
   // deltaE = ( a * ( ( d * b ) - c ) ) )
+  const lambdaDash = BigNumber(lambda.toString()).plus(deltaLambda.toString());
+  console.log('sdk: lambdadash: ', lambdaDash.toFixed());
 
   const a = BigNumber(capitalDeltaValue.toString()).times(k.toString()).dp(18);
-  const b = BigNumber('1').plus(elasticity.toString());
-  const c = BigNumber(lambda.toString()).times(m.toString()).dp(18);
-  const lambdaDash = BigNumber(lambda.toString()).plus(deltaLambda.toString());
-  const mDash = BigNumber(lambdaDash.div(lambda.toString()))
-    .dp(18)
-    .times(m.toString())
-    .dp(18);
-  const d = lambdaDash.times(mDash.toString()).dp(18);
+  console.log('sdk: a:', a.toFixed());
 
-  return a.times(d.times(b).minus(c)).dp(18);
+  const b = revamp(elasticity);
+  console.log('sdk: b:', b.toFixed());
+
+  const c = BigNumber(lambda.toString()).times(m.toString()).dp(18);
+  console.log('sdk: c:', c.toFixed());
+
+  const d = mDash(lambdaDash, lambda, m);
+  console.log('sdk: d: ', d.toFixed());
+
+  const e = d.times(b);
+  console.log('sdk: e: ', e.toFixed());
+
+  const f = lambdaDash.times(e);
+  console.log('sdk: f: ', f.toFixed());
+
+  const g = f.minus(c);
+  console.log('sdk: g: ', g.toFixed());
+
+  const deltaValue = a.times(g);
+  console.log('sdk: deltaValue: ', deltaValue.toFixed());
+
+  return deltaValue;
 };
 
 export const lambdaFromT = (t, k, m) => {
