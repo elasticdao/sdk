@@ -8,7 +8,7 @@ import BigNumber from 'bignumber.js';
 export const capitalDelta = (totalEthValue, totalSupplyOfTokens) => {
   const capitalDeltaValue = BigNumber(totalEthValue.toString())
     .dividedBy(totalSupplyOfTokens.toString())
-    .dp(18, BigNumber.ROUND_DOWN);
+    .dp(18);
   return capitalDeltaValue;
 };
 
@@ -28,17 +28,17 @@ export const deltaE = (
   //     d - lambdaDash * mDash
   // deltaE = ( a * ( ( d * b ) - c ) ) )
 
-  const a = BigNumber(capitalDeltaValue.toString()).times(k.toString());
+  const a = BigNumber(capitalDeltaValue.toString()).times(k.toString()).dp(18);
   const b = BigNumber('1').plus(elasticity.toString());
-  const c = BigNumber(lambda.toString()).times(m.toString());
+  const c = BigNumber(lambda.toString()).times(m.toString()).dp(18);
   const lambdaDash = BigNumber(lambda.toString()).plus(deltaLambda.toString());
-  const mDash = BigNumber(lambdaDash.div(lambda.toString())).times(
-    m.toString(),
-  );
-  const d = lambdaDash.times(mDash.toString());
+  const mDash = BigNumber(lambdaDash.div(lambda.toString()))
+    .dp(18)
+    .times(m.toString())
+    .dp(18);
+  const d = lambdaDash.times(mDash.toString()).dp(18);
 
-  const deltaEValue = a.times(d.times(b).minus(c)).dp(18, BigNumber.ROUND_DOWN);
-  return deltaEValue;
+  return a.times(d.times(b).minus(c)).dp(18);
 };
 
 export const lambdaFromT = (t, k, m) => {
@@ -46,11 +46,8 @@ export const lambdaFromT = (t, k, m) => {
   // a = m * k
   // lambda = t / a
 
-  const a = BigNumber(m.toString()).times(k.toString());
-  const lambdaValue = BigNumber(t.toString())
-    .div(a)
-    .dp(18, BigNumber.ROUND_DOWN);
-  return lambdaValue;
+  const a = BigNumber(m.toString()).times(k.toString()).dp(18);
+  return BigNumber(t.toString()).div(a).dp(18);
 };
 
 export const mDash = (lambdaDash, lambda, m) => {
@@ -58,28 +55,20 @@ export const mDash = (lambdaDash, lambda, m) => {
   // a = lambdaDash / lambda
   // mDash = a * m
 
-  const a = BigNumber(lambdaDash.toString())
-    .div(lambda.toString())
-    .dp(18, BigNumber.ROUND_DOWN);
-  const mDashValue = a.times(m.toString());
-  return mDashValue;
+  const a = BigNumber(lambdaDash.toString()).div(lambda.toString()).dp(18);
+  return a.times(m.toString()).dp(18);
 };
 
-export const revamp = (elasticity) => {
-  // revamp = 1 + elasticity
-  const revampValue = BigNumber('1').plus(elasticity.toString());
-
-  return revampValue;
-};
+export const revamp = (elasticity) =>
+  BigNumber('1').plus(elasticity.toString());
 
 export const t = (lambda, m, k) => {
   // t = lambda * m * k
   // a = lambda * m
   // t = a * k
 
-  const a = BigNumber(lambda.toString()).times(m.toString());
-  const tValue = a.times(k.toString());
-  return tValue;
+  const a = BigNumber(lambda.toString()).times(m.toString()).dp(18);
+  return a.times(k.toString()).dp(18);
 };
 
 export default { capitalDelta, deltaE, lambdaFromT, mDash, revamp, t };
