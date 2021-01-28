@@ -27,7 +27,7 @@ export const deltaE = (
   //     c - lambda * m
   //     d - lambdaDash * mDash
   // deltaE = ( a * ( ( d * b ) - c ) ) )
-
+  console.log('localSDK check: ');
   console.log('test: deltaLambda: ', deltaLambda.toFixed());
   console.log('test: capitalDeltaValue: ', capitalDeltaValue.toFixed());
   console.log('test: k: ', k.toFixed());
@@ -35,7 +35,9 @@ export const deltaE = (
   console.log('test: lambda: ', lambda.toFixed());
   console.log('test: m: ', m.toFixed());
 
-  const lambdaDash = BigNumber(lambda.toString()).plus(deltaLambda.toString());
+  const lambdaDash = BigNumber(lambda.toString())
+    .plus(deltaLambda.toString())
+    .dp(18);
   console.log('sdk: lambdadash: ', lambdaDash.toFixed());
 
   const a = BigNumber(capitalDeltaValue.toString()).times(k.toString()).dp(18);

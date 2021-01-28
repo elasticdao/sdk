@@ -26,12 +26,13 @@ export default class ElasticDAO extends Base {
   async exit(deltaLambda, overrides = {}) {
     this.onlyAfterSummoning();
     const elasticDAO = await this.contract;
-    await elasticDAO.exit(
-      this.toEthersBigNumber(deltaLambda, 18),
-      this.sanitizeOverrides(overrides),
-    );
 
-    return true;
+    return this._handleTransaction(
+      await elasticDAO.exit(
+        this.toEthersBigNumber(deltaLambda, 18),
+        this.sanitizeOverrides(overrides),
+      ),
+    );
   }
 
   async getDAO() {
@@ -45,11 +46,13 @@ export default class ElasticDAO extends Base {
   async join(deltaLambda, overrides = {}) {
     this.onlyAfterSummoning();
     const elasticDAO = await this.contract;
-    await elasticDAO.join(
-      this.toEthersBigNumber(deltaLambda, 18),
-      this.sanitizeOverrides(overrides),
+
+    return this._handleTransaction(
+      await elasticDAO.join(
+        this.toEthersBigNumber(deltaLambda, 18),
+        this.sanitizeOverrides(overrides),
+      ),
     );
-    return true;
   }
 
   onlyAfterSummoning() {
@@ -67,18 +70,25 @@ export default class ElasticDAO extends Base {
   async seedSummoning(overrides = {}) {
     this.onlyBeforeSummoning();
     const elasticDAO = await this.contract;
+
     if (overrides.value && BigNumber(overrides.value).isGreaterThan(0)) {
-      return elasticDAO.seedSummoning(this.sanitizeOverrides(overrides));
+      return this._handleTransaction(
+        elasticDAO.seedSummoning(this.sanitizeOverrides(overrides)),
+      );
     }
+
     throw new Error(`${prefix}: ${valueGreaterThanZero}`);
   }
 
   async summon(deltaLambda, overrides = {}) {
     this.onlyBeforeSummoning();
     const elasticDAO = await this.contract;
-    return elasticDAO.summon(
-      this.toEthersBigNumber(deltaLambda, 18),
-      this.sanitizeOverrides(overrides),
+
+    return this._handleTransaction(
+      await elasticDAO.summon(
+        this.toEthersBigNumber(deltaLambda, 18),
+        this.sanitizeOverrides(overrides),
+      ),
     );
   }
 
@@ -88,5 +98,11 @@ export default class ElasticDAO extends Base {
     return Promise.all(
       upTo(this.dao.numberOfSummoners).map((i) => elasticDAO.summoners(i)),
     );
+  }
+
+  async _handleTransaction(tx) {
+    console.log(tx);
+    await tx.wait(1);
+    return this.getDAO();
   }
 }
