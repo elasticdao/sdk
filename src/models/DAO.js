@@ -1,5 +1,4 @@
 import { validateIsAddress } from '@pie-dao/utils';
-import { subject } from '../observables';
 import { validate } from '../utils';
 import DAOContract from '../../artifacts/DAO.json';
 import Ecosystem, { isEcosystem } from './Ecosystem';
@@ -93,10 +92,6 @@ export default class DAO extends ElasticModel {
     return this.toNumber(cache[this.id].numberOfSummoners);
   }
 
-  get subject() {
-    return subject(`DAO|${this.id}`);
-  }
-
   get summoned() {
     return cache[this.id].summoned;
   }
@@ -112,7 +107,7 @@ export default class DAO extends ElasticModel {
   }
 
   async refresh() {
-    await this.ecosystem.refresh();
+    await Promise.all([this.ecosystem.refresh(), this.token()]);
     return this.constructor.deserialize(this.sdk, this.uuid, this.ecosystem);
   }
 

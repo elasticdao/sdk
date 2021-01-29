@@ -1,5 +1,4 @@
 import { validateIsAddress } from '@pie-dao/utils';
-import { subject } from '../observables';
 import { validate } from '../utils';
 import { validateIsEcosystem } from './Ecosystem';
 import ElasticModel from './ElasticModel';
@@ -142,10 +141,6 @@ export default class Token extends ElasticModel {
 
   get numberOfTokenHolders() {
     return this.toNumber(cache[this.id].numberOfTokenHolders);
-  }
-
-  get subject() {
-    return subject(`Token|${this.id}`);
   }
 
   get symbol() {

@@ -1,5 +1,4 @@
 import { validateIsAddress, validateIsNumber } from '@pie-dao/utils';
-import { subject } from '../observables';
 import { validate } from '../utils';
 import { validateIsEcosystem } from './Ecosystem';
 import { validateIsToken } from './Token';
@@ -110,10 +109,6 @@ export default class Balance extends ElasticModel {
 
   get m() {
     return this.toBigNumber(cache[this.id].m, 18);
-  }
-
-  get subject() {
-    return subject(`Balance|${this.id}`);
   }
 
   get token() {

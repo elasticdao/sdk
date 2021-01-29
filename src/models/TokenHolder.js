@@ -1,5 +1,4 @@
 import { validateIsAddress } from '@pie-dao/utils';
-import { subject } from '../observables';
 import { validate } from '../utils';
 import { validateIsEcosystem } from './Ecosystem';
 import { validateIsToken } from './Token';
@@ -91,10 +90,6 @@ export default class TokenHolder extends ElasticModel {
 
   get lambda() {
     return this.toBigNumber(cache[this.id].lambda, 18);
-  }
-
-  get subject() {
-    return subject(`TokenHolder|${this.id}`);
   }
 
   get token() {

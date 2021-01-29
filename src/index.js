@@ -126,9 +126,9 @@ export class SDK {
   }
 
   changeSigner(signer) {
+    this.account = signer.address;
     this.contract = ({ address, abi }) =>
       new ethers.Contract(address, abi, signer);
     this.signer = signer;
-    this.account = signer.address;
   }
 }
