@@ -12,3 +12,5 @@ cp -v ../contracts/artifacts/src/models/Ecosystem.sol/Ecosystem.json ./artifacts
 cp -v ../contracts/artifacts/src/models/Token.sol/Token.json ./artifacts
 cp -v ../contracts/artifacts/src/models/TokenHolder.sol/TokenHolder.json ./artifacts
 cp -v ../contracts/artifacts/src/tokens/ElasticGovernanceToken.sol/ElasticGovernanceToken.json ./artifacts
+
+node ./scripts/compressArtifacts.js

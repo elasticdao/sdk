@@ -43,6 +43,7 @@ export default class Ecosystem extends ElasticModel {
       tokenHolderModelAddress,
       tokenModelAddress,
     };
+    this.subject.next(this);
   }
 
   // Class functions

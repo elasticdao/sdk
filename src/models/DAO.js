@@ -28,6 +28,7 @@ export default class DAO extends ElasticModel {
       summoned,
       uuid,
     };
+    this.subject.next(this);
   }
 
   // Class functions
@@ -106,6 +107,7 @@ export default class DAO extends ElasticModel {
   }
 
   async refresh() {
+    await Promise.all([this.ecosystem.refresh(), this.token()]);
     return this.constructor.deserialize(this.sdk, this.uuid, this.ecosystem);
   }
 

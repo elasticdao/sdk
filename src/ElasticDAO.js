@@ -73,7 +73,7 @@ export default class ElasticDAO extends Base {
 
     if (overrides.value && BigNumber(overrides.value).isGreaterThan(0)) {
       return this._handleTransaction(
-        elasticDAO.seedSummoning(this.sanitizeOverrides(overrides)),
+        await elasticDAO.seedSummoning(this.sanitizeOverrides(overrides)),
       );
     }
 
@@ -101,7 +101,6 @@ export default class ElasticDAO extends Base {
   }
 
   async _handleTransaction(tx) {
-    console.log(tx);
     await tx.wait(1);
     return this.getDAO();
   }

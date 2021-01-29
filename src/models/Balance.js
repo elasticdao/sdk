@@ -33,6 +33,7 @@ export default class Balance extends ElasticModel {
       token,
       tokenHolder,
     };
+    this.subject.next(this);
   }
 
   // Class functions
@@ -90,6 +91,10 @@ export default class Balance extends ElasticModel {
     return this.constructor.contract(this.sdk, this.address);
   }
 
+  get ecosystem() {
+    return cache[this.id].ecosystem;
+  }
+
   get index() {
     return this.toNumber(cache[this.id].index);
   }
@@ -106,10 +111,6 @@ export default class Balance extends ElasticModel {
     return this.toBigNumber(cache[this.id].m, 18);
   }
 
-  get ecosystem() {
-    return cache[this.id].ecosystem;
-  }
-
   get token() {
     return cache[this.id].token;
   }
@@ -121,6 +122,12 @@ export default class Balance extends ElasticModel {
   // Instance functions
 
   async refresh() {
+    await Promise.all([
+      this.ecosystem.refresh(),
+      this.token.refresh(),
+      this.tokenHolder.refresh(),
+    ]);
+
     return this.constructor.deserialize(
       this.sdk,
       this.blockNumber,

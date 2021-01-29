@@ -58,7 +58,7 @@ export default class ElasticDAOFactory extends Base {
         }),
       );
       await tx.wait(2);
-      reject();
+      reject(tx);
     });
 
     return DAO.deserialize(this.sdk, await daoDeployedFilterPromise);

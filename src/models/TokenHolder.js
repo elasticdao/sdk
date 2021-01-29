@@ -26,6 +26,7 @@ export default class TokenHolder extends ElasticModel {
       lambda,
       token,
     };
+    this.subject.next(this);
   }
 
   // Class functions
@@ -98,6 +99,8 @@ export default class TokenHolder extends ElasticModel {
   // Instance functions
 
   async refresh() {
+    await Promise.all([this.ecosystem.refresh(), this.token.refresh()]);
+
     return this.constructor.deserialize(
       this.sdk,
       this.uuid,
