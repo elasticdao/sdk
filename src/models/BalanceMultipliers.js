@@ -1,4 +1,5 @@
 import { validateIsAddress, validateIsNumber } from '@pie-dao/utils';
+import { subject } from '../observables';
 import { validate } from '../utils';
 import { validateIsEcosystem } from './Ecosystem';
 import { validateIsToken } from './Token';
@@ -27,6 +28,7 @@ export default class BalanceMultipliers extends ElasticModel {
       ecosystem,
       token,
     };
+    this.subject.next(this);
   }
 
   // Class functions
@@ -76,6 +78,10 @@ export default class BalanceMultipliers extends ElasticModel {
     return this.constructor.contract(this.sdk, this.address);
   }
 
+  get ecosystem() {
+    return cache[this.id].ecosystem;
+  }
+
   get index() {
     return this.toNumber(cache[this.id].index);
   }
@@ -88,8 +94,8 @@ export default class BalanceMultipliers extends ElasticModel {
     return this.toBigNumber(cache[this.id].m, 18);
   }
 
-  get ecosystem() {
-    return cache[this.id].ecosystem;
+  get subject() {
+    return subject(`BalanceMultipliers|${this.id}`);
   }
 
   get token() {

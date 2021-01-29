@@ -1,4 +1,5 @@
 import { validateIsAddress } from '@pie-dao/utils';
+import { subject } from '../observables';
 import { validate } from '../utils';
 import DAOContract from '../../artifacts/DAO.json';
 import Ecosystem, { isEcosystem } from './Ecosystem';
@@ -28,6 +29,7 @@ export default class DAO extends ElasticModel {
       summoned,
       uuid,
     };
+    this.subject.next(this);
   }
 
   // Class functions
@@ -89,6 +91,10 @@ export default class DAO extends ElasticModel {
 
   get numberOfSummoners() {
     return this.toNumber(cache[this.id].numberOfSummoners);
+  }
+
+  get subject() {
+    return subject(`DAO|${this.id}`);
   }
 
   get summoned() {

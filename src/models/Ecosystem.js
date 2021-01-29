@@ -1,6 +1,7 @@
 import { ethers } from 'ethers';
 import { validateIsAddress } from '@pie-dao/utils';
 
+import { subject } from '../observables';
 import { validate } from '../utils';
 import EcosystemContract from '../../artifacts/Ecosystem.json';
 import ElasticModel from './ElasticModel';
@@ -43,6 +44,7 @@ export default class Ecosystem extends ElasticModel {
       tokenHolderModelAddress,
       tokenModelAddress,
     };
+    this.subject.next(this);
   }
 
   // Class functions
@@ -120,6 +122,10 @@ export default class Ecosystem extends ElasticModel {
 
   get governanceTokenAddress() {
     return cache[this.id].governanceTokenAddress;
+  }
+
+  get subject() {
+    return subject(`Ecosystem|${this.id}`);
   }
 
   get tokenHolderModelAddress() {
