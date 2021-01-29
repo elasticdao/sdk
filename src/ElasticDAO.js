@@ -101,7 +101,6 @@ export default class ElasticDAO extends Base {
   }
 
   async _handleTransaction(tx) {
-    console.log(tx);
     await tx.wait(1);
     return this.getDAO();
   }

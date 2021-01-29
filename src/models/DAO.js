@@ -106,6 +106,7 @@ export default class DAO extends ElasticModel {
   }
 
   async refresh() {
+    await this.ecosystem.refresh();
     return this.constructor.deserialize(this.sdk, this.uuid, this.ecosystem);
   }
 

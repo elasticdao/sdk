@@ -1,3 +1,4 @@
+import { ethers } from 'ethers';
 import { validateIsAddress } from '@pie-dao/utils';
 import BalanceClass from './models/Balance';
 import BalanceMultipliersClass from './models/BalanceMultipliers';
@@ -122,5 +123,12 @@ export class SDK {
 
   get models() {
     return new Models(this);
+  }
+
+  changeSigner(signer) {
+    this.contract = ({ address, abi }) =>
+      new ethers.Contract(address, abi, signer);
+    this.signer = signer;
+    this.account = signer.address;
   }
 }

@@ -153,6 +153,7 @@ export default class Token extends ElasticModel {
   // Instance functions
 
   async refresh() {
+    await this.ecosystem.refresh();
     return this.constructor.deserialize(this.sdk, this.uuid, this.ecosystem);
   }
 

@@ -121,6 +121,12 @@ export default class Balance extends ElasticModel {
   // Instance functions
 
   async refresh() {
+    await Promise.all([
+      this.ecosystem.refresh(),
+      this.token.refresh(),
+      this.tokenHolder.refresh(),
+    ]);
+
     return this.constructor.deserialize(
       this.sdk,
       this.blockNumber,
