@@ -84,6 +84,16 @@ export default class ElasticGovernanceToken extends Base {
     return this.toBigNumber(balanceOfInSharesAt.toString(), 18);
   }
 
+  async balanceOfVoting(accountAddress, overrides = {}) {
+    const elasticGovernanceToken = await this.contract;
+    const balanceOfVoting = await elasticGovernanceToken.balanceOfVoting(
+      accountAddress,
+      this.sanitizeOverrides(overrides),
+    );
+
+    return this.toBigNumber(balanceOfVoting.toString(), 18);
+  }
+
   async burn(address, amount, overrides = {}) {
     const elasticGovernanceToken = await this.contract;
     const burnStatus = await elasticGovernanceToken.burn(
@@ -114,6 +124,12 @@ export default class ElasticGovernanceToken extends Base {
     return decreaseAllowanceStatus;
   }
 
+  async decimals() {
+    const elasticGovernanceToken = await this.contract;
+    const decimals = await elasticGovernanceToken.decimals();
+    return decimals;
+  }
+
   async increaseAllowance(spenderAddress, addedValue, overrides = {}) {
     const elasticGovernanceToken = await this.contract;
     const increaseAllowanceStatus = await elasticGovernanceToken.increaseAllowance(
@@ -128,7 +144,7 @@ export default class ElasticGovernanceToken extends Base {
     const elasticGovernanceToken = await this.contract;
     const mintStatus = await elasticGovernanceToken.mint(
       address,
-      this.toEthersBigNumber(amount),
+      this.toEthersBigNumber(amount, 18),
       this.sanitizeOverrides(overrides),
     );
     return mintStatus;
@@ -157,7 +173,9 @@ export default class ElasticGovernanceToken extends Base {
     const number = await elasticGovernanceToken.numberOfTokenHolders(
       this.sanitizeOverrides(overrides),
     );
-    return this.toBigNumber(number.toString(), 18);
+
+    // TODO: ASK ABOUT TO BIGNUMBER CAUSE ITS 0.000000000....3 instead of 3?
+    return this.toBigNumber(number.toString());
   }
 
   async symbol(overrides = {}) {
@@ -188,7 +206,7 @@ export default class ElasticGovernanceToken extends Base {
     const elasticGovernanceToken = await this.contract;
     const transferStatus = await elasticGovernanceToken.transfer(
       address,
-      this.toEthersBigNumber(amount),
+      this.toEthersBigNumber(amount, 18),
       this.sanitizeOverrides(overrides),
     );
 
@@ -200,7 +218,7 @@ export default class ElasticGovernanceToken extends Base {
     const transferStatus = await elasticGovernanceToken.transferFrom(
       fromAddress,
       toAddress,
-      this.toEthersBigNumber(amount),
+      this.toEthersBigNumber(amount, 18),
       this.sanitizeOverrides(overrides),
     );
 
