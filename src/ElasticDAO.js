@@ -35,12 +35,24 @@ export default class ElasticDAO extends Base {
     );
   }
 
+  async getController() {
+    const elasticDAO = await this.contract;
+
+    return elasticDAO.controller();
+  }
+
   async getDAO() {
     return this.dao.refresh();
   }
 
   async getEcosystem() {
     return this.dao.ecosystem.refresh();
+  }
+
+  async getMaxVotingLambda() {
+    const elasticDAO = await this.contract;
+
+    return elasticDAO.maxVotingLambda();
   }
 
   async join(deltaLambda, overrides = {}) {

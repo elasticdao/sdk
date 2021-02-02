@@ -73,4 +73,18 @@ export default class ElasticDAOFactory extends Base {
     );
     return Promise.all(promises);
   }
+
+  async updateFeeAddress(address) {
+    const factory = await this.contract;
+    const tx = factory.updateFeeAddress(address);
+
+    return tx;
+  }
+
+  async collectFees() {
+    const factory = await this.contract;
+    const tx = factory.collectFees();
+
+    return tx;
+  }
 }
