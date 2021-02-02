@@ -118,7 +118,7 @@ export default class ElasticGovernanceToken extends Base {
     const elasticGovernanceToken = await this.contract;
     const decreaseAllowanceStatus = await elasticGovernanceToken.decreaseAllowance(
       spenderAddress,
-      subtractedValue,
+      this.toEthersBigNumber(subtractedValue, 18),
       this.sanitizeOverrides(overrides),
     );
     return decreaseAllowanceStatus;
@@ -134,7 +134,7 @@ export default class ElasticGovernanceToken extends Base {
     const elasticGovernanceToken = await this.contract;
     const increaseAllowanceStatus = await elasticGovernanceToken.increaseAllowance(
       spenderAddress,
-      addedValue,
+      this.toEthersBigNumber(addedValue, 18),
       this.sanitizeOverrides(overrides),
     );
     return increaseAllowanceStatus;
