@@ -7,12 +7,23 @@ import DAOClass from './models/DAO';
 import EcosystemClass from './models/Ecosystem';
 import ElasticDAOClass from './ElasticDAO';
 import ElasticDAOFactoryClass from './ElasticDAOFactory';
+import ElasticGovernanceTokenClass from './tokens/ElasticGovernanceToken';
 import TokenClass from './models/Token';
 import TokenHolderClass from './models/TokenHolder';
 
 import { buildError, upTo, validate } from './utils';
 
 const prefix = '@elastic-dao/sdk';
+
+export { abi as BalanceABI } from '../artifacts/Balance.json';
+export { abi as BalanceMultipliersABI } from '../artifacts/BalanceMultipliers.json';
+export { abi as DAOABI } from '../artifacts/DAO.json';
+export { abi as EcosystemABI } from '../artifacts/Ecosystem.json';
+export { abi as ElasticDAOABI } from '../artifacts/ElasticDAO.json';
+export { abi as ElasticDAOFactoryABI } from '../artifacts/ElasticDAOFactory.json';
+export { abi as ElasticGovernanceTokenABI } from '../artifacts/ElasticGovernanceToken.json';
+export { abi as TokenABI } from '../artifacts/Token.json';
+export { abi as TokenHolderABI } from '../artifacts/TokenHolder.json';
 
 export {
   capitalDelta,
@@ -39,6 +50,7 @@ export const DAO = DAOClass;
 export const Ecosystem = EcosystemClass;
 export const ElasticDAO = ElasticDAOClass;
 export const ElasticDAOFactory = ElasticDAOFactoryClass;
+export const ElasticGovernanceToken = ElasticGovernanceTokenClass;
 export const Token = TokenClass;
 export const TokenHolder = TokenHolderClass;
 
@@ -110,11 +122,13 @@ export class SDK {
     validateIsAddress(env.elasticDAO.tokenModelAddress, { prefix });
     validateIsAddress(env.elasticDAO.tokenHolderModelAddress, { prefix });
 
-    this.account = account;
-    this.contract = contract;
+    this.provider = provider || ethers.getDefaultProvider();
+    this.contract =
+      contract ||
+      (({ address, abi }) => new ethers.Contract(address, abi, this.provider));
     this.env = env;
-    this.provider = provider;
     this.signer = signer;
+    this.account = account;
   }
 
   get elasticDAOFactory() {
