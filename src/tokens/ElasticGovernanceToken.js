@@ -174,7 +174,6 @@ export default class ElasticGovernanceToken extends Base {
       this.sanitizeOverrides(overrides),
     );
 
-    // TODO: ASK ABOUT TO BIGNUMBER CAUSE ITS 0.000000000....3 instead of 3?
     return this.toBigNumber(number.toString());
   }
 
@@ -183,6 +182,7 @@ export default class ElasticGovernanceToken extends Base {
     const symbol = await elasticGovernanceToken.symbol(
       this.sanitizeOverrides(overrides),
     );
+
     return symbol;
   }
 
