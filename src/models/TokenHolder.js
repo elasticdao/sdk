@@ -66,6 +66,18 @@ export default class TokenHolder extends ElasticModel {
     });
   }
 
+  static async exists(sdk, account, token) {
+    validateIsAddress(account, { prefix });
+    validateIsToken(token);
+
+    const tokenHolderModel = await this.contract(
+      sdk,
+      token.ecosystem.tokenHolderModelAddress,
+    );
+
+    return tokenHolderModel.exists(account, token);
+  }
+
   // Getters
 
   get account() {

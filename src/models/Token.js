@@ -1,6 +1,6 @@
 import { validateIsAddress } from '@pie-dao/utils';
 import { validate } from '../utils';
-import { validateIsEcosystem } from './Ecosystem';
+import Ecosystem, { validateIsEcosystem } from './Ecosystem';
 import ElasticModel from './ElasticModel';
 import TokenContract from '../../artifacts/Token.json';
 
@@ -91,6 +91,15 @@ export default class Token extends ElasticModel {
       symbol,
       uuid,
     });
+  }
+
+  static async exists(sdk, uuid) {
+    validateIsAddress(uuid, { prefix });
+
+    const ecosystem = await Ecosystem.deserialize(sdk, uuid);
+    const tokenModel = await this.contract(sdk, ecosystem.tokenModelAddress);
+
+    return tokenModel.exists(uuid, ecosystem);
   }
 
   // Getters

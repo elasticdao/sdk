@@ -39,6 +39,7 @@ export default class ElasticDAOFactory extends Base {
       this.toEthersBigNumber(k, 18),
       this.toEthersBigNumber(maxLambdaPurchase, 18),
     ];
+
     const factory = await this.contract;
     const daoDeployedFilter = factory.filters.DAODeployed();
     const daoDeployedFilterPromise = new Promise(async (resolve, reject) => {

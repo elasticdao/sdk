@@ -54,6 +54,7 @@ export class Models extends Base {
     return {
       contract: (...args) => DAO.contract(this.sdk, ...args),
       deserialize: (...args) => DAO.deserialize(this.sdk, ...args),
+      exists: (...args) => DAO.exists(this.sdk, ...args),
     };
   }
 
@@ -61,6 +62,7 @@ export class Models extends Base {
     return {
       contract: (...args) => Ecosystem.contract(this.sdk, ...args),
       deserialize: (...args) => Ecosystem.deserialize(this.sdk, ...args),
+      exists: (...args) => Ecosystem.exists(this.sdk, ...args),
     };
   }
 
@@ -68,6 +70,7 @@ export class Models extends Base {
     return {
       contract: (...args) => Token.contract(this.sdk, ...args),
       deserialize: (...args) => Token.deserialize(this.sdk, ...args),
+      exists: (...args) => Token.exists(this.sdk, ...args),
     };
   }
 
@@ -75,6 +78,7 @@ export class Models extends Base {
     return {
       contract: (...args) => TokenHolder.contract(this.sdk, ...args),
       deserialize: (...args) => TokenHolder.deserialize(this.sdk, ...args),
+      exists: (...args) => TokenHolder.exists(this.sdk, ...args),
     };
   }
 }

@@ -85,6 +85,17 @@ export default class Ecosystem extends ElasticModel {
     });
   }
 
+  static async exists(sdk, daoAddress) {
+    validateIsAddress(daoAddress, { prefix });
+
+    const ecosystemModel = await this.contract(
+      sdk,
+      sdk.env.elasticDAO.ecosystemModelAddress,
+    );
+
+    return ecosystemModel.exists(daoAddress);
+  }
+
   // Getters
 
   get address() {
