@@ -38,9 +38,10 @@ export default class DAO extends ElasticModel {
     return sdk.contract({ abi: DAOContract.abi, address });
   }
 
-  static async deserialize(sdk, uuid, ecosystem) {
+  static async deserialize(sdk, uuid, _ecosystem) {
     validateIsAddress(uuid, { prefix });
 
+    let ecosystem = _ecosystem;
     if (!isEcosystem(ecosystem)) {
       ecosystem = await Ecosystem.deserialize(sdk, uuid);
     }

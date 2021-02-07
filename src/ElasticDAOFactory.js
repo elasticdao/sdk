@@ -41,7 +41,7 @@ export default class ElasticDAOFactory extends Base {
     ];
 
     const factory = await this.contract;
-    const daoDeployedFilter = factory.filters.DAODeployed();
+    const daoDeployedFilter = factory.filters.DeployedDAO();
     const daoDeployedFilterPromise = new Promise(async (resolve, reject) => {
       let tx = {};
       const handler = ({ transactionHash, topics }) => {
