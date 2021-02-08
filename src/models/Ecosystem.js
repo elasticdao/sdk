@@ -19,8 +19,6 @@ export default class Ecosystem extends ElasticModel {
   constructor(
     sdk,
     {
-      balanceModelAddress,
-      balanceMultipliersModelAddress,
       configuratorAddress,
       daoAddress,
       daoModelAddress,
@@ -33,8 +31,6 @@ export default class Ecosystem extends ElasticModel {
     super(sdk);
     this.id = (daoAddress || ethers.constants.AddressZero).toLowerCase();
     cache[this.id] = {
-      balanceModelAddress,
-      balanceMultipliersModelAddress,
       configuratorAddress,
       daoAddress,
       daoModelAddress,
@@ -62,8 +58,6 @@ export default class Ecosystem extends ElasticModel {
     );
 
     const {
-      balanceModelAddress,
-      balanceMultipliersModelAddress,
       configuratorAddress,
       daoModelAddress,
       ecosystemModelAddress,
@@ -73,8 +67,6 @@ export default class Ecosystem extends ElasticModel {
     } = await ecosystemModel.deserialize(daoAddress);
 
     return new Ecosystem(sdk, {
-      balanceModelAddress,
-      balanceMultipliersModelAddress,
       configuratorAddress,
       daoAddress,
       daoModelAddress,
@@ -100,14 +92,6 @@ export default class Ecosystem extends ElasticModel {
 
   get address() {
     return this.sdk.env.elasticDAO.ecosystemModelAddress;
-  }
-
-  get balanceModelAddress() {
-    return cache[this.id].balanceModelAddress;
-  }
-
-  get balanceMultipliersModelAddress() {
-    return cache[this.id].balanceMultipliersModelAddress;
   }
 
   get configuratorAddress() {

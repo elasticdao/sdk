@@ -75,7 +75,7 @@ export default class TokenHolder extends ElasticModel {
       token.ecosystem.tokenHolderModelAddress,
     );
 
-    return tokenHolderModel.exists(account, token);
+    return tokenHolderModel.exists(account, token.toObject());
   }
 
   // Getters
