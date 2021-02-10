@@ -16,12 +16,11 @@ export const validateIsTokenHolder = (thing) => {
 };
 
 export default class TokenHolder extends ElasticModel {
-  constructor(sdk, { account, counter, ecosystem, lambda, token }) {
+  constructor(sdk, { account, ecosystem, lambda, token }) {
     super(sdk);
     this.id = `${token.uuid}|${account}`.toLowerCase();
     cache[this.id] = {
       account,
-      counter,
       ecosystem,
       lambda,
       token,
@@ -48,7 +47,7 @@ export default class TokenHolder extends ElasticModel {
 
     const ecosystemObject = ecosystem.toObject(false);
 
-    const { account, counter, lambda } = await tokenHolderModel.deserialize(
+    const { account, lambda } = await tokenHolderModel.deserialize(
       uuid,
       ecosystemObject,
       {
@@ -59,7 +58,6 @@ export default class TokenHolder extends ElasticModel {
 
     return new TokenHolder(sdk, {
       account,
-      counter,
       ecosystem,
       lambda,
       token,
@@ -90,10 +88,6 @@ export default class TokenHolder extends ElasticModel {
 
   get contract() {
     return this.constructor.contract(this.sdk, this.address);
-  }
-
-  get counter() {
-    return this.toNumber(cache[this.id].counter);
   }
 
   get ecosystem() {
