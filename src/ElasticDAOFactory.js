@@ -19,7 +19,6 @@ export default class ElasticDAOFactory extends Base {
   async deployDAOAndToken(
     summoners,
     nameOfDAO,
-    numberOfSummoners,
     nameOfToken,
     symbol,
     eByL,
@@ -31,7 +30,6 @@ export default class ElasticDAOFactory extends Base {
     const payload = [
       summoners,
       nameOfDAO,
-      numberOfSummoners,
       nameOfToken,
       symbol,
       this.toEthersBigNumber(eByL, 18),
