@@ -25,6 +25,7 @@ export default class ElasticDAOFactory extends Base {
     elasticity,
     k,
     maxLambdaPurchase,
+    maxVotingLambda,
     overrides = {},
   ) {
     const payload = [
@@ -36,6 +37,7 @@ export default class ElasticDAOFactory extends Base {
       this.toEthersBigNumber(elasticity, 18),
       this.toEthersBigNumber(k, 18),
       this.toEthersBigNumber(maxLambdaPurchase, 18),
+      this.toEthersBigNumber(maxVotingLambda, 18),
     ];
 
     const factory = await this.contract;
@@ -49,13 +51,10 @@ export default class ElasticDAOFactory extends Base {
         }
       };
       this.sdk.provider.on(daoDeployedFilter, handler);
-      tx = await factory.deployDAOAndToken(
-        ...payload,
-        {
-          ...this.sanitizeOverrides({ ...overrides }),
-          value: await this.contract.fee(),
-        },
-      );
+      tx = await factory.deployDAOAndToken(...payload, {
+        ...this.sanitizeOverrides({ ...overrides }),
+        value: await this.contract.fee(),
+      });
       await tx.wait(2);
       reject(tx);
     });
