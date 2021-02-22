@@ -85,17 +85,6 @@ export class Models extends Base {
 
 export class SDK {
   constructor({ account, contract, env, provider, signer }) {
-    if (!env.elasticDAO) {
-      const message = "env is missing key 'elasticDAO'";
-      throw new TypeError(buildError({ message, prefix }));
-    }
-
-    validateIsAddress(env.elasticDAO.daoModelAddress, { prefix });
-    validateIsAddress(env.elasticDAO.ecosystemModelAddress, { prefix });
-    validateIsAddress(env.elasticDAO.factoryAddress, { prefix });
-    validateIsAddress(env.elasticDAO.tokenModelAddress, { prefix });
-    validateIsAddress(env.elasticDAO.tokenHolderModelAddress, { prefix });
-
     this.provider = provider || ethers.getDefaultProvider();
     this.contract =
       contract ||
@@ -106,6 +95,7 @@ export class SDK {
   }
 
   get elasticDAOFactory() {
+    validateIsAddress(this.env.factoryAddress, { prefix });
     return new ElasticDAOFactory(this);
   }
 

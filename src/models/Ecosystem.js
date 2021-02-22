@@ -3,6 +3,7 @@ import { validateIsAddress } from '@pie-dao/utils';
 
 import { validate } from '../utils';
 import EcosystemContract from '../../artifacts/Ecosystem.json';
+import ElasticDAO from '../ElasticDAO';
 import ElasticModel from './ElasticModel';
 
 const cache = {};
@@ -52,15 +53,14 @@ export default class Ecosystem extends ElasticModel {
   static async deserialize(sdk, daoAddress) {
     validateIsAddress(daoAddress, { prefix });
 
-    const ecosystemModel = await this.contract(
-      sdk,
-      sdk.env.elasticDAO.ecosystemModelAddress,
-    );
+    const ecosystemModelAddress = await (
+      await ElasticDAO.contract(sdk, daoAddress)
+    ).ecosystemModelAddress();
+    const ecosystemModel = await this.contract(sdk, ecosystemModelAddress);
 
     const {
       configuratorAddress,
       daoModelAddress,
-      ecosystemModelAddress,
       governanceTokenAddress,
       tokenHolderModelAddress,
       tokenModelAddress,

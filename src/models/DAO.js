@@ -1,7 +1,7 @@
 import { validateIsAddress } from '@pie-dao/utils';
 import { validate } from '../utils';
 import DAOContract from '../../artifacts/DAO.json';
-import Ecosystem, { isEcosystem } from './Ecosystem';
+import Ecosystem from './Ecosystem';
 import ElasticDAO from '../ElasticDAO';
 import ElasticModel from './ElasticModel';
 import Token from './Token';
@@ -18,11 +18,15 @@ export const validateIsDAO = (thing) => {
 };
 
 export default class DAO extends ElasticModel {
-  constructor(sdk, { ecosystem, name, numberOfSummoners, summoned, uuid }) {
+  constructor(
+    sdk,
+    { ecosystem, maxVotingLambda, name, numberOfSummoners, summoned, uuid },
+  ) {
     super(sdk);
     this.id = uuid.toLowerCase();
     cache[this.id] = {
       ecosystem,
+      maxVotingLambda,
       name,
       numberOfSummoners,
       summoned,
@@ -38,23 +42,22 @@ export default class DAO extends ElasticModel {
     return sdk.contract({ abi: DAOContract.abi, address });
   }
 
-  static async deserialize(sdk, uuid, _ecosystem) {
+  static async deserialize(sdk, uuid) {
     validateIsAddress(uuid, { prefix });
 
-    let ecosystem = _ecosystem;
-    if (!isEcosystem(ecosystem)) {
-      ecosystem = await Ecosystem.deserialize(sdk, uuid);
-    }
-
+    const ecosystem = await Ecosystem.deserialize(sdk, uuid);
     const daoModel = await this.contract(sdk, ecosystem.daoModelAddress);
 
-    const { name, numberOfSummoners, summoned } = await daoModel.deserialize(
-      uuid,
-      ecosystem.toObject(false),
-    );
+    const {
+      maxVotingLambda,
+      name,
+      numberOfSummoners,
+      summoned,
+    } = await daoModel.deserialize(uuid, ecosystem.toObject(false));
 
     return new DAO(sdk, {
       ecosystem,
+      maxVotingLambda,
       name,
       numberOfSummoners,
       summoned,
@@ -66,9 +69,7 @@ export default class DAO extends ElasticModel {
     validateIsAddress(uuid, { prefix });
 
     const ecosystem = await Ecosystem.deserialize(sdk, uuid);
-
     const daoModel = await this.contract(sdk, ecosystem.daoModelAddress);
-
     return daoModel.exists(uuid, ecosystem.toObject());
   }
 
@@ -92,6 +93,10 @@ export default class DAO extends ElasticModel {
 
   get elasticGovernanceToken() {
     return new ElasticGovernanceToken(this);
+  }
+
+  get maxVotingLambda() {
+    return this.toBigNumber(cache[this.id].maxVotingLambda, 18);
   }
 
   get name() {

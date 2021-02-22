@@ -9,7 +9,7 @@ export default class ElasticDAOFactory extends Base {
   }
 
   get address() {
-    return this.sdk.env.elasticDAO.factoryAddress;
+    return this.sdk.env.factoryAddress;
   }
 
   get contract() {

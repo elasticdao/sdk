@@ -49,12 +49,6 @@ export default class ElasticDAO extends Base {
     return this.dao.ecosystem.refresh();
   }
 
-  async getMaxVotingLambda() {
-    const elasticDAO = await this.contract;
-
-    return elasticDAO.maxVotingLambda();
-  }
-
   async join(deltaLambda, overrides = {}) {
     this.onlyAfterSummoning();
     const elasticDAO = await this.contract;
