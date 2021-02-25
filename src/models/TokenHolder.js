@@ -15,6 +15,19 @@ export const validateIsTokenHolder = (thing) => {
   validate(isTokenHolder(thing), { message, prefix });
 };
 
+const listen = async (tokenHolder) => {
+  if (cache[`${tokenHolder.id}SerializeListener`]) {
+    return;
+  }
+  const contract = await tokenHolder.contract;
+  const serializeEvent = contract.filters.Serialized(
+    tokenHolder.account,
+    tokenHolder.token.uuid,
+  );
+  contract.on(serializeEvent, tokenHolder.refresh.bind(tokenHolder));
+  cache[`${tokenHolder.id}SerializeListener`] = true;
+};
+
 export default class TokenHolder extends ElasticModel {
   constructor(sdk, { account, ecosystem, lambda, token }) {
     super(sdk);
@@ -26,6 +39,9 @@ export default class TokenHolder extends ElasticModel {
       token,
     };
     this.subject.next(this);
+    if (sdk.live) {
+      listen(this);
+    }
   }
 
   // Class functions

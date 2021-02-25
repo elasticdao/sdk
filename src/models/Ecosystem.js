@@ -16,6 +16,16 @@ export const validateIsEcosystem = (thing) => {
   validate(isEcosystem(thing), { message, prefix });
 };
 
+const listen = async (ecosystem) => {
+  if (cache[`${ecosystem.id}SerializeListener`]) {
+    return;
+  }
+  const contract = await ecosystem.contract;
+  const serializeEvent = contract.filters.Serialized(ecosystem.uuid);
+  contract.on(serializeEvent, ecosystem.refresh.bind(ecosystem));
+  cache[`${ecosystem.id}SerializeListener`] = true;
+};
+
 export default class Ecosystem extends ElasticModel {
   constructor(
     sdk,
@@ -41,6 +51,9 @@ export default class Ecosystem extends ElasticModel {
       tokenModelAddress,
     };
     this.subject.next(this);
+    if (sdk.live) {
+      listen(this);
+    }
   }
 
   // Class functions
@@ -91,7 +104,7 @@ export default class Ecosystem extends ElasticModel {
   // Getters
 
   get address() {
-    return this.sdk.env.elasticDAO.ecosystemModelAddress;
+    return cache[this.id].ecosystemModelAddress;
   }
 
   get configuratorAddress() {

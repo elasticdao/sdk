@@ -84,12 +84,13 @@ export class Models extends Base {
 }
 
 export class SDK {
-  constructor({ account, contract, env, provider, signer }) {
+  constructor({ account, contract, env, live, provider, signer }) {
     this.provider = provider || ethers.getDefaultProvider();
     this.contract =
       contract ||
       (({ address, abi }) => new ethers.Contract(address, abi, this.provider));
     this.env = env;
+    this.live = !!live;
     this.signer = signer;
     this.account = account;
   }

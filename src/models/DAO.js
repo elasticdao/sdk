@@ -17,6 +17,16 @@ export const validateIsDAO = (thing) => {
   validate(isDAO(thing), { message, prefix });
 };
 
+const listen = async (dao) => {
+  if (cache[`${dao.id}SerializeListener`]) {
+    return;
+  }
+  const contract = await dao.contract;
+  const serializeEvent = contract.filters.Serialized(dao.uuid);
+  contract.on(serializeEvent, dao.refresh.bind(dao));
+  cache[`${dao.id}SerializeListener`] = true;
+};
+
 export default class DAO extends ElasticModel {
   constructor(
     sdk,
@@ -33,6 +43,9 @@ export default class DAO extends ElasticModel {
       uuid,
     };
     this.subject.next(this);
+    if (sdk.live) {
+      listen(this);
+    }
   }
 
   // Class functions
@@ -122,8 +135,8 @@ export default class DAO extends ElasticModel {
   }
 
   async refresh() {
-    await Promise.all([this.ecosystem.refresh(), this.token()]);
-    return this.constructor.deserialize(this.sdk, this.uuid, this.ecosystem);
+    await this.token();
+    return this.constructor.deserialize(this.sdk, this.uuid);
   }
 
   async summoners() {

@@ -14,6 +14,16 @@ export const validateIsToken = (thing) => {
   validate(isToken(thing), { message, prefix });
 };
 
+const listen = async (token) => {
+  if (cache[`${token.id}SerializeListener`]) {
+    return;
+  }
+  const contract = await token.contract;
+  const serializeEvent = contract.filters.Serialized(token.uuid);
+  contract.on(serializeEvent, token.refresh.bind(token));
+  cache[`${token.id}SerializeListener`] = true;
+};
+
 export default class Token extends ElasticModel {
   constructor(
     sdk,
@@ -47,6 +57,9 @@ export default class Token extends ElasticModel {
       uuid,
     };
     this.subject.next(this);
+    if (sdk.live) {
+      listen(this);
+    }
   }
 
   // Class functions
