@@ -1,6 +1,6 @@
 import { ethers } from 'ethers';
 import { validateIsAddress } from '@pie-dao/utils';
-
+import { subject } from '../observables';
 import { validate } from '../utils';
 import EcosystemContract from '../../artifacts/Ecosystem.json';
 import ElasticDAO from '../ElasticDAO';
@@ -16,14 +16,32 @@ export const validateIsEcosystem = (thing) => {
   validate(isEcosystem(thing), { message, prefix });
 };
 
+class Events {
+  constructor(ecosystem) {
+    this.ecosystem = ecosystem;
+  }
+
+  async Serialized() {
+    const key = `${this.ecosystem.id}SerializedEvent`;
+    if (cache[key]) {
+      return cache[key];
+    }
+    cache[key] = subject(`${this.ecosystem.key}SerializedEvent`);
+    const contract = await this.ecosystem.contract;
+    const serializeEvent = contract.filters.Serialized(this.ecosystem.uuid);
+    contract.on(serializeEvent, cache[key].next.bind(cache[key]));
+    return cache[key];
+  }
+}
+
 const listen = async (ecosystem) => {
-  if (cache[`${ecosystem.id}SerializeListener`]) {
+  const key = `${ecosystem.id}SerializedListener`;
+  if (cache[key]) {
     return;
   }
-  const contract = await ecosystem.contract;
-  const serializeEvent = contract.filters.Serialized(ecosystem.uuid);
-  contract.on(serializeEvent, ecosystem.refresh.bind(ecosystem));
-  cache[`${ecosystem.id}SerializeListener`] = true;
+  const listenerSubject = await ecosystem.events.Serialized();
+  listenerSubject.subscribe(ecosystem.refresh.bind(ecosystem));
+  cache[key] = true;
 };
 
 export default class Ecosystem extends ElasticModel {
@@ -125,6 +143,15 @@ export default class Ecosystem extends ElasticModel {
 
   get ecosystemModelAddress() {
     return cache[this.id].ecosystemModelAddress;
+  }
+
+  get events() {
+    const key = `${this.id}Events`;
+    if (cache[key]) {
+      return cache[key];
+    }
+    cache[key] = new Events(this);
+    return cache[key];
   }
 
   get governanceTokenAddress() {

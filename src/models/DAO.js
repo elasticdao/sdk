@@ -1,4 +1,5 @@
 import { validateIsAddress } from '@pie-dao/utils';
+import { subject } from '../observables';
 import { validate } from '../utils';
 import DAOContract from '../../artifacts/DAO.json';
 import Ecosystem from './Ecosystem';
@@ -17,14 +18,32 @@ export const validateIsDAO = (thing) => {
   validate(isDAO(thing), { message, prefix });
 };
 
+class Events {
+  constructor(dao) {
+    this.dao = dao;
+  }
+
+  async Serialized() {
+    const key = `${this.dao.id}SerializedEvent`;
+    if (cache[key]) {
+      return cache[key];
+    }
+    cache[key] = subject(`${this.dao.key}SerializedEvent`);
+    const contract = await this.dao.contract;
+    const serializeEvent = contract.filters.Serialized(this.dao.uuid);
+    contract.on(serializeEvent, cache[key].next.bind(cache[key]));
+    return cache[key];
+  }
+}
+
 const listen = async (dao) => {
-  if (cache[`${dao.id}SerializeListener`]) {
+  const key = `${dao.id}SerializedListener`;
+  if (cache[key]) {
     return;
   }
-  const contract = await dao.contract;
-  const serializeEvent = contract.filters.Serialized(dao.uuid);
-  contract.on(serializeEvent, dao.refresh.bind(dao));
-  cache[`${dao.id}SerializeListener`] = true;
+  const listenerSubject = await dao.events.Serialized();
+  listenerSubject.subscribe(dao.refresh.bind(dao));
+  cache[key] = true;
 };
 
 export default class DAO extends ElasticModel {
@@ -106,6 +125,15 @@ export default class DAO extends ElasticModel {
 
   get elasticGovernanceToken() {
     return new ElasticGovernanceToken(this);
+  }
+
+  get events() {
+    const key = `${this.id}Events`;
+    if (cache[key]) {
+      return cache[key];
+    }
+    cache[key] = new Events(this);
+    return cache[key];
   }
 
   get maxVotingLambda() {

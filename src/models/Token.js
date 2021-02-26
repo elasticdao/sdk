@@ -1,4 +1,5 @@
 import { validateIsAddress } from '@pie-dao/utils';
+import { subject } from '../observables';
 import { validate } from '../utils';
 import Ecosystem, { validateIsEcosystem } from './Ecosystem';
 import ElasticModel from './ElasticModel';
@@ -14,14 +15,32 @@ export const validateIsToken = (thing) => {
   validate(isToken(thing), { message, prefix });
 };
 
+class Events {
+  constructor(token) {
+    this.token = token;
+  }
+
+  async Serialized() {
+    const key = `${this.token.id}SerializedEvent`;
+    if (cache[key]) {
+      return cache[key];
+    }
+    cache[key] = subject(`${this.token.key}SerializedEvent`);
+    const contract = await this.token.contract;
+    const serializeEvent = contract.filters.Serialized(this.token.uuid);
+    contract.on(serializeEvent, cache[key].next.bind(cache[key]));
+    return cache[key];
+  }
+}
+
 const listen = async (token) => {
-  if (cache[`${token.id}SerializeListener`]) {
+  const key = `${token.id}SerializedListener`;
+  if (cache[key]) {
     return;
   }
-  const contract = await token.contract;
-  const serializeEvent = contract.filters.Serialized(token.uuid);
-  contract.on(serializeEvent, token.refresh.bind(token));
-  cache[`${token.id}SerializeListener`] = true;
+  const listenerSubject = await token.events.Serialized();
+  listenerSubject.subscribe(token.refresh.bind(token));
+  cache[key] = true;
 };
 
 export default class Token extends ElasticModel {
@@ -131,6 +150,15 @@ export default class Token extends ElasticModel {
 
   get elasticity() {
     return this.toBigNumber(cache[this.id].elasticity, 18);
+  }
+
+  get events() {
+    const key = `${this.id}Events`;
+    if (cache[key]) {
+      return cache[key];
+    }
+    cache[key] = new Events(this);
+    return cache[key];
   }
 
   get k() {

@@ -1,4 +1,5 @@
 import { validateIsAddress } from '@pie-dao/utils';
+import { subject } from '../observables';
 import { validate } from '../utils';
 import { validateIsEcosystem } from './Ecosystem';
 import { validateIsToken } from './Token';
@@ -15,17 +16,35 @@ export const validateIsTokenHolder = (thing) => {
   validate(isTokenHolder(thing), { message, prefix });
 };
 
+class Events {
+  constructor(tokenHolder) {
+    this.tokenHolder = tokenHolder;
+  }
+
+  async Serialized() {
+    const key = `${this.tokenHolder.id}SerializedEvent`;
+    if (cache[key]) {
+      return cache[key];
+    }
+    cache[key] = subject(`${this.tokenHolder.key}SerializedEvent`);
+    const contract = await this.tokenHolder.contract;
+    const serializeEvent = contract.filters.Serialized(
+      this.tokenHolder.account,
+      this.tokenHolder.uuid,
+    );
+    contract.on(serializeEvent, cache[key].next.bind(cache[key]));
+    return cache[key];
+  }
+}
+
 const listen = async (tokenHolder) => {
-  if (cache[`${tokenHolder.id}SerializeListener`]) {
+  const key = `${tokenHolder.id}SerializedListener`;
+  if (cache[key]) {
     return;
   }
-  const contract = await tokenHolder.contract;
-  const serializeEvent = contract.filters.Serialized(
-    tokenHolder.account,
-    tokenHolder.token.uuid,
-  );
-  contract.on(serializeEvent, tokenHolder.refresh.bind(tokenHolder));
-  cache[`${tokenHolder.id}SerializeListener`] = true;
+  const listenerSubject = await tokenHolder.events.Serialized();
+  listenerSubject.subscribe(tokenHolder.refresh.bind(tokenHolder));
+  cache[key] = true;
 };
 
 export default class TokenHolder extends ElasticModel {
@@ -108,6 +127,15 @@ export default class TokenHolder extends ElasticModel {
 
   get ecosystem() {
     return cache[this.id].ecosystem;
+  }
+
+  get events() {
+    const key = `${this.id}Events`;
+    if (cache[key]) {
+      return cache[key];
+    }
+    cache[key] = new Events(this);
+    return cache[key];
   }
 
   get lambda() {
