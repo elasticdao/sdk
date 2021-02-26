@@ -1,10 +1,10 @@
 import { ethers } from 'ethers';
 import { validateIsAddress } from '@pie-dao/utils';
-import { subject } from '../observables';
 import { validate } from '../utils';
 import EcosystemContract from '../../artifacts/Ecosystem.json';
 import ElasticDAO from '../ElasticDAO';
 import ElasticModel from './ElasticModel';
+import BaseEvents from '../BaseEvents';
 
 const cache = {};
 const prefix = '@elastic-dao/sdk - Ecosystem';
@@ -16,21 +16,14 @@ export const validateIsEcosystem = (thing) => {
   validate(isEcosystem(thing), { message, prefix });
 };
 
-class Events {
-  constructor(ecosystem) {
-    this.ecosystem = ecosystem;
-  }
-
+class Events extends BaseEvents {
   async Serialized() {
-    const key = `${this.ecosystem.id}SerializedEvent`;
-    if (cache[key]) {
-      return cache[key];
-    }
-    cache[key] = subject(`${this.ecosystem.key}SerializedEvent`);
-    const contract = await this.ecosystem.contract;
-    const serializeEvent = contract.filters.Serialized(this.ecosystem.uuid);
-    contract.on(serializeEvent, cache[key].next.bind(cache[key]));
-    return cache[key];
+    return this.observeEvent({
+      eventName: 'Serialized',
+      filterArgs: [this.target.uuid],
+      keyBase: this.target.id,
+      subjectBase: this.target.key,
+    });
   }
 }
 
@@ -40,6 +33,7 @@ const listen = async (ecosystem) => {
     return;
   }
   const listenerSubject = await ecosystem.events.Serialized();
+  console.warn('checking if ecosystem refreshes', ecosystem.id);
   listenerSubject.subscribe(ecosystem.refresh.bind(ecosystem));
   cache[key] = true;
 };

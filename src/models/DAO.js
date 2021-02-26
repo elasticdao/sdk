@@ -1,6 +1,6 @@
 import { validateIsAddress } from '@pie-dao/utils';
-import { subject } from '../observables';
 import { validate } from '../utils';
+import BaseEvents from '../BaseEvents';
 import DAOContract from '../../artifacts/DAO.json';
 import Ecosystem from './Ecosystem';
 import ElasticDAO from '../ElasticDAO';
@@ -18,21 +18,14 @@ export const validateIsDAO = (thing) => {
   validate(isDAO(thing), { message, prefix });
 };
 
-class Events {
-  constructor(dao) {
-    this.dao = dao;
-  }
-
+class Events extends BaseEvents {
   async Serialized() {
-    const key = `${this.dao.id}SerializedEvent`;
-    if (cache[key]) {
-      return cache[key];
-    }
-    cache[key] = subject(`${this.dao.key}SerializedEvent`);
-    const contract = await this.dao.contract;
-    const serializeEvent = contract.filters.Serialized(this.dao.uuid);
-    contract.on(serializeEvent, cache[key].next.bind(cache[key]));
-    return cache[key];
+    return this.observeEvent({
+      eventName: 'Serialized',
+      filterArgs: [this.target.uuid],
+      keyBase: this.target.id,
+      subjectBase: this.target.key,
+    });
   }
 }
 

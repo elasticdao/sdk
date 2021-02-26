@@ -1,4 +1,5 @@
 import BigNumber from 'bignumber.js';
+import BaseEvents from './BaseEvents';
 
 import { upTo } from './utils';
 import Base from './Base';
@@ -8,6 +9,81 @@ const onlyAfterSummoning = 'DAO must be summoned';
 const onlyBeforeSummoning = 'DAO must not be summoned';
 const prefix = '@elastic-dao/sdk - ElasticDAO';
 const valueGreaterThanZero = 'a value greater than 0 must be provided';
+
+const cache = {};
+
+class Events extends BaseEvents {
+  get keyBase() {
+    return `ElasticDAO|${this.target.dao.uuid}`;
+  }
+
+  get subjectBase() {
+    return `ElasticDAO|${this.target.dao.uuid}`;
+  }
+
+  async ControllerChanged() {
+    const { keyBase, subjectBase } = this;
+    return this.observeEvent({
+      keyBase,
+      subjectBase,
+      eventName: 'ControllerChanged',
+    });
+  }
+
+  async ElasticGovernanceTokenDeployed() {
+    const { keyBase, subjectBase } = this;
+    return this.observeEvent({
+      keyBase,
+      subjectBase,
+      eventName: 'ElasticGovernanceTokenDeployed',
+    });
+  }
+
+  async ExitDAO() {
+    const { keyBase, subjectBase } = this;
+    return this.observeEvent({
+      keyBase,
+      subjectBase,
+      eventName: 'ExitDAO',
+    });
+  }
+
+  async JoinDAO() {
+    const { keyBase, subjectBase } = this;
+    return this.observeEvent({
+      keyBase,
+      subjectBase,
+      eventName: 'JoinDAO',
+    });
+  }
+
+  async MaxVotingLambdaChanged() {
+    const { keyBase, subjectBase } = this;
+    return this.observeEvent({
+      keyBase,
+      subjectBase,
+      eventName: 'MaxVotingLambdaChanged',
+    });
+  }
+
+  async SeedDAO() {
+    const { keyBase, subjectBase } = this;
+    return this.observeEvent({
+      keyBase,
+      subjectBase,
+      eventName: 'SeedDAO',
+    });
+  }
+
+  async SummonedDAO() {
+    const { keyBase, subjectBase } = this;
+    return this.observeEvent({
+      keyBase,
+      subjectBase,
+      eventName: 'SummonedDAO',
+    });
+  }
+}
 
 export default class ElasticDAO extends Base {
   constructor(dao) {
@@ -21,6 +97,15 @@ export default class ElasticDAO extends Base {
 
   get contract() {
     return this.constructor.contract(this.sdk, this.dao.uuid);
+  }
+
+  get events() {
+    const key = `${this.dao.uuid}Events`;
+    if (cache[key]) {
+      return cache[key];
+    }
+    cache[key] = new Events(this);
+    return cache[key];
   }
 
   async exit(deltaLambda, overrides = {}) {

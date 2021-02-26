@@ -1,5 +1,27 @@
+// import { subject } from '../observables';
 import Base from '../Base';
+import BaseEvents from '../BaseEvents';
 import ElasticGovernanceTokenContract from '../../artifacts/ElasticGovernanceToken.json';
+
+const cache = {};
+
+class Events extends BaseEvents {
+  async Approval() {
+    return this.observeEvent({
+      eventName: 'ApprovalEvent',
+      keyBase: this.target.address,
+      subjectBase: `ElasticGovernanceToken|${this.target.address}`,
+    });
+  }
+
+  async Transfer() {
+    return this.observeEvent({
+      eventName: 'TransferEvent',
+      keyBase: this.target.address,
+      subjectBase: `ElasticGovernanceToken|${this.target.address}`,
+    });
+  }
+}
 
 export default class ElasticGovernanceToken extends Base {
   constructor(dao) {
@@ -17,6 +39,15 @@ export default class ElasticGovernanceToken extends Base {
 
   get contract() {
     return this.constructor.contract(this.sdk, this.address);
+  }
+
+  get events() {
+    const key = `${this.address}Events`;
+    if (cache[key]) {
+      return cache[key];
+    }
+    cache[key] = new Events(this);
+    return cache[key];
   }
 
   async getEcosystem() {

@@ -1,6 +1,6 @@
 import { validateIsAddress } from '@pie-dao/utils';
-import { subject } from '../observables';
 import { validate } from '../utils';
+import BaseEvents from '../BaseEvents';
 import Ecosystem, { validateIsEcosystem } from './Ecosystem';
 import ElasticModel from './ElasticModel';
 import TokenContract from '../../artifacts/Token.json';
@@ -15,21 +15,14 @@ export const validateIsToken = (thing) => {
   validate(isToken(thing), { message, prefix });
 };
 
-class Events {
-  constructor(token) {
-    this.token = token;
-  }
-
+class Events extends BaseEvents {
   async Serialized() {
-    const key = `${this.token.id}SerializedEvent`;
-    if (cache[key]) {
-      return cache[key];
-    }
-    cache[key] = subject(`${this.token.key}SerializedEvent`);
-    const contract = await this.token.contract;
-    const serializeEvent = contract.filters.Serialized(this.token.uuid);
-    contract.on(serializeEvent, cache[key].next.bind(cache[key]));
-    return cache[key];
+    return this.observeEvent({
+      eventName: 'Serialized',
+      filterArgs: [this.target.uuid],
+      keyBase: this.target.id,
+      subjectBase: this.target.key,
+    });
   }
 }
 
