@@ -20,7 +20,7 @@ class Events extends BaseEvents {
   async Serialized() {
     return this.observeEvent({
       eventName: 'Serialized',
-      filterArgs: [this.target.contract, this.target.uuid],
+      filterArgs: [this.target.account, this.target.token.uuid],
       keyBase: this.target.id,
       subjectBase: this.target.key,
     });
@@ -143,7 +143,7 @@ export default class TokenHolder extends ElasticModel {
 
     return this.constructor.deserialize(
       this.sdk,
-      this.uuid,
+      this.account,
       this.ecosystem,
       this.token,
     );
