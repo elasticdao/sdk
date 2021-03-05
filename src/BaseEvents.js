@@ -23,7 +23,7 @@ export default class BaseEvents {
     const trackedEvent = contract.filters[eventName](...(filterArgs || []));
     contract.on(trackedEvent, (...args) => {
       console.log('noticed a tracked event', key, ...args);
-      cache[key].next.bind(cache[key])
+      cache[key].next.bind(cache[key]);
     });
     return cache[key];
   }
