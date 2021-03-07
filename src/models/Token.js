@@ -120,7 +120,7 @@ export default class Token extends ElasticModel {
     const ecosystem = await Ecosystem.deserialize(sdk, uuid);
     const tokenModel = await this.contract(sdk, ecosystem.tokenModelAddress);
 
-    return tokenModel.exists(uuid, ecosystem.toObject());
+    return tokenModel.exists(uuid, ecosystem.daoAddress);
   }
 
   // Getters
