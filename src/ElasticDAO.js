@@ -134,15 +134,12 @@ export default class ElasticDAO extends Base {
     return this.dao.ecosystem.refresh();
   }
 
-  async join(deltaLambda, overrides = {}) {
+  async join(overrides = {}) {
     this.onlyAfterSummoning();
     const elasticDAO = await this.contract;
 
     return this._handleTransaction(
-      await elasticDAO.join(
-        this.toEthersBigNumber(deltaLambda, 18),
-        this.sanitizeOverrides(overrides),
-      ),
+      await elasticDAO.join(this.sanitizeOverrides(overrides)),
     );
   }
 
