@@ -110,7 +110,6 @@ export class SDK {
     if (this.account === signer.address) {
       return;
     }
-    console.log('changing signer to', signer.address);
 
     this.account = signer.address;
     this.contract = ({ address, abi }) =>

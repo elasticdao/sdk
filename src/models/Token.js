@@ -32,7 +32,6 @@ const listen = async (token) => {
     return;
   }
   const listenerSubject = await token.events.Serialized();
-  console.log('token listener subject', token.id, listenerSubject);
   listenerSubject.subscribe(token.refresh.bind(token));
   cache[key] = true;
 };
@@ -70,7 +69,6 @@ export default class Token extends ElasticModel {
       uuid,
     };
     this.subject.next(this);
-    console.log('token sdk live status', this.id, sdk.live);
     if (sdk.live) {
       listen(this);
     }
@@ -191,7 +189,6 @@ export default class Token extends ElasticModel {
   // Instance functions
 
   async refresh() {
-    console.log('token refresh triggered', this.id);
     await this.ecosystem.refresh();
     return this.constructor.deserialize(this.sdk, this.uuid, this.ecosystem);
   }

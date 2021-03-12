@@ -24,7 +24,6 @@ export const swapBigNumber = (obj) => {
       swappedObj[key] = obj[key];
     }
   }
-  console.log('swapBigNumber', obj, swappedObj);
   return swappedObj;
 };
 

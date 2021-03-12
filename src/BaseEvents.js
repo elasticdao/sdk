@@ -9,12 +9,6 @@ export default class BaseEvents {
   }
 
   async observeEvent({ eventName, filterArgs, keyBase, subjectBase }) {
-    console.log('observeEvent', this.constructor.name, {
-      eventName,
-      filterArgs,
-      keyBase,
-      subjectBase,
-    });
     const key = toKey(keyBase, eventName, 'Event');
     if (cache[key]) {
       return cache[key];
@@ -23,7 +17,6 @@ export default class BaseEvents {
     const contract = await this.target.contract;
     const trackedEvent = contract.filters[eventName](...(filterArgs || []));
     contract.on(trackedEvent, (...args) => {
-      console.log('noticed a tracked event', key, ...args);
       cache[key].next(...args);
     });
     return cache[key];
