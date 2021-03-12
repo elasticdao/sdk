@@ -1,11 +1,12 @@
 /* eslint class-methods-use-this: 0 */
 import { isBigNumber } from '@pie-dao/utils';
+import { toKey } from '../utils';
 import { subject } from '../observables';
 import Base from '../Base';
 
 export default class ElasticModel extends Base {
   get key() {
-    return `${this.constructor.name}|${this.id}`;
+    return toKey(this.constructor.name, this.id);
   }
 
   get subject() {

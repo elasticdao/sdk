@@ -1,6 +1,6 @@
 import { ethers } from 'ethers';
 import { validateIsAddress } from '@pie-dao/utils';
-import { validate } from '../utils';
+import { toKey, validate } from '../utils';
 import EcosystemContract from '../../artifacts/Ecosystem.json';
 import ElasticDAO from '../ElasticDAO';
 import ElasticModel from './ElasticModel';
@@ -28,7 +28,7 @@ class Events extends BaseEvents {
 }
 
 const listen = async (ecosystem) => {
-  const key = `${ecosystem.id}SerializedListener`;
+  const key = toKey(ecosystem.id, 'SerializedListener');
   if (cache[key]) {
     return;
   }
@@ -51,7 +51,7 @@ export default class Ecosystem extends ElasticModel {
     },
   ) {
     super(sdk);
-    this.id = (daoAddress || ethers.constants.AddressZero).toLowerCase();
+    this.id = toKey(daoAddress || ethers.constants.AddressZero);
     cache[this.id] = {
       daoAddress,
       daoModelAddress,
@@ -132,7 +132,7 @@ export default class Ecosystem extends ElasticModel {
   }
 
   get events() {
-    const key = `${this.id}Events`;
+    const key = toKey(this.id, 'Events');
     if (cache[key]) {
       return cache[key];
     }

@@ -1,5 +1,5 @@
 import { validateIsAddress } from '@pie-dao/utils';
-import { validate } from '../utils';
+import { toKey, validate } from '../utils';
 import BaseEvents from '../BaseEvents';
 import Ecosystem, { validateIsEcosystem } from './Ecosystem';
 import ElasticModel from './ElasticModel';
@@ -27,7 +27,7 @@ class Events extends BaseEvents {
 }
 
 const listen = async (token) => {
-  const key = `${token.id}SerializedListener`;
+  const key = toKey(token.id, 'SerializedListener');
   if (cache[key]) {
     return;
   }
@@ -54,7 +54,7 @@ export default class Token extends ElasticModel {
     },
   ) {
     super(sdk);
-    this.id = uuid.toLowerCase();
+    this.id = toKey(uuid);
     cache[this.id] = {
       eByL,
       ecosystem,
@@ -146,7 +146,7 @@ export default class Token extends ElasticModel {
   }
 
   get events() {
-    const key = `${this.id}Events`;
+    const key = toKey(this.id, 'Events');
     if (cache[key]) {
       return cache[key];
     }

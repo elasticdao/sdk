@@ -9,7 +9,7 @@ import ElasticGovernanceTokenClass from './tokens/ElasticGovernanceToken';
 import TokenClass from './models/Token';
 import TokenHolderClass from './models/TokenHolder';
 
-import { buildError, upTo, validate } from './utils';
+import { buildError, toKey, upTo, validate } from './utils';
 
 const prefix = '@elastic-dao/sdk';
 
@@ -45,6 +45,7 @@ export const TokenHolder = TokenHolderClass;
 
 export const utils = {
   buildError,
+  toKey,
   upTo,
   validate,
 };

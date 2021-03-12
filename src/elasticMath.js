@@ -6,10 +6,13 @@ import BigNumber from 'bignumber.js';
 // const base = new Base();
 
 export const capitalDelta = (totalEthValue, totalSupplyOfTokens) => {
-  const capitalDeltaValue = BigNumber(totalEthValue.toString())
+  if (!totalEthValue || !totalSupplyOfTokens) {
+    return BigNumber(0);
+  }
+
+  return BigNumber(totalEthValue.toString())
     .dividedBy(totalSupplyOfTokens.toString())
     .dp(18);
-  return capitalDeltaValue;
 };
 
 export const deltaE = (

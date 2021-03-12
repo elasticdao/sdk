@@ -1,7 +1,7 @@
 import BigNumber from 'bignumber.js';
 import BaseEvents from './BaseEvents';
 
-import { upTo } from './utils';
+import { toKey, upTo } from './utils';
 import Base from './Base';
 import ElasticDAOContract from '../artifacts/ElasticDAO.json';
 
@@ -14,11 +14,11 @@ const cache = {};
 
 class Events extends BaseEvents {
   get keyBase() {
-    return `ElasticDAO|${this.target.dao.uuid}`;
+    return toKey('ElasticDAO', this.target.dao.uuid);
   }
 
   get subjectBase() {
-    return `ElasticDAO|${this.target.dao.uuid}`;
+    return toKey('ElasticDAO', this.target.dao.uuid, 'Subject');
   }
 
   async ControllerChanged() {
@@ -100,7 +100,7 @@ export default class ElasticDAO extends Base {
   }
 
   get events() {
-    const key = `${this.dao.uuid}Events`;
+    const key = toKey(this.dao.uuid, 'Events');
     if (cache[key]) {
       return cache[key];
     }

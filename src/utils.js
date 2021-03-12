@@ -5,6 +5,9 @@ export const buildError = ({
   prefix = '@elastic-dao/sdk - validations',
 }) => `${prefix}: ${message}`;
 
+export const toKey = (...args) =>
+  args.map((arg) => `${arg}`.toLowerCase()).join('|');
+
 export const upTo = (n) => {
   validateIsNumber(n);
   const arr = [];

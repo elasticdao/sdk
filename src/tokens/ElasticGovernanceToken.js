@@ -1,4 +1,5 @@
 // import { subject } from '../observables';
+import { toKey } from '../utils';
 import Base from '../Base';
 import BaseEvents from '../BaseEvents';
 import ElasticGovernanceTokenContract from '../../artifacts/ElasticGovernanceToken.json';
@@ -10,7 +11,7 @@ class Events extends BaseEvents {
     return this.observeEvent({
       eventName: 'ApprovalEvent',
       keyBase: this.target.address,
-      subjectBase: `ElasticGovernanceToken|${this.target.address}`,
+      subjectBase: toKey('ElasticGovernanceToken', this.target.address),
     });
   }
 
@@ -18,7 +19,7 @@ class Events extends BaseEvents {
     return this.observeEvent({
       eventName: 'TransferEvent',
       keyBase: this.target.address,
-      subjectBase: `ElasticGovernanceToken|${this.target.address}`,
+      subjectBase: toKey('ElasticGovernanceToken', this.target.address),
     });
   }
 }
@@ -42,7 +43,7 @@ export default class ElasticGovernanceToken extends Base {
   }
 
   get events() {
-    const key = `${this.address}Events`;
+    const key = toKey(this.address, 'Events');
     if (cache[key]) {
       return cache[key];
     }

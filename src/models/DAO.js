@@ -1,5 +1,5 @@
 import { validateIsAddress } from '@pie-dao/utils';
-import { validate } from '../utils';
+import { toKey, validate } from '../utils';
 import BaseEvents from '../BaseEvents';
 import DAOContract from '../../artifacts/DAO.json';
 import Ecosystem from './Ecosystem';
@@ -30,7 +30,7 @@ class Events extends BaseEvents {
 }
 
 const listen = async (dao) => {
-  const key = `${dao.id}SerializedListener`;
+  const key = toKey(dao.id, 'SerializedListener');
   if (cache[key]) {
     return;
   }
@@ -45,7 +45,7 @@ export default class DAO extends ElasticModel {
     { ecosystem, maxVotingLambda, name, numberOfSummoners, summoned, uuid },
   ) {
     super(sdk);
-    this.id = uuid.toLowerCase();
+    this.id = toKey(uuid);
     cache[this.id] = {
       ecosystem,
       maxVotingLambda,
@@ -121,7 +121,7 @@ export default class DAO extends ElasticModel {
   }
 
   get events() {
-    const key = `${this.id}Events`;
+    const key = toKey(this.id, 'Events');
     if (cache[key]) {
       return cache[key];
     }
