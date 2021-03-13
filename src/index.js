@@ -119,10 +119,6 @@ export class SDK {
   }
 
   changeSigner(signer) {
-    if (this.account === signer.address) {
-      return;
-    }
-
     this.account = signer.address;
     this.contract = ({ address, abi }) =>
       new ethers.Contract(address, abi, signer);

@@ -33,7 +33,6 @@ const listen = async (ecosystem) => {
     return;
   }
   const listenerSubject = await ecosystem.events.Serialized();
-  console.warn('checking if ecosystem refreshes', ecosystem.id);
   listenerSubject.subscribe(ecosystem.refresh.bind(ecosystem));
   cache[key] = true;
 };
