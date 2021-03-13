@@ -194,7 +194,6 @@ export default class DAO extends ElasticModel {
       ...cache[id],
       id,
       ecosystem: ecosystem.toObject(false),
-      summoners: [],
     };
 
     if (includeNested === false) {
