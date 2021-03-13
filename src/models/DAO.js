@@ -46,15 +46,21 @@ export default class DAO extends ElasticModel {
   ) {
     super(sdk);
     this.id = toKey(uuid);
+    const summoners = (cache[this.id] || {}).summoners || [];
     cache[this.id] = {
       ecosystem,
       maxVotingLambda,
       name,
       numberOfSummoners,
       summoned,
+      summoners,
       uuid,
     };
-    this.subject.next(this);
+    if (summoners.length === this.numberOfSummoners) {
+      this.subject.next(this);
+    } else {
+      this.summoners();
+    }
     if (sdk.live) {
       listen(this);
     }
@@ -161,7 +167,16 @@ export default class DAO extends ElasticModel {
   }
 
   async summoners() {
-    return this.elasticDAO.summoners();
+    if (
+      cache[this.id].summoners &&
+      cache[this.id].summoners.length === this.numberOfSummoners
+    ) {
+      return cache[this.id].summoners;
+    }
+    const summoners = await this.elasticDAO.summoners();
+    cache[this.id].summoners = summoners;
+    this.subject.next(this);
+    return summoners;
   }
 
   async token() {
