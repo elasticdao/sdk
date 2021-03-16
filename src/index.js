@@ -29,6 +29,7 @@ export { abi as ElasticDAOFactoryABI } from '../artifacts/ElasticDAOFactory.json
 export { abi as ElasticGovernanceTokenABI } from '../artifacts/ElasticGovernanceToken.json';
 export { abi as TokenABI } from '../artifacts/Token.json';
 export { abi as TokenHolderABI } from '../artifacts/TokenHolder.json';
+export { default as PieProxyABI } from './abis/PieProxy.json';
 
 export {
   capitalDelta,
