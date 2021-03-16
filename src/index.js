@@ -1,5 +1,6 @@
 import { ethers } from 'ethers';
 import { validateIsAddress } from '@pie-dao/utils';
+import Notify from 'bnc-notify';
 import Base from './Base';
 import DAOClass from './models/DAO';
 import EcosystemClass from './models/Ecosystem';
@@ -108,6 +109,13 @@ export class SDK {
     this.live = !!live;
     this.signer = signer;
     this.account = account;
+
+    if (this.env.blocknative) {
+      this._notify = Notify(this.env.blocknative);
+      this._notify.config({
+        darkMode: true,
+      })
+    }
   }
 
   get elasticDAOFactory() {
@@ -124,5 +132,19 @@ export class SDK {
     this.contract = ({ address, abi }) =>
       new ethers.Contract(address, abi, signer);
     this.signer = signer;
+  }
+
+  notify({ hash, obj }) {
+    if (!this._notify) {
+      return;
+    }
+
+    if (hash) {
+      this._notify.hash(hash);
+    }
+
+    if (obj) {
+      return this._notify.notification(obj);
+    }
   }
 }
