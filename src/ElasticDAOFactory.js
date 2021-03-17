@@ -51,10 +51,10 @@ export default class ElasticDAOFactory extends Base {
         }
       };
       this.sdk.provider.on(daoDeployedFilter, handler);
-      tx = await factory.deployDAOAndToken(...payload, {
+      tx = this._handleTransaction(await factory.deployDAOAndToken(...payload, {
         ...this.sanitizeOverrides({ ...overrides }),
         value: await this.contract.fee(),
-      });
+      }));
       await tx.wait(2);
       reject(tx);
     });
@@ -74,8 +74,14 @@ export default class ElasticDAOFactory extends Base {
 
   async collectFees() {
     const factory = await this.contract;
-    const tx = factory.collectFees();
+    const tx = this._handleTransaction(factory.collectFees());
 
+    return tx;
+  }
+
+
+  _handleTransaction(tx) {
+    this.sdk.notify(tx);
     return tx;
   }
 }
