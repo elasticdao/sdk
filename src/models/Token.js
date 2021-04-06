@@ -81,7 +81,7 @@ export default class Token extends ElasticModel {
     return sdk.contract({ abi: TokenContract.abi, address });
   }
 
-  static async deserialize(sdk, uuid, ecosystem) {
+  static async deserialize(sdk, uuid, ecosystem, options = {}) {
     validateIsAddress(uuid, { prefix });
     validateIsEcosystem(ecosystem);
 
@@ -97,7 +97,7 @@ export default class Token extends ElasticModel {
       name,
       numberOfTokenHolders,
       symbol,
-    } = await tokenModel.deserialize(uuid, ecosystem.toObject(false));
+    } = await tokenModel.deserialize(uuid, ecosystem.toObject(false), options);
 
     return new Token(sdk, {
       eByL,

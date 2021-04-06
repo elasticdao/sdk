@@ -73,7 +73,7 @@ export default class DAO extends ElasticModel {
     return sdk.contract({ abi: DAOContract.abi, address });
   }
 
-  static async deserialize(sdk, uuid) {
+  static async deserialize(sdk, uuid, options = {}) {
     validateIsAddress(uuid, { prefix });
 
     const ecosystem = await Ecosystem.deserialize(sdk, uuid);
@@ -84,7 +84,7 @@ export default class DAO extends ElasticModel {
       name,
       numberOfSummoners,
       summoned,
-    } = await daoModel.deserialize(uuid, ecosystem.toObject(false));
+    } = await daoModel.deserialize(uuid, ecosystem.toObject(false), options);
 
     return new DAO(sdk, {
       ecosystem,
@@ -179,11 +179,12 @@ export default class DAO extends ElasticModel {
     return summoners;
   }
 
-  async token() {
+  async token(options = {}) {
     return Token.deserialize(
       this.sdk,
       this.ecosystem.governanceTokenAddress,
       this.ecosystem,
+      options,
     );
   }
 

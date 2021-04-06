@@ -1,3 +1,5 @@
+/* eslint consistent-return: 0 */
+
 import { ethers } from 'ethers';
 import { validateIsAddress } from '@pie-dao/utils';
 import Notify from 'bnc-notify';
@@ -114,7 +116,7 @@ export class SDK {
       this._notify = Notify(this.env.blocknative);
       this._notify.config({
         darkMode: true,
-      })
+      });
     }
   }
 

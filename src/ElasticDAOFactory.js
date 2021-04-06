@@ -51,10 +51,12 @@ export default class ElasticDAOFactory extends Base {
         }
       };
       this.sdk.provider.on(daoDeployedFilter, handler);
-      tx = this._handleTransaction(await factory.deployDAOAndToken(...payload, {
-        ...this.sanitizeOverrides({ ...overrides }),
-        value: await this.contract.fee(),
-      }));
+      tx = this._handleTransaction(
+        await factory.deployDAOAndToken(...payload, {
+          ...this.sanitizeOverrides({ ...overrides }),
+          value: await this.contract.fee(),
+        }),
+      );
       await tx.wait(2);
       reject(tx);
     });
@@ -78,7 +80,6 @@ export default class ElasticDAOFactory extends Base {
 
     return tx;
   }
-
 
   _handleTransaction(tx) {
     this.sdk.notify(tx);
