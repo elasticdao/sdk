@@ -1,7 +1,8 @@
 import { validateIsAddress } from '@pie-dao/utils';
-import { validate } from '../utils';
+import { toKey, validate } from '../utils';
+import BaseEvents from '../BaseEvents';
 import DAOContract from '../../artifacts/DAO.json';
-import Ecosystem, { isEcosystem } from './Ecosystem';
+import Ecosystem from './Ecosystem';
 import ElasticDAO from '../ElasticDAO';
 import ElasticModel from './ElasticModel';
 import Token from './Token';
@@ -17,17 +18,52 @@ export const validateIsDAO = (thing) => {
   validate(isDAO(thing), { message, prefix });
 };
 
+class Events extends BaseEvents {
+  async Serialized() {
+    return this.observeEvent({
+      eventName: 'Serialized',
+      filterArgs: [this.target.uuid],
+      keyBase: this.target.id,
+      subjectBase: this.target.key,
+    });
+  }
+}
+
+const listen = async (dao) => {
+  const key = toKey(dao.id, 'SerializedListener');
+  if (cache[key]) {
+    return;
+  }
+  const listenerSubject = await dao.events.Serialized();
+  listenerSubject.subscribe(dao.refresh.bind(dao));
+  cache[key] = true;
+};
+
 export default class DAO extends ElasticModel {
-  constructor(sdk, { ecosystem, name, numberOfSummoners, summoned, uuid }) {
+  constructor(
+    sdk,
+    { ecosystem, maxVotingLambda, name, numberOfSummoners, summoned, uuid },
+  ) {
     super(sdk);
-    this.id = uuid.toLowerCase();
+    this.id = toKey(uuid);
+    const summoners = (cache[this.id] || {}).summoners || [];
     cache[this.id] = {
       ecosystem,
+      maxVotingLambda,
       name,
       numberOfSummoners,
       summoned,
+      summoners,
       uuid,
     };
+    if (summoners.length === this.numberOfSummoners) {
+      this.subject.next(this);
+    } else {
+      this.summoners();
+    }
+    if (sdk.live) {
+      listen(this);
+    }
   }
 
   // Class functions
@@ -37,28 +73,35 @@ export default class DAO extends ElasticModel {
     return sdk.contract({ abi: DAOContract.abi, address });
   }
 
-  static async deserialize(sdk, uuid, _ecosystem) {
+  static async deserialize(sdk, uuid) {
     validateIsAddress(uuid, { prefix });
 
-    let ecosystem = _ecosystem;
-    if (!isEcosystem(ecosystem)) {
-      ecosystem = await Ecosystem.deserialize(sdk, uuid);
-    }
-
+    const ecosystem = await Ecosystem.deserialize(sdk, uuid);
     const daoModel = await this.contract(sdk, ecosystem.daoModelAddress);
 
-    const { name, numberOfSummoners, summoned } = await daoModel.deserialize(
-      uuid,
-      ecosystem.toObject(false),
-    );
+    const {
+      maxVotingLambda,
+      name,
+      numberOfSummoners,
+      summoned,
+    } = await daoModel.deserialize(uuid, ecosystem.toObject(false));
 
     return new DAO(sdk, {
       ecosystem,
+      maxVotingLambda,
       name,
       numberOfSummoners,
       summoned,
       uuid,
     });
+  }
+
+  static async exists(sdk, uuid) {
+    validateIsAddress(uuid, { prefix });
+
+    const ecosystem = await Ecosystem.deserialize(sdk, uuid);
+    const daoModel = await this.contract(sdk, ecosystem.daoModelAddress);
+    return daoModel.exists(uuid);
   }
 
   // Getters
@@ -81,6 +124,19 @@ export default class DAO extends ElasticModel {
 
   get elasticGovernanceToken() {
     return new ElasticGovernanceToken(this);
+  }
+
+  get events() {
+    const key = toKey(this.id, 'Events');
+    if (cache[key]) {
+      return cache[key];
+    }
+    cache[key] = new Events(this);
+    return cache[key];
+  }
+
+  get maxVotingLambda() {
+    return this.toBigNumber(cache[this.id].maxVotingLambda, 18);
   }
 
   get name() {
@@ -106,11 +162,21 @@ export default class DAO extends ElasticModel {
   }
 
   async refresh() {
-    return this.constructor.deserialize(this.sdk, this.uuid, this.ecosystem);
+    await this.token();
+    return this.constructor.deserialize(this.sdk, this.uuid);
   }
 
   async summoners() {
-    return this.elasticDAO.summoners();
+    if (
+      cache[this.id].summoners &&
+      cache[this.id].summoners.length === this.numberOfSummoners
+    ) {
+      return cache[this.id].summoners;
+    }
+    const summoners = await this.elasticDAO.summoners();
+    cache[this.id].summoners = summoners;
+    this.subject.next(this);
+    return summoners;
   }
 
   async token() {
@@ -128,7 +194,6 @@ export default class DAO extends ElasticModel {
       ...cache[id],
       id,
       ecosystem: ecosystem.toObject(false),
-      summoners: [],
     };
 
     if (includeNested === false) {

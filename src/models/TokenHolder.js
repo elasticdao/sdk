@@ -1,7 +1,8 @@
 import { validateIsAddress } from '@pie-dao/utils';
-import { validate } from '../utils';
+import { toKey, validate } from '../utils';
 import { validateIsEcosystem } from './Ecosystem';
 import { validateIsToken } from './Token';
+import BaseEvents from '../BaseEvents';
 import ElasticModel from './ElasticModel';
 import TokenHolderContract from '../../artifacts/TokenHolder.json';
 
@@ -15,17 +16,41 @@ export const validateIsTokenHolder = (thing) => {
   validate(isTokenHolder(thing), { message, prefix });
 };
 
+class Events extends BaseEvents {
+  async Serialized() {
+    return this.observeEvent({
+      eventName: 'Serialized',
+      filterArgs: [this.target.account, this.target.token.uuid],
+      keyBase: this.target.id,
+      subjectBase: this.target.key,
+    });
+  }
+}
+
+const listen = async (tokenHolder) => {
+  const key = toKey(tokenHolder.id, 'SerializedListener');
+  if (cache[key]) {
+    return;
+  }
+  const listenerSubject = await tokenHolder.events.Serialized();
+  listenerSubject.subscribe(tokenHolder.refresh.bind(tokenHolder));
+  cache[key] = true;
+};
+
 export default class TokenHolder extends ElasticModel {
-  constructor(sdk, { account, counter, ecosystem, lambda, token }) {
+  constructor(sdk, { account, ecosystem, lambda, token }) {
     super(sdk);
-    this.id = `${token.uuid}|${account}`.toLowerCase();
+    this.id = toKey(token.uuid, account);
     cache[this.id] = {
       account,
-      counter,
       ecosystem,
       lambda,
       token,
     };
+    this.subject.next(this);
+    if (sdk.live) {
+      listen(this);
+    }
   }
 
   // Class functions
@@ -47,7 +72,7 @@ export default class TokenHolder extends ElasticModel {
 
     const ecosystemObject = ecosystem.toObject(false);
 
-    const { account, counter, lambda } = await tokenHolderModel.deserialize(
+    const { account, lambda } = await tokenHolderModel.deserialize(
       uuid,
       ecosystemObject,
       {
@@ -58,11 +83,22 @@ export default class TokenHolder extends ElasticModel {
 
     return new TokenHolder(sdk, {
       account,
-      counter,
       ecosystem,
       lambda,
       token,
     });
+  }
+
+  static async exists(sdk, account, token) {
+    validateIsAddress(account, { prefix });
+    validateIsToken(token);
+
+    const tokenHolderModel = await this.contract(
+      sdk,
+      token.ecosystem.tokenHolderModelAddress,
+    );
+
+    return tokenHolderModel.exists(account, token.toObject());
   }
 
   // Getters
@@ -79,12 +115,17 @@ export default class TokenHolder extends ElasticModel {
     return this.constructor.contract(this.sdk, this.address);
   }
 
-  get counter() {
-    return this.toNumber(cache[this.id].counter);
-  }
-
   get ecosystem() {
     return cache[this.id].ecosystem;
+  }
+
+  get events() {
+    const key = toKey(this.id, 'Events');
+    if (cache[key]) {
+      return cache[key];
+    }
+    cache[key] = new Events(this);
+    return cache[key];
   }
 
   get lambda() {
@@ -98,9 +139,11 @@ export default class TokenHolder extends ElasticModel {
   // Instance functions
 
   async refresh() {
+    await Promise.all([this.ecosystem.refresh(), this.token.refresh()]);
+
     return this.constructor.deserialize(
       this.sdk,
-      this.uuid,
+      this.account,
       this.ecosystem,
       this.token,
     );

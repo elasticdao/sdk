@@ -1,8 +1,18 @@
 /* eslint class-methods-use-this: 0 */
 import { isBigNumber } from '@pie-dao/utils';
+import { swapBigNumber, toKey } from '../utils';
+import { subject } from '../observables';
 import Base from '../Base';
 
 export default class ElasticModel extends Base {
+  get key() {
+    return toKey(this.constructor.name, this.id);
+  }
+
+  get subject() {
+    return subject(this.key);
+  }
+
   async refresh() {
     return this.constructor.deserialize(this.id);
   }
@@ -21,5 +31,12 @@ export default class ElasticModel extends Base {
       }
     });
     return clean;
+  }
+
+  subscribe(callback) {
+    callback(swapBigNumber(this.toObject(false)));
+    return this.subject.subscribe((dao) => {
+      callback(swapBigNumber(dao.toObject(false)));
+    });
   }
 }

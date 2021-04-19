@@ -1,6 +1,7 @@
 import { validateIsAddress } from '@pie-dao/utils';
-import { validate } from '../utils';
-import { validateIsEcosystem } from './Ecosystem';
+import { toKey, validate } from '../utils';
+import BaseEvents from '../BaseEvents';
+import Ecosystem, { validateIsEcosystem } from './Ecosystem';
 import ElasticModel from './ElasticModel';
 import TokenContract from '../../artifacts/Token.json';
 
@@ -14,11 +15,31 @@ export const validateIsToken = (thing) => {
   validate(isToken(thing), { message, prefix });
 };
 
+class Events extends BaseEvents {
+  async Serialized() {
+    return this.observeEvent({
+      eventName: 'Serialized',
+      filterArgs: [this.target.uuid],
+      keyBase: this.target.id,
+      subjectBase: this.target.key,
+    });
+  }
+}
+
+const listen = async (token) => {
+  const key = toKey(token.id, 'SerializedListener');
+  if (cache[key]) {
+    return;
+  }
+  const listenerSubject = await token.events.Serialized();
+  listenerSubject.subscribe(token.refresh.bind(token));
+  cache[key] = true;
+};
+
 export default class Token extends ElasticModel {
   constructor(
     sdk,
     {
-      counter,
       eByL,
       ecosystem,
       elasticity,
@@ -33,9 +54,8 @@ export default class Token extends ElasticModel {
     },
   ) {
     super(sdk);
-    this.id = uuid.toLowerCase();
+    this.id = toKey(uuid);
     cache[this.id] = {
-      counter,
       eByL,
       ecosystem,
       elasticity,
@@ -48,6 +68,10 @@ export default class Token extends ElasticModel {
       symbol,
       uuid,
     };
+    this.subject.next(this);
+    if (sdk.live) {
+      listen(this);
+    }
   }
 
   // Class functions
@@ -64,7 +88,6 @@ export default class Token extends ElasticModel {
     const tokenModel = await this.contract(sdk, ecosystem.tokenModelAddress);
 
     const {
-      counter,
       eByL,
       elasticity,
       k,
@@ -77,7 +100,6 @@ export default class Token extends ElasticModel {
     } = await tokenModel.deserialize(uuid, ecosystem.toObject(false));
 
     return new Token(sdk, {
-      counter,
       eByL,
       ecosystem,
       elasticity,
@@ -92,6 +114,15 @@ export default class Token extends ElasticModel {
     });
   }
 
+  static async exists(sdk, uuid) {
+    validateIsAddress(uuid, { prefix });
+
+    const ecosystem = await Ecosystem.deserialize(sdk, uuid);
+    const tokenModel = await this.contract(sdk, ecosystem.tokenModelAddress);
+
+    return tokenModel.exists(uuid, ecosystem.daoAddress);
+  }
+
   // Getters
 
   get address() {
@@ -100,10 +131,6 @@ export default class Token extends ElasticModel {
 
   get contract() {
     return this.constructor.contract(this.sdk, this.address);
-  }
-
-  get counter() {
-    return this.toNumber(cache[this.id].counter);
   }
 
   get eByL() {
@@ -116,6 +143,15 @@ export default class Token extends ElasticModel {
 
   get elasticity() {
     return this.toBigNumber(cache[this.id].elasticity, 18);
+  }
+
+  get events() {
+    const key = toKey(this.id, 'Events');
+    if (cache[key]) {
+      return cache[key];
+    }
+    cache[key] = new Events(this);
+    return cache[key];
   }
 
   get k() {
@@ -153,6 +189,7 @@ export default class Token extends ElasticModel {
   // Instance functions
 
   async refresh() {
+    await this.ecosystem.refresh();
     return this.constructor.deserialize(this.sdk, this.uuid, this.ecosystem);
   }
 

@@ -1,9 +1,10 @@
 import { ethers } from 'ethers';
 import { validateIsAddress } from '@pie-dao/utils';
-
-import { validate } from '../utils';
+import { toKey, validate } from '../utils';
 import EcosystemContract from '../../artifacts/Ecosystem.json';
+import ElasticDAO from '../ElasticDAO';
 import ElasticModel from './ElasticModel';
+import BaseEvents from '../BaseEvents';
 
 const cache = {};
 const prefix = '@elastic-dao/sdk - Ecosystem';
@@ -15,38 +16,53 @@ export const validateIsEcosystem = (thing) => {
   validate(isEcosystem(thing), { message, prefix });
 };
 
+class Events extends BaseEvents {
+  async Serialized() {
+    return this.observeEvent({
+      eventName: 'Serialized',
+      filterArgs: [this.target.uuid],
+      keyBase: this.target.id,
+      subjectBase: this.target.key,
+    });
+  }
+}
+
+const listen = async (ecosystem) => {
+  const key = toKey(ecosystem.id, 'SerializedListener');
+  if (cache[key]) {
+    return;
+  }
+  const listenerSubject = await ecosystem.events.Serialized();
+  listenerSubject.subscribe(ecosystem.refresh.bind(ecosystem));
+  cache[key] = true;
+};
+
 export default class Ecosystem extends ElasticModel {
   constructor(
     sdk,
     {
-      balanceModelAddress,
-      balanceMultipliersModelAddress,
-      configuratorAddress,
       daoAddress,
       daoModelAddress,
       ecosystemModelAddress,
-      elasticModuleModelAddress,
       governanceTokenAddress,
-      registratorAddress,
       tokenHolderModelAddress,
       tokenModelAddress,
     },
   ) {
     super(sdk);
-    this.id = (daoAddress || ethers.constants.AddressZero).toLowerCase();
+    this.id = toKey(daoAddress || ethers.constants.AddressZero);
     cache[this.id] = {
-      balanceModelAddress,
-      balanceMultipliersModelAddress,
-      configuratorAddress,
       daoAddress,
       daoModelAddress,
       ecosystemModelAddress,
-      elasticModuleModelAddress,
       governanceTokenAddress,
-      registratorAddress,
       tokenHolderModelAddress,
       tokenModelAddress,
     };
+    this.subject.next(this);
+    if (sdk.live) {
+      listen(this);
+    }
   }
 
   // Class functions
@@ -59,55 +75,43 @@ export default class Ecosystem extends ElasticModel {
   static async deserialize(sdk, daoAddress) {
     validateIsAddress(daoAddress, { prefix });
 
-    const ecosystemModel = await this.contract(
-      sdk,
-      sdk.env.elasticDAO.ecosystemModelAddress,
-    );
+    const ecosystemModelAddress = await (
+      await ElasticDAO.contract(sdk, daoAddress)
+    ).ecosystemModelAddress();
+    const ecosystemModel = await this.contract(sdk, ecosystemModelAddress);
 
     const {
-      balanceModelAddress,
-      balanceMultipliersModelAddress,
-      configuratorAddress,
       daoModelAddress,
-      ecosystemModelAddress,
-      elasticModuleModelAddress,
       governanceTokenAddress,
-      registratorAddress,
       tokenHolderModelAddress,
       tokenModelAddress,
     } = await ecosystemModel.deserialize(daoAddress);
 
     return new Ecosystem(sdk, {
-      balanceModelAddress,
-      balanceMultipliersModelAddress,
-      configuratorAddress,
       daoAddress,
       daoModelAddress,
       ecosystemModelAddress,
-      elasticModuleModelAddress,
       governanceTokenAddress,
-      registratorAddress,
       tokenHolderModelAddress,
       tokenModelAddress,
     });
   }
 
+  static async exists(sdk, daoAddress) {
+    validateIsAddress(daoAddress, { prefix });
+
+    const ecosystemModel = await this.contract(
+      sdk,
+      sdk.env.elasticDAO.ecosystemModelAddress,
+    );
+
+    return ecosystemModel.exists(daoAddress);
+  }
+
   // Getters
 
   get address() {
-    return this.sdk.env.elasticDAO.ecosystemModelAddress;
-  }
-
-  get balanceModelAddress() {
-    return cache[this.id].balanceModelAddress;
-  }
-
-  get balanceMultipliersModelAddress() {
-    return cache[this.id].balanceMultipliersModelAddress;
-  }
-
-  get configuratorAddress() {
-    return cache[this.id].configuratorAddress;
+    return cache[this.id].ecosystemModelAddress;
   }
 
   get contract() {
@@ -126,16 +130,17 @@ export default class Ecosystem extends ElasticModel {
     return cache[this.id].ecosystemModelAddress;
   }
 
-  get elasticModuleModelAddress() {
-    return cache[this.id].elasticModuleModelAddress;
+  get events() {
+    const key = toKey(this.id, 'Events');
+    if (cache[key]) {
+      return cache[key];
+    }
+    cache[key] = new Events(this);
+    return cache[key];
   }
 
   get governanceTokenAddress() {
     return cache[this.id].governanceTokenAddress;
-  }
-
-  get registratorAddress() {
-    return cache[this.id].registratorAddress;
   }
 
   get tokenHolderModelAddress() {

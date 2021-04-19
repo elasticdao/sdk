@@ -1,8 +1,8 @@
 /* eslint class-methods-use-this: 0 */
 
-import { ethers } from 'ethers';
 import { isAddress, isNumber } from '@pie-dao/utils';
-import BigNumber from 'bignumber.js';
+
+import { toBigNumber, toEthersBigNumber, toNumber } from './utils';
 
 const prefix = '@elastic-dao/sdk';
 const validKeys = ['from', 'gasLimit', 'gasPrice', 'nonce', 'value'];
@@ -77,19 +77,14 @@ export default class Base {
   }
 
   toBigNumber(value, decimalShift = 0) {
-    return BigNumber(value.toString()).dividedBy(10 ** decimalShift);
+    return toBigNumber(value, decimalShift);
   }
 
   toEthersBigNumber(value, decimalShift = 0) {
-    return ethers.BigNumber.from(
-      BigNumber(value.toString())
-        .multipliedBy(10 ** decimalShift)
-        .dp(0)
-        .toFixed(),
-    );
+    return toEthersBigNumber(value, decimalShift);
   }
 
   toNumber(value, decimalShift = 0) {
-    return this.toBigNumber(value, decimalShift).toNumber();
+    return toNumber(value, decimalShift);
   }
 }

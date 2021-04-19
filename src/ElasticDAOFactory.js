@@ -9,7 +9,7 @@ export default class ElasticDAOFactory extends Base {
   }
 
   get address() {
-    return this.sdk.env.elasticDAO.factoryAddress;
+    return this.sdk.env.factoryAddress;
   }
 
   get contract() {
@@ -19,28 +19,29 @@ export default class ElasticDAOFactory extends Base {
   async deployDAOAndToken(
     summoners,
     nameOfDAO,
-    numberOfSummoners,
     nameOfToken,
     symbol,
     eByL,
     elasticity,
     k,
     maxLambdaPurchase,
+    maxVotingLambda,
     overrides = {},
   ) {
     const payload = [
       summoners,
       nameOfDAO,
-      numberOfSummoners,
       nameOfToken,
       symbol,
       this.toEthersBigNumber(eByL, 18),
       this.toEthersBigNumber(elasticity, 18),
       this.toEthersBigNumber(k, 18),
       this.toEthersBigNumber(maxLambdaPurchase, 18),
+      this.toEthersBigNumber(maxVotingLambda, 18),
     ];
+
     const factory = await this.contract;
-    const daoDeployedFilter = factory.filters.DAODeployed();
+    const daoDeployedFilter = factory.filters.DeployedDAO();
     const daoDeployedFilterPromise = new Promise(async (resolve, reject) => {
       let tx = {};
       const handler = ({ transactionHash, topics }) => {
@@ -50,15 +51,12 @@ export default class ElasticDAOFactory extends Base {
         }
       };
       this.sdk.provider.on(daoDeployedFilter, handler);
-      tx = await factory.deployDAOAndToken(
-        ...payload,
-        this.sanitizeOverrides({
-          ...overrides,
-          value: this.sdk.env.fees.deploy,
-        }),
-      );
+      tx = this._handleTransaction(await factory.deployDAOAndToken(...payload, {
+        ...this.sanitizeOverrides({ ...overrides }),
+        value: await this.contract.fee(),
+      }));
       await tx.wait(2);
-      reject();
+      reject(tx);
     });
 
     return DAO.deserialize(this.sdk, await daoDeployedFilterPromise);
@@ -72,5 +70,18 @@ export default class ElasticDAOFactory extends Base {
       factory.deployedDAOAddresses(i),
     );
     return Promise.all(promises);
+  }
+
+  async collectFees() {
+    const factory = await this.contract;
+    const tx = this._handleTransaction(factory.collectFees());
+
+    return tx;
+  }
+
+
+  _handleTransaction(tx) {
+    this.sdk.notify(tx);
+    return tx;
   }
 }

@@ -1,20 +1,22 @@
 {
   "name": "@elastic-dao/sdk",
-  "version": "0.0.8",
+  "version": "0.9.0-beta12",
   "description": "SDK for ElasticDAO contracts and core modules",
-  "main": "src/index.js",
+  "main": "dist/index.js",
   "repository": "https://github.com/elasticdao/sdk",
-  "author": "Dan Matthews <dan@cryptobuilders.io>",
+  "author": "ElasticDAO Core <elasticdao@protonmail.com>",
   "license": "MIT",
   "private": false,
   "scripts": {
+    "analyzer": "yarn stats && yarn webpack-bundle-analyzer stats.json",
     "artifacts": "bash ./scripts/copyArtifacts.sh",
-    "build": "npx webpack",
-    "dev": "yarn artifacts && yarn lint && npx webpack --watch",
+    "build": "npx webpack -c ./webpack.config.production.js",
+    "dev": "yarn artifacts && yarn lint && npx webpack -c ./webpack.config.js --watch",
     "lint": "yarn prettier && npx eslint src/*.js src/**/*.js src/**/**/*.js src/**/**/**/*.js",
     "prerelease": "yarn build",
     "prettier": "yarn artifacts && npx prettier --write src/*.js --write src/**/*.js --write src/**/**/*.js --write src/**/**/**/*.js",
     "release": "npm publish --access=public",
+    "stats": "npx webpack -c ./webpack.config.js --json > stats.json",
     "workflow:lint": "bash ./scripts/setupArtifacts.sh && npx eslint src/*.js src/**/*.js src/**/**/*.js src/**/**/**/*.js"
   },
   "devDependencies": {
@@ -28,11 +30,14 @@
     "prettier": "^2.1.1",
     "terser-webpack-plugin": "^5.0.3",
     "webpack": "^5.10.0",
+    "webpack-bundle-analyzer": "^4.4.0",
     "webpack-cli": "^4.2.0"
   },
   "dependencies": {
     "@pie-dao/utils": "^1.0.0",
     "bignumber.js": "^9.0.0",
-    "ethers": "^5.0.9"
+    "bnc-notify": "^1.5.1",
+    "ethers": "^5.0.9",
+    "rxjs": "^6.6.3"
   }
 }
