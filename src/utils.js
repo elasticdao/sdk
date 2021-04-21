@@ -12,7 +12,7 @@ export const sanitizeOverrides = (requested = {}, readonlyMethod = false) => {
   let validKeys = [];
 
   if (readonlyMethod) {
-    validKeys = ['blockTag'];
+    validKeys = ['blockTag', 'synchronous'];
 
     if (requested.blockTag) {
       try {
@@ -22,6 +22,10 @@ export const sanitizeOverrides = (requested = {}, readonlyMethod = false) => {
           `${prefix}: Requested override 'blockTag' (${requested.blockTag}) is invalid and was excluded (${e.message})`,
         );
       }
+    }
+
+    if (requested.synchronous) {
+      overrides.synchronous = true;
     }
   } else {
     validKeys = ['from', 'gasLimit', 'gasPrice', 'nonce', 'value'];
