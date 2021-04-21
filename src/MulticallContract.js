@@ -30,14 +30,12 @@ export default class MulticallContract {
               }
 
               this.populateTransaction[name](...args).then(({ data, to }) => {
-                this._sdk.queue.push(
-                  {
-                    callback: resolve,
-                    callData: data,
-                    outputABI: outputs,
-                    target: to,
-                  },
-                );
+                this._sdk.queue.push({
+                  callback: resolve,
+                  callData: data,
+                  outputABI: outputs,
+                  target: to,
+                });
               });
             });
 

@@ -4,13 +4,13 @@ import MulticallABI from './abis/Multicall.json';
 
 const aggOut = [
   {
-    name: "blockNumber",
-    type: "uint256"
+    name: 'blockNumber',
+    type: 'uint256',
   },
   {
-    name: "returnData",
-    type: "bytes[]"
-  }
+    name: 'returnData',
+    type: 'bytes[]',
+  },
 ];
 
 export default class MulticallQueue {
@@ -35,7 +35,7 @@ export default class MulticallQueue {
       calls.push({ callData, target });
       callbacks.push(callback);
       outputs.push(outputABI);
-    } 
+    }
 
     if (calls.length > 0) {
       const contract = new ethers.Contract(
@@ -43,7 +43,9 @@ export default class MulticallQueue {
         MulticallABI,
       );
 
-      const { data, to } = await contract.populateTransaction.aggregate(calls, { gasLimit: 0 });
+      const { data, to } = await contract.populateTransaction.aggregate(calls, {
+        gasLimit: 0,
+      });
       const response = await this._sdk.provider.call({ data, to });
       const results = abiCoder.decode(aggOut, response);
 
