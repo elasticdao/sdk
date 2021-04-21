@@ -1,11 +1,88 @@
 import { ethers } from 'ethers';
-import { validateIsNumber } from '@pie-dao/utils';
+import { isAddress, isNumber, validateIsNumber } from '@pie-dao/utils';
 import BigNumber from 'bignumber.js';
 
-export const buildError = ({
-  message,
-  prefix = '@elastic-dao/sdk - validations',
-}) => `${prefix}: ${message}`;
+const prefix = '@elastic-dao/sdk';
+
+export const buildError = ({ message, localPrefix }) =>
+  `${localPrefix || prefix}: ${message}`;
+
+export const sanitizeOverrides = (requested = {}, readonlyMethod = false) => {
+  const overrides = {};
+  let validKeys = [];
+
+  if (readonlyMethod) {
+    validKeys = ['blockTag'];
+
+    if (requested.blockTag) {
+      try {
+        overrides.blockTag = this.toEthersBigNumber(requested.blockTag);
+      } catch (e) {
+        console.warn(
+          `${prefix}: Requested override 'blockTag' (${requested.blockTag}) is invalid and was excluded (${e.message})`,
+        );
+      }
+    }
+  } else {
+    validKeys = ['from', 'gasLimit', 'gasPrice', 'nonce', 'value'];
+
+    if (requested.from && isAddress(requested.from)) {
+      overrides.from = requested.from;
+    } else if (requested.from) {
+      console.warn(
+        `${prefix}: Requested override 'from' (${requested.from}) is not a valid address and was excluded`,
+      );
+    }
+
+    if (requested.gasLimit) {
+      try {
+        overrides.gasLimit = this.toEthersBigNumber(requested.gasLimit);
+      } catch (e) {
+        console.warn(
+          `${prefix}: Requested override 'gasLimit' (${requested.gasLimit}) is invalid and was excluded (${e.message})`,
+        );
+      }
+    }
+
+    if (requested.gasPrice) {
+      try {
+        overrides.gasPrice = this.toEthersBigNumber(requested.gasPrice);
+      } catch (e) {
+        console.warn(
+          `${prefix}: Requested override 'gasPrice' (${requested.gasPrice}) is invalid and was excluded (${e.message})`,
+        );
+      }
+    }
+
+    if (requested.nonce && isNumber(requested.nonce)) {
+      overrides.nonce = requested.nonce;
+    } else if (requested.nonce) {
+      console.warn(
+        `${prefix}: Requested override 'nonce' (${requested.nonce}) is not a valid number and was excluded`,
+      );
+    }
+
+    if (requested.value) {
+      try {
+        overrides.value = this.toEthersBigNumber(requested.value, 18);
+      } catch (e) {
+        console.warn(
+          `${prefix}: Requested override 'value' (${requested.value}) is invalid and was excluded (${e.message})`,
+        );
+      }
+    }
+  }
+
+  Object.keys(requested).forEach((key) => {
+    if (!validKeys.includes(key)) {
+      console.warn(
+        `${prefix}: Requested override '${key}' is not supported and was excluded`,
+      );
+    }
+  });
+
+  return overrides;
+};
 
 export const swapBigNumber = (obj) => {
   const swappedObj = {};
@@ -50,13 +127,13 @@ export const upTo = (n) => {
 };
 
 export const validate = (result, options) => {
-  const { level = 'error', message, prefix, throwError = true } = options;
+  const { level = 'error', message, throwError = true } = options;
 
   if (result) {
     return true;
   }
 
-  const error = buildError({ message, prefix });
+  const error = buildError({ message, prefix: options.prefix });
 
   if (throwError) {
     throw new TypeError(error);

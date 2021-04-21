@@ -1,5 +1,5 @@
 import { validateIsAddress } from '@pie-dao/utils';
-import { toKey, validate } from '../utils';
+import { sanitizeOverrides, toKey, validate } from '../utils';
 import { validateIsEcosystem } from './Ecosystem';
 import { validateIsToken } from './Token';
 import BaseEvents from '../BaseEvents';
@@ -60,7 +60,7 @@ export default class TokenHolder extends ElasticModel {
     return sdk.contract({ abi: TokenHolderContract.abi, address });
   }
 
-  static async deserialize(sdk, uuid, ecosystem, token) {
+  static async deserialize(sdk, uuid, ecosystem, token, overrides = {}) {
     validateIsAddress(uuid, { prefix });
     validateIsEcosystem(ecosystem);
     validateIsToken(token);
@@ -79,6 +79,7 @@ export default class TokenHolder extends ElasticModel {
         ...token.toObject(false),
         ecosystem: ecosystemObject,
       },
+      sanitizeOverrides(overrides, true),
     );
 
     return new TokenHolder(sdk, {
@@ -89,7 +90,7 @@ export default class TokenHolder extends ElasticModel {
     });
   }
 
-  static async exists(sdk, account, token) {
+  static async exists(sdk, account, token, overrides = {}) {
     validateIsAddress(account, { prefix });
     validateIsToken(token);
 
@@ -98,7 +99,11 @@ export default class TokenHolder extends ElasticModel {
       token.ecosystem.tokenHolderModelAddress,
     );
 
-    return tokenHolderModel.exists(account, token.toObject());
+    return tokenHolderModel.exists(
+      account,
+      token.toObject(),
+      sanitizeOverrides(overrides, true),
+    );
   }
 
   // Getters

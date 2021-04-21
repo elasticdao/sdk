@@ -1,9 +1,9 @@
 import { validateIsAddress } from '@pie-dao/utils';
-import { toKey, validate } from '../utils';
+import { sanitizeOverrides, toKey, validate } from '../utils';
 import BaseEvents from '../BaseEvents';
 import DAOContract from '../../artifacts/DAO.json';
 import Ecosystem from './Ecosystem';
-import ElasticDAO from '../ElasticDAO';
+import ElasticDAO from '../core/ElasticDAO';
 import ElasticModel from './ElasticModel';
 import Token from './Token';
 import ElasticGovernanceToken from '../tokens/ElasticGovernanceToken';
@@ -73,7 +73,7 @@ export default class DAO extends ElasticModel {
     return sdk.contract({ abi: DAOContract.abi, address });
   }
 
-  static async deserialize(sdk, uuid, options = {}) {
+  static async deserialize(sdk, uuid, overrides = {}) {
     validateIsAddress(uuid, { prefix });
 
     const ecosystem = await Ecosystem.deserialize(sdk, uuid);
@@ -84,7 +84,11 @@ export default class DAO extends ElasticModel {
       name,
       numberOfSummoners,
       summoned,
-    } = await daoModel.deserialize(uuid, ecosystem.toObject(false), options);
+    } = await daoModel.deserialize(
+      uuid,
+      ecosystem.toObject(false),
+      sanitizeOverrides(overrides, true),
+    );
 
     return new DAO(sdk, {
       ecosystem,
@@ -96,12 +100,12 @@ export default class DAO extends ElasticModel {
     });
   }
 
-  static async exists(sdk, uuid) {
+  static async exists(sdk, uuid, overrides = {}) {
     validateIsAddress(uuid, { prefix });
 
     const ecosystem = await Ecosystem.deserialize(sdk, uuid);
     const daoModel = await this.contract(sdk, ecosystem.daoModelAddress);
-    return daoModel.exists(uuid);
+    return daoModel.exists(uuid, sanitizeOverrides(overrides, true));
   }
 
   // Getters
