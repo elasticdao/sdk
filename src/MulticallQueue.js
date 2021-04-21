@@ -52,9 +52,6 @@ export default class MulticallQueue {
     if (calls.length > 0) {
       const { data, to } = await this.multicall.populateTransaction.aggregate(
         calls,
-        {
-          gasLimit: 0,
-        },
       );
       const response = await this.sdk.provider.call({ data, to });
       const decoded = this.abiCoder.decode(aggregateOutputs, response);
