@@ -19,37 +19,3 @@ cp -v ./artifacts/src/tokens/ElasticGovernanceToken.sol/ElasticGovernanceToken.j
 cd ../
 rm -rf contracts
 cd ../
-
-
-{
-  "address": "0x6B175474E89094C44Da98b954EedeAC495271d0F",
-  "decimals": 18,
-  "symbol": "DAI",
-  "args": ["%{address}", "0x0a68fA3eFe271Ce098553480BF5969A4fA4b663B"],
-  "methodABI":   {
-    "constant": true,
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      },
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "name": "allowance",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "payable": false,
-    "stateMutability": "view",
-    "type": "function"
-  }
-}
