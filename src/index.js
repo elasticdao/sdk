@@ -9,6 +9,8 @@ import EcosystemClass from './models/Ecosystem';
 import ElasticDAOClass from './core/ElasticDAO';
 import ElasticDAOFactoryClass from './core/ElasticDAOFactory';
 import ElasticGovernanceTokenClass from './tokens/ElasticGovernanceToken';
+import MulticallContract from './MulticallContract';
+import MulticallQueue from './MulticallQueue';
 import TokenClass from './models/Token';
 import TokenHolderClass from './models/TokenHolder';
 
@@ -102,15 +104,20 @@ export class Models extends Base {
 }
 
 export class SDK {
-  constructor({ account, contract, env, live, provider, signer }) {
+  constructor({ account, contract, env, live, multicall, provider, signer }) {
     this.provider = provider || ethers.getDefaultProvider();
-    this.contract =
-      contract ||
-      (({ address, abi }) => new ethers.Contract(address, abi, this.provider));
+    this._contract =
+      contract || (({ address, abi }) => new ethers.Contract(address, abi));
     this.env = env;
     this.live = !!live;
+    this.multicall = !!multicall;
     this.signer = signer;
     this.account = account;
+
+    if (this.multicall) {
+      console.warn('@elastic-dao/sdk multicall functionality is experimental');
+      this._queue = new MulticallQueue(this);
+    }
 
     if (this.env.blocknative) {
       this._notify = Notify(this.env.blocknative);
@@ -125,6 +132,10 @@ export class SDK {
     return new ElasticDAOFactory(this);
   }
 
+  get queue() {
+    return this._queue;
+  }
+
   get models() {
     return new Models(this);
   }
@@ -134,6 +145,19 @@ export class SDK {
     this.contract = ({ address, abi }) =>
       new ethers.Contract(address, abi, signer);
     this.signer = signer;
+  }
+
+  contract({ abi, address }) {
+    const { provider, signer } = this;
+    const contract = this._contract({ abi, address }).connect(
+      signer || provider,
+    );
+
+    if (!this.multicall) {
+      return contract;
+    }
+
+    return new MulticallContract(this, contract, abi);
   }
 
   notify({ hash, obj }) {
