@@ -18,25 +18,27 @@ export default class MulticallContract {
           this._functions[name] = (...args) =>
             new Promise((resolve, reject) => {
               const lastArg = args[args.length - 1];
-              if (isPOJO(lastArg)) {
-                if (lastArg.synchronous || lastArg.blockTag) {
-                  const functionArgs = [...args];
-                  delete lastArg.synchronous;
-                  functionArgs.pop();
-                  functionArgs.push(lastArg);
 
-                  this._contract[name](...functionArgs).then(resolve, reject);
-                }
-              }
+              if (
+                isPOJO(lastArg) &&
+                (lastArg.synchronous || lastArg.blockTag)
+              ) {
+                const functionArgs = [...args];
+                delete lastArg.synchronous;
+                functionArgs.pop();
+                functionArgs.push(lastArg);
 
-              this.populateTransaction[name](...args).then(({ data, to }) => {
-                this._sdk.queue.push({
-                  callback: resolve,
-                  callData: data,
-                  outputABI: outputs,
-                  target: to,
+                this._contract[name](...functionArgs).then(resolve, reject);
+              } else {
+                this.populateTransaction[name](...args).then(({ data, to }) => {
+                  this._sdk.queue.push({
+                    callback: resolve,
+                    callData: data,
+                    outputABI: outputs,
+                    target: to,
+                  });
                 });
-              });
+              }
             });
 
           this[name] = (...args) => this._functions[name](...args);
