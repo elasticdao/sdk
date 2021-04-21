@@ -1,7 +1,7 @@
-import { upTo } from './utils';
-import Base from './Base';
-import DAO from './models/DAO';
-import ElasticDAOFactoryContract from '../artifacts/ElasticDAOFactory.json';
+import { sanitizeOverrides, upTo } from '../utils';
+import Base from '../Base';
+import DAO from '../models/DAO';
+import ElasticDAOFactoryContract from '../../artifacts/ElasticDAOFactory.json';
 
 export default class ElasticDAOFactory extends Base {
   static contract(sdk, address) {
@@ -51,10 +51,12 @@ export default class ElasticDAOFactory extends Base {
         }
       };
       this.sdk.provider.on(daoDeployedFilter, handler);
-      tx = this._handleTransaction(await factory.deployDAOAndToken(...payload, {
-        ...this.sanitizeOverrides({ ...overrides }),
-        value: await this.contract.fee(),
-      }));
+      tx = this._handleTransaction(
+        await factory.deployDAOAndToken(...payload, {
+          ...this.sanitizeOverrides({ ...overrides }),
+          value: await this.contract.fee(),
+        }),
+      );
       await tx.wait(2);
       reject(tx);
     });
@@ -62,23 +64,24 @@ export default class ElasticDAOFactory extends Base {
     return DAO.deserialize(this.sdk, await daoDeployedFilterPromise);
   }
 
-  async deployedDAOAddresses() {
+  async deployedDAOAddresses(overrides = {}) {
     const factory = await this.contract;
     const deployedDAOCount = await factory.deployedDAOCount();
 
     const promises = upTo(deployedDAOCount.toNumber()).map((i) =>
-      factory.deployedDAOAddresses(i),
+      factory.deployedDAOAddresses(i, sanitizeOverrides(overrides, true)),
     );
     return Promise.all(promises);
   }
 
-  async collectFees() {
+  async collectFees(overrides = {}) {
     const factory = await this.contract;
-    const tx = this._handleTransaction(factory.collectFees());
+    const tx = this._handleTransaction(
+      factory.collectFees(this.sanitizeOverrides(overrides)),
+    );
 
     return tx;
   }
-
 
   _handleTransaction(tx) {
     this.sdk.notify(tx);

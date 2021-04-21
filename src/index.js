@@ -1,11 +1,13 @@
+/* eslint consistent-return: 0 */
+
 import { ethers } from 'ethers';
 import { validateIsAddress } from '@pie-dao/utils';
 import Notify from 'bnc-notify';
 import Base from './Base';
 import DAOClass from './models/DAO';
 import EcosystemClass from './models/Ecosystem';
-import ElasticDAOClass from './ElasticDAO';
-import ElasticDAOFactoryClass from './ElasticDAOFactory';
+import ElasticDAOClass from './core/ElasticDAO';
+import ElasticDAOFactoryClass from './core/ElasticDAOFactory';
 import ElasticGovernanceTokenClass from './tokens/ElasticGovernanceToken';
 import TokenClass from './models/Token';
 import TokenHolderClass from './models/TokenHolder';
@@ -114,7 +116,7 @@ export class SDK {
       this._notify = Notify(this.env.blocknative);
       this._notify.config({
         darkMode: true,
-      })
+      });
     }
   }
 

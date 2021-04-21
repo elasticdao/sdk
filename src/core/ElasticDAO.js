@@ -1,9 +1,9 @@
 import BigNumber from 'bignumber.js';
-import BaseEvents from './BaseEvents';
+import BaseEvents from '../BaseEvents';
 
-import { toKey, upTo } from './utils';
-import Base from './Base';
-import ElasticDAOContract from '../artifacts/ElasticDAO.json';
+import { sanitizeOverrides, toKey, upTo } from '../utils';
+import Base from '../Base';
+import ElasticDAOContract from '../../artifacts/ElasticDAO.json';
 
 const onlyAfterSummoning = 'DAO must be summoned';
 const onlyBeforeSummoning = 'DAO must not be summoned';
@@ -180,11 +180,13 @@ export default class ElasticDAO extends Base {
     );
   }
 
-  async summoners() {
+  async summoners(overrides = {}) {
     const elasticDAO = await this.contract;
 
     return Promise.all(
-      upTo(this.dao.numberOfSummoners).map((i) => elasticDAO.summoners(i)),
+      upTo(this.dao.numberOfSummoners).map((i) =>
+        elasticDAO.summoners(i, sanitizeOverrides(overrides, true)),
+      ),
     );
   }
 
