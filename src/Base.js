@@ -10,6 +10,7 @@ import {
 export default class Base {
   constructor(sdk) {
     this._sdk = sdk;
+    this._subscribers = [];
   }
 
   get sdk() {
@@ -18,6 +19,20 @@ export default class Base {
 
   sanitizeOverrides(requested = {}) {
     return sanitizeOverrides(requested);
+  }
+
+  subscribe(callback) {
+    callback(this);
+
+    const subscriber = (obj) => {
+      callback(obj);
+    };
+
+    this._subscribers.push(subscriber);
+
+    return () => {
+      this._subscribers = this._subscribers.filter((sub) => sub !== subscriber);
+    };
   }
 
   toBigNumber(value, decimalShift = 0) {
@@ -30,5 +45,9 @@ export default class Base {
 
   toNumber(value, decimalShift = 0) {
     return toNumber(value, decimalShift);
+  }
+
+  touch() {
+    this._subscribers.forEach((subscriber) => subscriber(this));
   }
 }
