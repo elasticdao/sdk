@@ -17,6 +17,26 @@ export default class Base {
     return this._sdk;
   }
 
+  async cachedValue(key, lookup) {
+    const promiseKey = `${key}Promise`;
+    const deletePromise = () => {
+      delete this[promiseKey];
+    };
+
+    if (this[promiseKey]) {
+      await this[promiseKey].catch(deletePromise);
+    }
+
+    if (this[key]) {
+      return this[key];
+    }
+
+    this[promiseKey] = lookup();
+    await this[promiseKey].then(deletePromise, deletePromise);
+
+    return this[key];
+  }
+
   sanitizeOverrides(requested = {}) {
     return sanitizeOverrides(requested);
   }

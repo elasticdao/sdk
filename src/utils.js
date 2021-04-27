@@ -7,6 +7,14 @@ const prefix = '@elastic-dao/sdk';
 export const buildError = ({ message, localPrefix }) =>
   `${localPrefix || prefix}: ${message}`;
 
+export const chunkArray = (arr, chunkSize) => {
+  const chunks = [];
+  for (let i = 0; i < arr.length; i += chunkSize) {
+    chunks.push(arr.slice(i, i + chunkSize));
+  }
+  return chunks;
+};
+
 export const sanitizeOverrides = (requested = {}, readonlyMethod = false) => {
   const overrides = {};
   let validKeys = [];
@@ -16,7 +24,7 @@ export const sanitizeOverrides = (requested = {}, readonlyMethod = false) => {
 
     if (requested.blockTag) {
       try {
-        overrides.blockTag = this.toEthersBigNumber(requested.blockTag);
+        overrides.blockTag = BigNumber(requested.blockTag).toNumber();
       } catch (e) {
         console.warn(
           `${prefix}: Requested override 'blockTag' (${requested.blockTag}) is invalid and was excluded (${e.message})`,
@@ -40,7 +48,7 @@ export const sanitizeOverrides = (requested = {}, readonlyMethod = false) => {
 
     if (requested.gasLimit) {
       try {
-        overrides.gasLimit = this.toEthersBigNumber(requested.gasLimit);
+        overrides.gasLimit = toEthersBigNumber(requested.gasLimit);
       } catch (e) {
         console.warn(
           `${prefix}: Requested override 'gasLimit' (${requested.gasLimit}) is invalid and was excluded (${e.message})`,
@@ -50,7 +58,7 @@ export const sanitizeOverrides = (requested = {}, readonlyMethod = false) => {
 
     if (requested.gasPrice) {
       try {
-        overrides.gasPrice = this.toEthersBigNumber(requested.gasPrice);
+        overrides.gasPrice = toEthersBigNumber(requested.gasPrice);
       } catch (e) {
         console.warn(
           `${prefix}: Requested override 'gasPrice' (${requested.gasPrice}) is invalid and was excluded (${e.message})`,
@@ -68,7 +76,7 @@ export const sanitizeOverrides = (requested = {}, readonlyMethod = false) => {
 
     if (requested.value) {
       try {
-        overrides.value = this.toEthersBigNumber(requested.value, 18);
+        overrides.value = toEthersBigNumber(requested.value, 18);
       } catch (e) {
         console.warn(
           `${prefix}: Requested override 'value' (${requested.value}) is invalid and was excluded (${e.message})`,

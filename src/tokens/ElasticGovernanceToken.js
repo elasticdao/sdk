@@ -1,4 +1,4 @@
-// import { subject } from '../observables';
+import { ethers } from 'ethers';
 import { sanitizeOverrides, toKey } from '../utils';
 import Base from '../Base';
 import BaseEvents from '../BaseEvents';
@@ -138,6 +138,30 @@ export default class ElasticGovernanceToken extends Base {
     const elasticGovernanceToken = await this.contract;
     const decimals = await elasticGovernanceToken.decimals();
     return decimals;
+  }
+
+  async holders(overrides = {}) {
+    let endingBlock = overrides.blockTag;
+    if (!endingBlock) {
+      endingBlock = await this.sdk.provider.getBlockNumber();
+    }
+    const tokenHolderModelContract = await this.sdk.models.TokenHolder.contract(
+      this.dao.ecosystem.tokenHolderModelAddress,
+    );
+    const holders = new Set();
+    const results = await tokenHolderModelContract.queryFilter(
+      'Serialized',
+      12056930, // 4 blocks before the first DAO was created
+      endingBlock,
+    );
+    results.forEach(({ topics }) =>
+      holders.add(
+        ethers.utils
+          .getAddress(`${topics[1].substr(26, topics[1].length - 1)}`)
+          .toLowerCase(),
+      ),
+    );
+    return Array.from(holders);
   }
 
   async increaseAllowance(spenderAddress, addedValue, overrides = {}) {

@@ -9,6 +9,7 @@ import EcosystemClass from './models/Ecosystem';
 import ElasticDAOClass from './core/ElasticDAO';
 import ElasticDAOFactoryClass from './core/ElasticDAOFactory';
 import ElasticGovernanceTokenClass from './tokens/ElasticGovernanceToken';
+import ElasticVote from './modules/ElasticVote';
 import MulticallContract from './MulticallContract';
 import MulticallQueue from './MulticallQueue';
 import TokenClass from './models/Token';
@@ -103,6 +104,12 @@ export class Models extends Base {
   }
 }
 
+export class Modules extends Base {
+  elasticVote(ens) {
+    return new ElasticVote(this.sdk, ens);
+  }
+}
+
 export class SDK {
   constructor({ account, contract, env, live, multicall, provider, signer }) {
     this.provider = provider || ethers.getDefaultProvider();
@@ -138,6 +145,10 @@ export class SDK {
 
   get models() {
     return new Models(this);
+  }
+
+  get modules() {
+    return new Modules(this);
   }
 
   changeSigner(signer) {
