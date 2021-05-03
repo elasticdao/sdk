@@ -52,9 +52,10 @@ export default class Token extends ElasticModel {
       symbol,
       uuid,
     },
+    keyAddition = '',
   ) {
     super(sdk);
-    this.id = toKey(uuid);
+    this.id = toKey(uuid, keyAddition);
     cache[this.id] = {
       eByL,
       ecosystem,
@@ -68,8 +69,8 @@ export default class Token extends ElasticModel {
       symbol,
       uuid,
     };
-    this.subject.next(this);
-    if (sdk.live) {
+    this.touch();
+    if (sdk.live && `${keyAddition}`.length === 0) {
       listen(this);
     }
   }
@@ -103,19 +104,23 @@ export default class Token extends ElasticModel {
       sanitizeOverrides(overrides, true),
     );
 
-    return new Token(sdk, {
-      eByL,
-      ecosystem,
-      elasticity,
-      k,
-      lambda,
-      m,
-      maxLambdaPurchase,
-      name,
-      numberOfTokenHolders,
-      symbol,
-      uuid,
-    });
+    return new Token(
+      sdk,
+      {
+        eByL,
+        ecosystem,
+        elasticity,
+        k,
+        lambda,
+        m,
+        maxLambdaPurchase,
+        name,
+        numberOfTokenHolders,
+        symbol,
+        uuid,
+      },
+      overrides.blockTag,
+    );
   }
 
   static async exists(sdk, uuid, daoAddress, overrides = {}) {

@@ -1,3 +1,4 @@
+import { ethers } from 'ethers';
 import { validateIsAddress } from '@pie-dao/utils';
 import BigNumber from 'bignumber.js';
 import Base from '../Base';
@@ -40,8 +41,8 @@ export default class CoinGecko extends Base {
   get priceUrl() {
     return (
       `${this.uri}/${this._pricePath}?ids=${this.ids.join(',')}` +
-      '&include_market_cap=true&include24hr_vol=true' +
-      '$include_24hr_change=true&include_last_updated_at=true' +
+      '&include_market_cap=true&include_24hr_vol=true' +
+      '&include_24hr_change=true&include_last_updated_at=true' +
       `&vs_currencies=${this.currencies.join(',')}`
     );
   }
@@ -52,23 +53,34 @@ export default class CoinGecko extends Base {
 
   addContractAddress(address) {
     validateIsAddress(address, { prefix });
-    this._contractAddresses.push(address);
+    const contractAddress = address.toLowerCase();
+    if (
+      this._contractAddresses.includes(contractAddress) ||
+      contractAddress === ethers.constants.AddressZero
+    ) {
+      return;
+    }
+    this._contractAddresses.push(contractAddress);
     this.checkPrices();
   }
 
   checkPrices() {
     const promises = [fetch(this.priceUrl)];
 
-    for (let i = 0; i < this.contractAddresses.length; i += 1) {
-      promises.push(fetch(this.tokenUrl(this.contractAddresses[i])));
+    if (this.contractAddresses.length > 0) {
+      promises.push(fetch(this.tokenUrl()));
     }
 
     return Promise.all(promises)
-      .then(([ethResponse, tokenResponse]) =>
-        Promise.all([ethResponse.json(), tokenResponse.json()]),
+      .then((responses) =>
+        Promise.all(responses.map((response) => response.json())),
       )
-      .then(([ethPrices, tokenPrices]) => {
-        this._prices = { ...ethPrices, ...tokenPrices };
+      .then((responses) => {
+        let newPrices = {};
+        for (let i = 0; i < responses.length; i += 1) {
+          newPrices = { ...newPrices, ...responses[i] };
+        }
+        this._prices = newPrices;
         this.touch();
       })
       .catch((error) => {
@@ -114,13 +126,12 @@ export default class CoinGecko extends Base {
     return this.getNestedBigNumber(key);
   }
 
-  tokenUrl(address) {
-    validateIsAddress(address, { prefix });
+  tokenUrl() {
     return (
-      `${this.uri}/${this._tokenPricePath}/${this.id[0]}` +
-      `&contract_addresses=${this.contractAddresses.join(',')}` +
-      '&include_market_cap=true&include24hr_vol=true' +
-      '$include_24hr_change=true&include_last_updated_at=true' +
+      `${this.uri}/${this._tokenPricePath}/${this.ids[0]}?` +
+      `contract_addresses=${this.contractAddresses.join(',')}` +
+      '&include_market_cap=true&include_24hr_vol=true' +
+      '&include_24hr_change=true&include_last_updated_at=true' +
       `&vs_currencies=${this.currencies.join(',')}`
     );
   }

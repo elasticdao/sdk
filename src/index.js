@@ -1,21 +1,25 @@
 /* eslint consistent-return: 0 */
 
 import { ethers } from 'ethers';
-import { validateIsAddress } from '@pie-dao/utils';
+import { shortenAddress, validateIsAddress } from '@pie-dao/utils';
 import Notify from 'bnc-notify';
 import Base from './Base';
+import CoinGecko from './integrations/CoinGecko';
 import DAOClass from './models/DAO';
 import EcosystemClass from './models/Ecosystem';
 import ElasticDAOClass from './core/ElasticDAO';
 import ElasticDAOFactoryClass from './core/ElasticDAOFactory';
 import ElasticGovernanceTokenClass from './tokens/ElasticGovernanceToken';
 import ElasticVote from './modules/ElasticVote';
+import Medium from './integrations/Medium';
 import MulticallContract from './MulticallContract';
 import MulticallQueue from './MulticallQueue';
+import Subscribable from './Subscribable';
 import TokenClass from './models/Token';
 import TokenHolderClass from './models/TokenHolder';
 
 import {
+  amountFormatter,
   buildError,
   swapBigNumber,
   toBigNumber,
@@ -60,6 +64,7 @@ export const Token = TokenClass;
 export const TokenHolder = TokenHolderClass;
 
 export const utils = {
+  amountFormatter,
   buildError,
   swapBigNumber,
   toBigNumber,
@@ -70,11 +75,29 @@ export const utils = {
   validate,
 };
 
+export class Integrations extends Base {
+  constructor(sdk) {
+    super(sdk);
+    this._coinGecko = new CoinGecko(this.sdk);
+  }
+
+  get coinGecko() {
+    return this._coinGecko;
+  }
+}
+
 export class Models extends Base {
   get DAO() {
     return {
       contract: (...args) => DAO.contract(this.sdk, ...args),
-      deserialize: (...args) => DAO.deserialize(this.sdk, ...args),
+      deserialize: async (...args) => {
+        const dao = await DAO.deserialize(this.sdk, ...args);
+        this.sdk.balanceOf(dao.uuid);
+        this.sdk.integrations.coinGecko.addContractAddress(
+          dao.ecosystem.governanceTokenAddress,
+        );
+        return dao;
+      },
       exists: (...args) => DAO.exists(this.sdk, ...args),
     };
   }
@@ -82,7 +105,13 @@ export class Models extends Base {
   get Ecosystem() {
     return {
       contract: (...args) => Ecosystem.contract(this.sdk, ...args),
-      deserialize: (...args) => Ecosystem.deserialize(this.sdk, ...args),
+      deserialize: async (...args) => {
+        const ecosystem = await Ecosystem.deserialize(this.sdk, ...args);
+        this.sdk.integrations.coinGecko.addContractAddress(
+          ecosystem.governanceTokenAddress,
+        );
+        return ecosystem;
+      },
       exists: (...args) => Ecosystem.exists(this.sdk, ...args),
     };
   }
@@ -90,7 +119,11 @@ export class Models extends Base {
   get Token() {
     return {
       contract: (...args) => Token.contract(this.sdk, ...args),
-      deserialize: (...args) => Token.deserialize(this.sdk, ...args),
+      deserialize: async (...args) => {
+        const token = await Token.deserialize(this.sdk, ...args);
+        this.sdk.integrations.coinGecko.addContractAddress(token.uuid);
+        return token;
+      },
       exists: (...args) => Token.exists(this.sdk, ...args),
     };
   }
@@ -110,8 +143,10 @@ export class Modules extends Base {
   }
 }
 
-export class SDK {
+export class SDK extends Subscribable {
   constructor({ account, contract, env, live, multicall, provider, signer }) {
+    super();
+
     this.provider = provider || ethers.getDefaultProvider();
     this._contract =
       contract || (({ address, abi }) => new ethers.Contract(address, abi));
@@ -120,6 +155,28 @@ export class SDK {
     this.multicall = !!multicall;
     this.signer = signer;
     this.account = account;
+    this.setName();
+
+    this._balances = {};
+    this._balancesToTrack = [];
+    this._blockNumber = 0;
+    this._integrations = new Integrations(this);
+    this._models = new Models(this);
+    this._modules = new Modules(this);
+
+    if (this.account) {
+      this.balanceOf(this.account);
+    }
+
+    this.provider.getBlockNumber().then((blockNumber) => {
+      this._blockNumber = blockNumber;
+    });
+
+    this.provider.on('block', (blockNumber) => {
+      this._blockNumber = blockNumber;
+      this.updateBalances();
+      this.touch();
+    });
 
     if (this.multicall) {
       console.warn('@elastic-dao/sdk multicall functionality is experimental');
@@ -134,6 +191,14 @@ export class SDK {
     }
   }
 
+  get balances() {
+    return this._balances;
+  }
+
+  get blockNumber() {
+    return this._blockNumber;
+  }
+
   get elasticDAOFactory() {
     validateIsAddress(this.env.factoryAddress, { prefix });
     return new ElasticDAOFactory(this);
@@ -143,19 +208,40 @@ export class SDK {
     return this._queue;
   }
 
+  get integrations() {
+    return this._integrations;
+  }
+
   get models() {
-    return new Models(this);
+    return this._models;
   }
 
   get modules() {
-    return new Modules(this);
+    return this._modules;
   }
 
-  changeSigner(signer) {
+  async balanceOf(address) {
+    validateIsAddress(address);
+    const key = address.toLowerCase();
+    if (this._balances[key]) {
+      return this._balances[key];
+    }
+    this._balances[key] = toBigNumber(await this.provider.getBalance(key), 18);
+    this.touch();
+    if (!this._balancesToTrack.includes(key)) {
+      this._balancesToTrack.push(key);
+    }
+  }
+
+  async changeSigner(signer) {
     this.account = signer.address;
-    this.contract = ({ address, abi }) =>
-      new ethers.Contract(address, abi, signer);
+    if (!this.account && signer.getAddress) {
+      this.account = await signer.getAddress();
+    }
     this.signer = signer;
+    this.balanceOf(this.account);
+    await this.setName();
+    this.touch();
   }
 
   contract({ abi, address }) {
@@ -171,6 +257,12 @@ export class SDK {
     return new MulticallContract(this, contract, abi);
   }
 
+  async disconnectSigner() {
+    this.account = undefined;
+    this.signer = undefined;
+    this.touch();
+  }
+
   notify({ hash, obj }) {
     if (!this._notify) {
       return;
@@ -183,5 +275,28 @@ export class SDK {
     if (obj) {
       return this._notify.notification(obj);
     }
+  }
+
+  async setName() {
+    if (this.account) {
+      try {
+        this.name = await this.provider.lookupAddress(this.account);
+      } catch (e) {
+        console.error('unable to look up ens name', e.message);
+      }
+      if (!this.name) {
+        this.name = shortenAddress(this.account);
+      }
+    }
+  }
+
+  async updateBalances() {
+    const balances = await Promise.all(
+      this._balancesToTrack.map((address) => this.provider.getBalance(address)),
+    );
+    for (let i = 0; i < balances.length; i += 1) {
+      this._balances[this._balancesToTrack[i]] = toBigNumber(balances[i], 18);
+    }
+    this.touch();
   }
 }

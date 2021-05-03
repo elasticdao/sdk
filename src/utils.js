@@ -1,8 +1,74 @@
 import { ethers } from 'ethers';
-import { isAddress, isNumber, validateIsNumber } from '@pie-dao/utils';
+import {
+  isAddress,
+  isNumber,
+  validateIsBigNumber,
+  validateIsNumber,
+} from '@pie-dao/utils';
 import BigNumber from 'bignumber.js';
 
 const prefix = '@elastic-dao/sdk';
+
+export const amountFormatter = ({
+  amount,
+  approximatePrefix = '~',
+  decimalPlaces = 3,
+  decimalShift = 0,
+  fromEthers = false,
+  lessThanPrefix = '< ',
+  maxDigits,
+  rounding = BigNumber.ROUND_DOWN,
+}) => {
+  if (!amount) {
+    return '';
+  }
+
+  let decimals = decimalPlaces;
+  let value = BigNumber(amount.toString());
+
+  if (fromEthers) {
+    value = value.dividedBy(10 ** 18);
+  }
+
+  if (decimalShift) {
+    value = value.multipliedBy(10 ** decimalShift);
+  }
+
+  validateIsBigNumber(value, { prefix: `${prefix} - amountFormatter` });
+
+  if (isNumber(maxDigits)) {
+    let left = 0;
+    while (BigNumber(10 ** left).isLessThan(value)) {
+      left += 1;
+    }
+    const maxDecimals = maxDigits - left;
+    if (maxDecimals < 0) {
+      decimals = 0;
+    } else if (maxDecimals < decimals) {
+      decimals = maxDecimals;
+    }
+  }
+
+  if (value.isZero()) {
+    return value.toFixed(decimals);
+  }
+
+  const smallest = BigNumber(1)
+    .dividedBy(10 ** decimals)
+    .toString();
+
+  if (value.isGreaterThan(0) && value.isLessThan(smallest)) {
+    return `${lessThanPrefix}${smallest}`;
+  }
+
+  const base = value.toFormat(decimals, rounding);
+
+  if (value.isGreaterThan(base)) {
+    return `${approximatePrefix}${base}`;
+  }
+
+  return base;
+};
 
 export const buildError = ({ message, localPrefix }) =>
   `${localPrefix || prefix}: ${message}`;
@@ -124,7 +190,10 @@ export const toEthersBigNumber = (value, decimalShift = 0) =>
   );
 
 export const toKey = (...args) =>
-  args.map((arg) => `${arg}`.toLowerCase()).join('|');
+  args
+    .map((arg) => `${arg}`.toLowerCase())
+    .filter((arg) => arg.length > 0)
+    .join('|');
 
 export const toNumber = (value, decimalShift = 0) =>
   toBigNumber(value, decimalShift).toNumber();
@@ -156,6 +225,7 @@ export const validate = (result, options) => {
 };
 
 export default {
+  amountFormatter,
   buildError,
   swapBigNumber,
   toBigNumber,

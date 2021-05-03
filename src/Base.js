@@ -6,11 +6,12 @@ import {
   toEthersBigNumber,
   toNumber,
 } from './utils';
+import Subscribable from './Subscribable';
 
-export default class Base {
+export default class Base extends Subscribable {
   constructor(sdk) {
+    super();
     this._sdk = sdk;
-    this._subscribers = [];
   }
 
   get sdk() {
@@ -41,20 +42,6 @@ export default class Base {
     return sanitizeOverrides(requested);
   }
 
-  subscribe(callback) {
-    callback(this);
-
-    const subscriber = (obj) => {
-      callback(obj);
-    };
-
-    this._subscribers.push(subscriber);
-
-    return () => {
-      this._subscribers = this._subscribers.filter((sub) => sub !== subscriber);
-    };
-  }
-
   toBigNumber(value, decimalShift = 0) {
     return toBigNumber(value, decimalShift);
   }
@@ -65,9 +52,5 @@ export default class Base {
 
   toNumber(value, decimalShift = 0) {
     return toNumber(value, decimalShift);
-  }
-
-  touch() {
-    this._subscribers.forEach((subscriber) => subscriber(this));
   }
 }
