@@ -11,7 +11,6 @@ import ElasticDAOClass from './core/ElasticDAO';
 import ElasticDAOFactoryClass from './core/ElasticDAOFactory';
 import ElasticGovernanceTokenClass from './tokens/ElasticGovernanceToken';
 import ElasticVote from './modules/ElasticVote';
-import Medium from './integrations/Medium';
 import MulticallContract from './MulticallContract';
 import MulticallQueue from './MulticallQueue';
 import Subscribable from './Subscribable';
