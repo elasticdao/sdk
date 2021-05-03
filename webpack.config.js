@@ -31,5 +31,5 @@ module.exports = (env, argv) => ({
         loader: 'babel-loader',
       }]
     }]
-  },
+  }
 });

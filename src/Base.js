@@ -6,14 +6,36 @@ import {
   toEthersBigNumber,
   toNumber,
 } from './utils';
+import Subscribable from './Subscribable';
 
-export default class Base {
+export default class Base extends Subscribable {
   constructor(sdk) {
+    super();
     this._sdk = sdk;
   }
 
   get sdk() {
     return this._sdk;
+  }
+
+  async cachedValue(key, lookup) {
+    const promiseKey = `${key}Promise`;
+    const deletePromise = () => {
+      delete this[promiseKey];
+    };
+
+    if (this[promiseKey]) {
+      await this[promiseKey].catch(deletePromise);
+    }
+
+    if (this[key]) {
+      return this[key];
+    }
+
+    this[promiseKey] = lookup();
+    await this[promiseKey].then(deletePromise, deletePromise);
+
+    return this[key];
   }
 
   sanitizeOverrides(requested = {}) {

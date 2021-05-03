@@ -1,3 +1,5 @@
+/* eslint no-await-in-loop: 0 */
+import { isAddress } from '@pie-dao/utils';
 import BigNumber from 'bignumber.js';
 import BaseEvents from '../BaseEvents';
 
@@ -141,6 +143,29 @@ export default class ElasticDAO extends Base {
     return this._handleTransaction(
       await elasticDAO.join(this.sanitizeOverrides(overrides)),
     );
+  }
+
+  async liquidityPools(overrides = {}) {
+    const pools = [];
+    const saneOverrides = sanitizeOverrides(overrides, true);
+    let i = 0;
+    let pool = `${await this.contract.liquidityPools(
+      i,
+      saneOverrides,
+    )}`.toLowerCase();
+    try {
+      while (isAddress(pool)) {
+        pools.push(pool);
+        i += 1;
+        pool = `${await this.contract.liquidityPools(
+          i,
+          saneOverrides,
+        )}`.toLowerCase();
+      }
+    } catch (e) {
+      // nothing to do
+    }
+    return pools;
   }
 
   onlyAfterSummoning() {

@@ -43,9 +43,10 @@ export default class DAO extends ElasticModel {
   constructor(
     sdk,
     { ecosystem, maxVotingLambda, name, numberOfSummoners, summoned, uuid },
+    keyAddition = '',
   ) {
     super(sdk);
-    this.id = toKey(uuid);
+    this.id = toKey(uuid, keyAddition);
     const summoners = (cache[this.id] || {}).summoners || [];
     cache[this.id] = {
       ecosystem,
@@ -57,11 +58,11 @@ export default class DAO extends ElasticModel {
       uuid,
     };
     if (summoners.length === this.numberOfSummoners) {
-      this.subject.next(this);
+      this.touch();
     } else {
       this.summoners();
     }
-    if (sdk.live) {
+    if (sdk.live && `${keyAddition}`.length === 0) {
       listen(this);
     }
   }
@@ -90,14 +91,18 @@ export default class DAO extends ElasticModel {
       sanitizeOverrides(overrides, true),
     );
 
-    return new DAO(sdk, {
-      ecosystem,
-      maxVotingLambda,
-      name,
-      numberOfSummoners,
-      summoned,
-      uuid,
-    });
+    return new DAO(
+      sdk,
+      {
+        ecosystem,
+        maxVotingLambda,
+        name,
+        numberOfSummoners,
+        summoned,
+        uuid,
+      },
+      overrides.blockTag,
+    );
   }
 
   static async exists(sdk, uuid, overrides = {}) {
@@ -179,7 +184,7 @@ export default class DAO extends ElasticModel {
     }
     const summoners = await this.elasticDAO.summoners();
     cache[this.id].summoners = summoners;
-    this.subject.next(this);
+    this.touch();
     return summoners;
   }
 

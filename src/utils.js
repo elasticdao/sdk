@@ -1,11 +1,85 @@
 import { ethers } from 'ethers';
-import { isAddress, isNumber, validateIsNumber } from '@pie-dao/utils';
+import {
+  isAddress,
+  isNumber,
+  validateIsBigNumber,
+  validateIsNumber,
+} from '@pie-dao/utils';
 import BigNumber from 'bignumber.js';
 
 const prefix = '@elastic-dao/sdk';
 
+export const amountFormatter = ({
+  amount,
+  approximatePrefix = '~',
+  decimalPlaces = 3,
+  decimalShift = 0,
+  fromEthers = false,
+  lessThanPrefix = '< ',
+  maxDigits,
+  rounding = BigNumber.ROUND_DOWN,
+}) => {
+  if (!amount) {
+    return '';
+  }
+
+  let decimals = decimalPlaces;
+  let value = BigNumber(amount.toString());
+
+  if (fromEthers) {
+    value = value.dividedBy(10 ** 18);
+  }
+
+  if (decimalShift) {
+    value = value.multipliedBy(10 ** decimalShift);
+  }
+
+  validateIsBigNumber(value, { prefix: `${prefix} - amountFormatter` });
+
+  if (isNumber(maxDigits)) {
+    let left = 0;
+    while (BigNumber(10 ** left).isLessThan(value)) {
+      left += 1;
+    }
+    const maxDecimals = maxDigits - left;
+    if (maxDecimals < 0) {
+      decimals = 0;
+    } else if (maxDecimals < decimals) {
+      decimals = maxDecimals;
+    }
+  }
+
+  if (value.isZero()) {
+    return value.toFixed(decimals);
+  }
+
+  const smallest = BigNumber(1)
+    .dividedBy(10 ** decimals)
+    .toString();
+
+  if (value.isGreaterThan(0) && value.isLessThan(smallest)) {
+    return `${lessThanPrefix}${smallest}`;
+  }
+
+  const base = value.toFormat(decimals, rounding);
+
+  if (value.isGreaterThan(base)) {
+    return `${approximatePrefix}${base}`;
+  }
+
+  return base;
+};
+
 export const buildError = ({ message, localPrefix }) =>
   `${localPrefix || prefix}: ${message}`;
+
+export const chunkArray = (arr, chunkSize) => {
+  const chunks = [];
+  for (let i = 0; i < arr.length; i += chunkSize) {
+    chunks.push(arr.slice(i, i + chunkSize));
+  }
+  return chunks;
+};
 
 export const sanitizeOverrides = (requested = {}, readonlyMethod = false) => {
   const overrides = {};
@@ -16,7 +90,7 @@ export const sanitizeOverrides = (requested = {}, readonlyMethod = false) => {
 
     if (requested.blockTag) {
       try {
-        overrides.blockTag = this.toEthersBigNumber(requested.blockTag);
+        overrides.blockTag = BigNumber(requested.blockTag).toNumber();
       } catch (e) {
         console.warn(
           `${prefix}: Requested override 'blockTag' (${requested.blockTag}) is invalid and was excluded (${e.message})`,
@@ -40,7 +114,7 @@ export const sanitizeOverrides = (requested = {}, readonlyMethod = false) => {
 
     if (requested.gasLimit) {
       try {
-        overrides.gasLimit = this.toEthersBigNumber(requested.gasLimit);
+        overrides.gasLimit = toEthersBigNumber(requested.gasLimit);
       } catch (e) {
         console.warn(
           `${prefix}: Requested override 'gasLimit' (${requested.gasLimit}) is invalid and was excluded (${e.message})`,
@@ -50,7 +124,7 @@ export const sanitizeOverrides = (requested = {}, readonlyMethod = false) => {
 
     if (requested.gasPrice) {
       try {
-        overrides.gasPrice = this.toEthersBigNumber(requested.gasPrice);
+        overrides.gasPrice = toEthersBigNumber(requested.gasPrice);
       } catch (e) {
         console.warn(
           `${prefix}: Requested override 'gasPrice' (${requested.gasPrice}) is invalid and was excluded (${e.message})`,
@@ -68,7 +142,7 @@ export const sanitizeOverrides = (requested = {}, readonlyMethod = false) => {
 
     if (requested.value) {
       try {
-        overrides.value = this.toEthersBigNumber(requested.value, 18);
+        overrides.value = toEthersBigNumber(requested.value, 18);
       } catch (e) {
         console.warn(
           `${prefix}: Requested override 'value' (${requested.value}) is invalid and was excluded (${e.message})`,
@@ -116,7 +190,10 @@ export const toEthersBigNumber = (value, decimalShift = 0) =>
   );
 
 export const toKey = (...args) =>
-  args.map((arg) => `${arg}`.toLowerCase()).join('|');
+  args
+    .map((arg) => `${arg}`.toLowerCase())
+    .filter((arg) => arg.length > 0)
+    .join('|');
 
 export const toNumber = (value, decimalShift = 0) =>
   toBigNumber(value, decimalShift).toNumber();
@@ -148,6 +225,7 @@ export const validate = (result, options) => {
 };
 
 export default {
+  amountFormatter,
   buildError,
   swapBigNumber,
   toBigNumber,

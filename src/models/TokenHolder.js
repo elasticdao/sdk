@@ -38,17 +38,17 @@ const listen = async (tokenHolder) => {
 };
 
 export default class TokenHolder extends ElasticModel {
-  constructor(sdk, { account, ecosystem, lambda, token }) {
+  constructor(sdk, { account, ecosystem, lambda, token }, keyAddition = '') {
     super(sdk);
-    this.id = toKey(token.uuid, account);
+    this.id = toKey(token.uuid, account, keyAddition);
     cache[this.id] = {
       account,
       ecosystem,
       lambda,
       token,
     };
-    this.subject.next(this);
-    if (sdk.live) {
+    this.touch();
+    if (sdk.live && `${keyAddition}`.length === 0) {
       listen(this);
     }
   }
@@ -82,12 +82,16 @@ export default class TokenHolder extends ElasticModel {
       sanitizeOverrides(overrides, true),
     );
 
-    return new TokenHolder(sdk, {
-      account,
-      ecosystem,
-      lambda,
-      token,
-    });
+    return new TokenHolder(
+      sdk,
+      {
+        account,
+        ecosystem,
+        lambda,
+        token,
+      },
+      overrides.blockTag,
+    );
   }
 
   static async exists(sdk, account, token, overrides = {}) {

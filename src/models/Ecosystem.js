@@ -48,9 +48,10 @@ export default class Ecosystem extends ElasticModel {
       tokenHolderModelAddress,
       tokenModelAddress,
     },
+    keyAddition = '',
   ) {
     super(sdk);
-    this.id = toKey(daoAddress || ethers.constants.AddressZero);
+    this.id = toKey(daoAddress || ethers.constants.AddressZero, keyAddition);
     cache[this.id] = {
       daoAddress,
       daoModelAddress,
@@ -59,8 +60,8 @@ export default class Ecosystem extends ElasticModel {
       tokenHolderModelAddress,
       tokenModelAddress,
     };
-    this.subject.next(this);
-    if (sdk.live) {
+    this.touch();
+    if (sdk.live && `${keyAddition}`.length === 0) {
       listen(this);
     }
   }
@@ -90,14 +91,18 @@ export default class Ecosystem extends ElasticModel {
       sanitizeOverrides(overrides, true),
     );
 
-    return new Ecosystem(sdk, {
-      daoAddress,
-      daoModelAddress,
-      ecosystemModelAddress,
-      governanceTokenAddress,
-      tokenHolderModelAddress,
-      tokenModelAddress,
-    });
+    return new Ecosystem(
+      sdk,
+      {
+        daoAddress,
+        daoModelAddress,
+        ecosystemModelAddress,
+        governanceTokenAddress,
+        tokenHolderModelAddress,
+        tokenModelAddress,
+      },
+      overrides.blockTag,
+    );
   }
 
   static async exists(sdk, daoAddress, overrides = {}) {
