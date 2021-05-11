@@ -1,4 +1,5 @@
 export const nodes = [
+  'https://gateway.elasticdao.org',
   'https://gateway.pinata.cloud',
   'https://cloudflare-ipfs.com',
   'https://ipfs.fleek.co',
