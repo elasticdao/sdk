@@ -50,10 +50,13 @@ export default class ElasticVote extends Base {
       const index = await this.index();
 
       let closestBlock = blockNumber;
-      if (fuzzyMatch) {
-        closestBlock =
-          index.blocks.list.reverse().find((block) => block <= blockNumber) ||
-          index.blocks.list[0];
+
+      if (typeof index.blocks.list.find(block => block === blockNumber) === 'undefined'){
+        if (fuzzyMatch) {
+          closestBlock =
+            index.blocks.list.reverse().find((block) => block <= blockNumber) ||
+            index.blocks.list[0];
+        }
       }
 
       const block = index.blocks[`${closestBlock}`];
@@ -183,7 +186,7 @@ export default class ElasticVote extends Base {
   async index() {
     return this.cachedValue('_index', async () => {
       const hash = await this.indexHash();
-      const raw = get(hash);
+      const raw = await get(hash);
       this._index = JSON.parse(raw);
       setTimeout(() => delete this._index, 3600000); // expire after 60 minutes
     });
@@ -192,7 +195,7 @@ export default class ElasticVote extends Base {
   async indexHash() {
     return this.cachedValue('_indexHash', async () => {
       const record = await this.getElasticVoteENSRecord();
-      const contentHash = record.getContentHash();
+      const contentHash = await record.getContentHash();
       this._indexHash = contentHash.replace('ipfs://', '');
       setTimeout(() => delete this._indexHash, 300000); // expire after 5 minutes
     });
@@ -205,6 +208,7 @@ export default class ElasticVote extends Base {
         proposal.load(await this.data(proposal.snapshot)),
       ),
     );
+    this._proposals = this._proposals.filter((proposal) => proposal.isValid);
   }
 
   resetCache() {

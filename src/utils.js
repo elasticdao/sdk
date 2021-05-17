@@ -224,6 +224,17 @@ export const validate = (result, options) => {
   return false;
 };
 
+export const truncate = (str, opts = {}) => {
+  const ending = opts.ending || '...';
+  const length = opts.length || 40;
+
+  if (str.length > length) {
+    return str.substring(0, length - ending.length) + ending;
+  }
+
+  return str;
+};
+
 export default {
   amountFormatter,
   buildError,
@@ -232,6 +243,7 @@ export default {
   toEthersBigNumber,
   toKey,
   toNumber,
+  truncate,
   upTo,
   validate,
 };

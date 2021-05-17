@@ -35,7 +35,7 @@ export default class SnapshotAPI extends Base {
         async (id) => new SnapshotProposal(this.sdk, this, json[id]),
       ),
     );
-    return proposals.filter((proposal) => proposal.isValid);
+    return proposals;
   }
 
   async getVotes(proposal) {

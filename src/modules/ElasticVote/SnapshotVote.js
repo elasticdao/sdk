@@ -30,8 +30,12 @@ export default class SnapshotVote {
     return this._weight;
   }
 
-  load({ balances }) {
-    this._weight = balances[this.voter].balanceOfVoting;
+  load(balance) {
+    try {
+      this._weight = balance[this.voter].balanceOfVoting;
+    } catch (e) {
+      this._weight = 0;
+    }
     return this;
   }
 }
