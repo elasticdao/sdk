@@ -27,6 +27,7 @@ import {
   toNumber,
   upTo,
   validate,
+  truncate,
 } from './utils';
 
 const prefix = '@elastic-dao/sdk';
@@ -72,6 +73,7 @@ export const utils = {
   toNumber,
   upTo,
   validate,
+  truncate,
 };
 
 export class Integrations extends Base {

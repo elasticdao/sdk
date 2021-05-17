@@ -111,16 +111,16 @@ export default class SnapshotProposal extends Base {
     return BigNumber(this._votes[address].score);
   }
 
-  async load({ balances, stats }) {
-    this._eligibleVoteCreators = stats.eligibleVoteCreators;
-    this._fullQuorum = stats.quorum;
+  async load(args) {
+    this._eligibleVoteCreators = args.stats.eligibleVoteCreators;
+    this._fullQuorum = args.stats.quorum;
 
     const votes = {};
 
     if (this.isValid) {
       const voteObjects = await this._api.getVotes(this);
       for (let i = 0; i < voteObjects.length; i += 1) {
-        votes[voteObjects[i].voter] = voteObjects[i].load({ balances });
+        votes[voteObjects[i].voter] = voteObjects[i].load(args.balances);
       }
     }
 
