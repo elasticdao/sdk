@@ -51,7 +51,10 @@ export default class ElasticVote extends Base {
 
       let closestBlock = blockNumber;
 
-      if (typeof index.blocks.list.find(block => block === blockNumber) === 'undefined'){
+      if (
+        typeof index.blocks.list.find((block) => block === blockNumber) ===
+        'undefined'
+      ) {
         if (fuzzyMatch) {
           closestBlock =
             index.blocks.list.reverse().find((block) => block <= blockNumber) ||
