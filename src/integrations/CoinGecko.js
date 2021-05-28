@@ -65,10 +65,10 @@ export default class CoinGecko extends Base {
   }
 
   checkPrices() {
-    const promises = [fetch(this.priceUrl)];
+    const promises = [this.fetch(this.priceUrl)];
 
     if (this.contractAddresses.length > 0) {
-      promises.push(fetch(this.tokenUrl()));
+      promises.push(this.fetch(this.tokenUrl()));
     }
 
     return Promise.all(promises)
