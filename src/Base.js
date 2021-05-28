@@ -14,6 +14,10 @@ export default class Base extends Subscribable {
     this._sdk = sdk;
   }
 
+  get fetch() {
+    return this.sdk.fetch;
+  }
+
   get sdk() {
     return this._sdk;
   }

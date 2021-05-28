@@ -83,6 +83,32 @@ export class Integrations extends Base {
   get coinGecko() {
     return this._coinGecko;
   }
+
+  ipfs(...args) {
+    return new Promise((resolve, reject) => {
+      let node = 0;
+      const parts = [...args];
+      const lastPart = parts[parts.length - 1];
+
+      if (Number.isInteger(lastPart) && this.sdk.ipfsGateways[lastPart]) {
+        node = parts.pop();
+      }
+
+      const path = [this.ipfsGateways[node], 'ipfs', ...parts].join('/');
+
+      this.fetch(path, { mode: 'cors' })
+        .then((response) => response.text())
+        .then(resolve)
+        .catch((err) => {
+          const next = node + 1;
+          if (next < this.ipfsGateways.length) {
+            this.ipfs(...parts, next).then(resolve, reject);
+          } else {
+            reject(err);
+          }
+        });
+    });
+  }
 }
 
 export class Models extends Base {
@@ -143,7 +169,18 @@ export class Modules extends Base {
 }
 
 export class SDK extends Subscribable {
-  constructor({ account, contract, env, live, multicall, provider, signer }) {
+  constructor({
+    account,
+    contract,
+    customFetch,
+    env,
+    ipfsGateways,
+    live,
+    multicall,
+    provider,
+    signer,
+  }) {
+    // TODO: option var type checking
     super();
 
     this.provider = provider || ethers.getDefaultProvider();
@@ -159,7 +196,14 @@ export class SDK extends Subscribable {
     this._balances = {};
     this._balancesToTrack = [];
     this._blockNumber = 0;
+    this._fetch = customFetch || window.fetch.bind(window);
     this._integrations = new Integrations(this);
+    this._ipfsGateways = ipfsGateways || [
+      'https://gateway.pinata.cloud',
+      'https://cloudflare-ipfs.com',
+      'https://ipfs.fleek.co',
+      'https://ipfs.io',
+    ];
     this._models = new Models(this);
     this._modules = new Modules(this);
 
@@ -203,12 +247,16 @@ export class SDK extends Subscribable {
     return new ElasticDAOFactory(this);
   }
 
-  get queue() {
-    return this._queue;
+  get fetch() {
+    return this._fetch;
   }
 
   get integrations() {
     return this._integrations;
+  }
+
+  get ipfsGateways() {
+    return this._ipfsGateways;
   }
 
   get models() {
@@ -217,6 +265,10 @@ export class SDK extends Subscribable {
 
   get modules() {
     return this._modules;
+  }
+
+  get queue() {
+    return this._queue;
   }
 
   async balanceOf(address) {

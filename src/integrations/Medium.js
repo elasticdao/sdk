@@ -29,7 +29,7 @@ export default class Medium extends Base {
     console.log('medium', medium);
     const feedURL = medium.replace('medium.com', 'medium.com/feed');
     console.log('feedURL', feedURL);
-    const response = await fetch(feedURL);
+    const response = await this.fetch(feedURL);
     const text = await response.text();
     console.log('text', text);
     //    });

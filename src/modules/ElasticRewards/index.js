@@ -1,4 +1,3 @@
-import { get } from '../../integrations/ipfs';
 import Base from '../../Base';
 
 export default class ElasticRewards extends Base {
@@ -21,7 +20,7 @@ export default class ElasticRewards extends Base {
   async index() {
     return this.cachedValue('_index', async () => {
       const hash = await this.indexHash();
-      const raw = get(hash);
+      const raw = this.sdk.integrations.ipfs(hash);
       this._index = JSON.parse(raw);
       setTimeout(() => delete this._index, 3600000); // expire after 60 minutes
     });
