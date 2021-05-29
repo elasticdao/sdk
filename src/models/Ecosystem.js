@@ -29,40 +29,59 @@ class Events extends BaseEvents {
 
 const listen = async (ecosystem) => {
   const key = toKey(ecosystem.id, 'SerializedListener');
+
   if (cache[key]) {
     return;
   }
-  const listenerSubject = await ecosystem.events.Serialized();
-  listenerSubject.subscribe(ecosystem.refresh.bind(ecosystem));
-  cache[key] = true;
+
+  try {
+    cache[key] = true;
+    const listenerSubject = await ecosystem.events.Serialized();
+    listenerSubject.subscribe(ecosystem.refresh.bind(ecosystem));
+  } catch (e) {
+    cache[key] = false;
+  }
 };
 
 export default class Ecosystem extends ElasticModel {
-  constructor(
-    sdk,
-    {
-      daoAddress,
-      daoModelAddress,
-      ecosystemModelAddress,
-      governanceTokenAddress,
-      tokenHolderModelAddress,
-      tokenModelAddress,
-    },
-    keyAddition = '',
-  ) {
+  constructor(sdk, attributes, keyAddition = '') {
     super(sdk);
-    this.id = toKey(daoAddress || ethers.constants.AddressZero, keyAddition);
-    cache[this.id] = {
-      daoAddress,
-      daoModelAddress,
-      ecosystemModelAddress,
-      governanceTokenAddress,
-      tokenHolderModelAddress,
-      tokenModelAddress,
-    };
-    this.touch();
-    if (sdk.live && `${keyAddition}`.length === 0) {
-      listen(this);
+
+    const { daoAddress } = attributes;
+    this._id = toKey(daoAddress || ethers.constants.AddressZero, keyAddition);
+
+    let cached = cache[this.id];
+
+    if (Object.keys(attributes).length > 1) {
+      const {
+        daoModelAddress,
+        ecosystemModelAddress,
+        governanceTokenAddress,
+        tokenHolderModelAddress,
+        tokenModelAddress,
+      } = attributes;
+
+      cached = {
+        daoAddress,
+        daoModelAddress,
+        ecosystemModelAddress,
+        governanceTokenAddress,
+        tokenHolderModelAddress,
+        tokenModelAddress,
+      };
+
+      cache[this.id] = cached;
+    }
+
+    if (cached) {
+      this._loaded = true;
+    }
+
+    if (this.loaded) {
+      this.touch();
+      if (sdk.live && `${keyAddition}`.length === 0) {
+        listen(this);
+      }
     }
   }
 

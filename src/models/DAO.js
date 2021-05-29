@@ -31,39 +31,66 @@ class Events extends BaseEvents {
 
 const listen = async (dao) => {
   const key = toKey(dao.id, 'SerializedListener');
+
   if (cache[key]) {
     return;
   }
-  const listenerSubject = await dao.events.Serialized();
-  listenerSubject.subscribe(dao.refresh.bind(dao));
-  cache[key] = true;
+
+  try {
+    cache[key] = true;
+    const listenerSubject = await dao.events.Serialized();
+    listenerSubject.subscribe(dao.refresh.bind(dao));
+  } catch (e) {
+    cache[key] = false;
+  }
 };
 
 export default class DAO extends ElasticModel {
-  constructor(
-    sdk,
-    { ecosystem, maxVotingLambda, name, numberOfSummoners, summoned, uuid },
-    keyAddition = '',
-  ) {
+  constructor(sdk, attributes, keyAddition = '') {
     super(sdk);
-    this.id = toKey(uuid, keyAddition);
-    const summoners = (cache[this.id] || {}).summoners || [];
-    cache[this.id] = {
-      ecosystem,
-      maxVotingLambda,
-      name,
-      numberOfSummoners,
-      summoned,
-      summoners,
-      uuid,
-    };
-    if (summoners.length === this.numberOfSummoners) {
-      this.touch();
-    } else {
-      this.summoners();
+
+    const { uuid } = attributes;
+    this._id = toKey(uuid, keyAddition);
+
+    let cached = cache[this.id];
+    const summoners = (cached || {}).summoners || [];
+
+    if (Object.keys(attributes).length > 1) {
+      const {
+        ecosystem,
+        maxVotingLambda,
+        name,
+        numberOfSummoners,
+        summoned,
+      } = attributes;
+
+      cached = {
+        ecosystem,
+        maxVotingLambda,
+        name,
+        numberOfSummoners,
+        summoned,
+        summoners,
+        uuid,
+      };
+
+      cache[this.id] = cached;
     }
-    if (sdk.live && `${keyAddition}`.length === 0) {
-      listen(this);
+
+    if (cached) {
+      this._loaded = true;
+    }
+
+    if (this.loaded) {
+      if (this.summoners.length === this.numberOfSummoners) {
+        this.touch();
+      } else {
+        this.summoners();
+      }
+
+      if (sdk.live && `${keyAddition}`.length === 0) {
+        listen(this);
+      }
     }
   }
 
@@ -153,7 +180,7 @@ export default class DAO extends ElasticModel {
   }
 
   get numberOfSummoners() {
-    return this.toNumber(cache[this.id].numberOfSummoners);
+    return this.toNumber(cache[this.id].numberOfSummoners || 0);
   }
 
   get summoned() {

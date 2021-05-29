@@ -29,27 +29,51 @@ class Events extends BaseEvents {
 
 const listen = async (tokenHolder) => {
   const key = toKey(tokenHolder.id, 'SerializedListener');
+
   if (cache[key]) {
     return;
   }
-  const listenerSubject = await tokenHolder.events.Serialized();
-  listenerSubject.subscribe(tokenHolder.refresh.bind(tokenHolder));
-  cache[key] = true;
+
+  try {
+    cache[key] = true;
+    const listenerSubject = await tokenHolder.events.Serialized();
+    listenerSubject.subscribe(tokenHolder.refresh.bind(tokenHolder));
+  } catch (e) {
+    cache[key] = false;
+  }
 };
 
 export default class TokenHolder extends ElasticModel {
-  constructor(sdk, { account, ecosystem, lambda, token }, keyAddition = '') {
+  constructor(sdk, attributes, keyAddition = '') {
     super(sdk);
-    this.id = toKey(token.uuid, account, keyAddition);
-    cache[this.id] = {
-      account,
-      ecosystem,
-      lambda,
-      token,
-    };
-    this.touch();
-    if (sdk.live && `${keyAddition}`.length === 0) {
-      listen(this);
+
+    const { account, token } = attributes;
+    this._id = toKey(token.uuid, account, keyAddition);
+
+    let cached = cache[this.id];
+
+    if (Object.keys(attributes).length > 2) {
+      const { ecosystem, lambda } = attributes;
+
+      cached = {
+        account,
+        ecosystem,
+        lambda,
+        token,
+      };
+
+      cache[this.id] = cached;
+    }
+
+    if (cached) {
+      this._loaded = true;
+    }
+
+    if (this.loaded) {
+      this.touch();
+      if (sdk.live && `${keyAddition}`.length === 0) {
+        listen(this);
+      }
     }
   }
 
