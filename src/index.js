@@ -139,8 +139,21 @@ export class Models extends Base {
 }
 
 export class Modules extends Base {
+  constructor(sdk) {
+    super(sdk);
+    this.elasticVoteModules = {};
+  }
+
   elasticVote(ens) {
-    return new ElasticVote(this.sdk, ens);
+    const key = ens.toLowerCase();
+
+    if (this.elasticVoteModules[key]) {
+      return this.elasticVoteModules[key];
+    }
+
+    this.elasticVoteModules[key] = new ElasticVote(this.sdk, ens);
+
+    return this.elasticVoteModules[key];
   }
 }
 
