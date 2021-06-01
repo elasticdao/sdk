@@ -79,9 +79,9 @@ export default class TokenHolder extends ElasticModel {
 
   // Class functions
 
-  static contract(sdk, address) {
+  static contract(sdk, address, readonly = false) {
     validateIsAddress(address, { prefix });
-    return sdk.contract({ abi: TokenHolderContract.abi, address });
+    return sdk.contract({ abi: TokenHolderContract.abi, address, readonly });
   }
 
   static async deserialize(sdk, uuid, ecosystem, token, overrides = {}) {
@@ -92,6 +92,7 @@ export default class TokenHolder extends ElasticModel {
     const tokenHolderModel = await this.contract(
       sdk,
       ecosystem.tokenHolderModelAddress,
+      true,
     );
 
     const ecosystemObject = ecosystem.toObject(false);
@@ -125,6 +126,7 @@ export default class TokenHolder extends ElasticModel {
     const tokenHolderModel = await this.contract(
       sdk,
       token.ecosystem.tokenHolderModelAddress,
+      true,
     );
 
     return tokenHolderModel.exists(
@@ -163,6 +165,10 @@ export default class TokenHolder extends ElasticModel {
 
   get lambda() {
     return this.toBigNumber(cache[this.id].lambda, 18);
+  }
+
+  get readonlyContract() {
+    return this.constructor.contract(this.sdk, this.address, true);
   }
 
   get token() {

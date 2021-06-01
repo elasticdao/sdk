@@ -14,7 +14,7 @@ export default class BaseEvents {
       return cache[key];
     }
     cache[key] = subject(toKey(subjectBase, eventName, 'Event'));
-    const contract = await this.target.contract;
+    const contract = await this.target.readonlyContract;
     const trackedEvent = contract.filters[eventName](...(filterArgs || []));
     contract.on(trackedEvent, (...args) => {
       cache[key].next(...args);
