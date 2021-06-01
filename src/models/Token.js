@@ -28,50 +28,69 @@ class Events extends BaseEvents {
 
 const listen = async (token) => {
   const key = toKey(token.id, 'SerializedListener');
+
   if (cache[key]) {
     return;
   }
-  const listenerSubject = await token.events.Serialized();
-  listenerSubject.subscribe(token.refresh.bind(token));
-  cache[key] = true;
+
+  try {
+    cache[key] = true;
+    const listenerSubject = await token.events.Serialized();
+    listenerSubject.subscribe(token.refresh.bind(token));
+  } catch (e) {
+    cache[key] = false;
+  }
 };
 
 export default class Token extends ElasticModel {
-  constructor(
-    sdk,
-    {
-      eByL,
-      ecosystem,
-      elasticity,
-      k,
-      lambda,
-      m,
-      maxLambdaPurchase,
-      name,
-      numberOfTokenHolders,
-      symbol,
-      uuid,
-    },
-    keyAddition = '',
-  ) {
+  constructor(sdk, attributes, keyAddition = '') {
     super(sdk);
-    this.id = toKey(uuid, keyAddition);
-    cache[this.id] = {
-      eByL,
-      ecosystem,
-      elasticity,
-      k,
-      lambda,
-      m,
-      maxLambdaPurchase,
-      name,
-      numberOfTokenHolders,
-      symbol,
-      uuid,
-    };
-    this.touch();
-    if (sdk.live && `${keyAddition}`.length === 0) {
-      listen(this);
+
+    const { uuid } = attributes;
+    this._id = toKey(uuid, keyAddition);
+
+    let cached = cache[this.id];
+
+    if (Object.keys(attributes).length > 1) {
+      const {
+        eByL,
+        ecosystem,
+        elasticity,
+        k,
+        lambda,
+        m,
+        maxLambdaPurchase,
+        name,
+        numberOfTokenHolders,
+        symbol,
+      } = attributes;
+
+      cached = {
+        eByL,
+        ecosystem,
+        elasticity,
+        k,
+        lambda,
+        m,
+        maxLambdaPurchase,
+        name,
+        numberOfTokenHolders,
+        symbol,
+        uuid,
+      };
+
+      cache[this.id] = cached;
+    }
+
+    if (cached) {
+      this._loaded = true;
+    }
+
+    if (this.loaded) {
+      this.touch();
+      if (sdk.live && `${keyAddition}`.length === 0) {
+        listen(this);
+      }
     }
   }
 

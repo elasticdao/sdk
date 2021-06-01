@@ -204,14 +204,20 @@ export default class ElasticVote extends Base {
     });
   }
 
-  async load() {
+  async load(reload = false) {
+    if (this.proposals.length > 0 && !reload) {
+      this.load(true);
+      return this;
+    }
+
     const proposals = await this.snapshotAPI.getProposals();
     this._proposals = await Promise.all(
       proposals.map(async (proposal) =>
         proposal.load(await this.data(proposal.snapshot)),
       ),
     );
-    this._proposals = this._proposals.filter((proposal) => proposal.isValid);
+
+    return this;
   }
 
   resetCache() {

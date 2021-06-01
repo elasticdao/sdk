@@ -4,8 +4,21 @@ import { toKey } from '../utils';
 import Base from '../Base';
 
 export default class ElasticModel extends Base {
+  constructor(sdk) {
+    super(sdk);
+    this._loaded = false;
+  }
+
+  get id() {
+    return this._id;
+  }
+
   get key() {
     return toKey(this.constructor.name, this.id);
+  }
+
+  get loaded() {
+    return this._loaded;
   }
 
   async refresh() {
