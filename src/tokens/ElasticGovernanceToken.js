@@ -1,6 +1,6 @@
 import { ethers } from 'ethers';
 import { sanitizeOverrides, toKey } from '../utils';
-import Base from '../Base';
+import QueryFilterable from '../QueryFilterable';
 import BaseEvents from '../BaseEvents';
 import ElasticGovernanceTokenContract from '../../artifacts/ElasticGovernanceToken.json';
 
@@ -24,7 +24,7 @@ class Events extends BaseEvents {
   }
 }
 
-export default class ElasticGovernanceToken extends Base {
+export default class ElasticGovernanceToken extends QueryFilterable {
   constructor(dao) {
     super(dao.sdk);
     this.dao = dao;
