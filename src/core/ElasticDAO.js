@@ -4,7 +4,7 @@ import BigNumber from 'bignumber.js';
 import BaseEvents from '../BaseEvents';
 
 import { sanitizeOverrides, toKey, upTo } from '../utils';
-import Base from '../Base';
+import QueryFilterable from '../QueryFilterable';
 import ElasticDAOContract from '../../artifacts/ElasticDAO.json';
 
 const onlyAfterSummoning = 'DAO must be summoned';
@@ -87,7 +87,7 @@ class Events extends BaseEvents {
   }
 }
 
-export default class ElasticDAO extends Base {
+export default class ElasticDAO extends QueryFilterable {
   constructor(dao) {
     super(dao.sdk);
     this.dao = dao;
@@ -108,6 +108,10 @@ export default class ElasticDAO extends Base {
     }
     cache[key] = new Events(this);
     return cache[key];
+  }
+
+  get id() {
+    return this.dao.uuid;
   }
 
   async exit(deltaLambda, overrides = {}) {
