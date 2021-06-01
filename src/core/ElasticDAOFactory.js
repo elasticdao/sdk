@@ -4,8 +4,12 @@ import DAO from '../models/DAO';
 import ElasticDAOFactoryContract from '../../artifacts/ElasticDAOFactory.json';
 
 export default class ElasticDAOFactory extends Base {
-  static contract(sdk, address) {
-    return sdk.contract({ abi: ElasticDAOFactoryContract.abi, address });
+  static contract(sdk, address, readonly = false) {
+    return sdk.contract({
+      abi: ElasticDAOFactoryContract.abi,
+      address,
+      readonly,
+    });
   }
 
   get address() {
@@ -14,6 +18,10 @@ export default class ElasticDAOFactory extends Base {
 
   get contract() {
     return this.constructor.contract(this.sdk, this.address);
+  }
+
+  get readonlyContract() {
+    return this.constructor.contract(this.sdk, this.address, true);
   }
 
   async deployDAOAndToken(
@@ -65,7 +73,7 @@ export default class ElasticDAOFactory extends Base {
   }
 
   async deployedDAOAddresses(overrides = {}) {
-    const factory = await this.contract;
+    const factory = await this.readonlyContract;
     const deployedDAOCount = await factory.deployedDAOCount();
 
     const promises = upTo(deployedDAOCount.toNumber()).map((i) =>

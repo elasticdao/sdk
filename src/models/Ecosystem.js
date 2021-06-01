@@ -87,28 +87,31 @@ export default class Ecosystem extends ElasticModel {
 
   // Class functions
 
-  static contract(sdk, address) {
+  static contract(sdk, address, readonly = false) {
     validateIsAddress(address, { prefix });
-    return sdk.contract({ abi: EcosystemContract.abi, address });
+    return sdk.contract({ abi: EcosystemContract.abi, address, readonly });
   }
 
   static async deserialize(sdk, daoAddress, overrides = {}) {
     validateIsAddress(daoAddress, { prefix });
 
+    const saneOverrides = sanitizeOverrides(overrides, true);
+
     const ecosystemModelAddress = await (
-      await ElasticDAO.contract(sdk, daoAddress)
-    ).ecosystemModelAddress();
-    const ecosystemModel = await this.contract(sdk, ecosystemModelAddress);
+      await ElasticDAO.contract(sdk, daoAddress, true)
+    ).ecosystemModelAddress(saneOverrides);
+    const ecosystemModel = await this.contract(
+      sdk,
+      ecosystemModelAddress,
+      true,
+    );
 
     const {
       daoModelAddress,
       governanceTokenAddress,
       tokenHolderModelAddress,
       tokenModelAddress,
-    } = await ecosystemModel.deserialize(
-      daoAddress,
-      sanitizeOverrides(overrides, true),
-    );
+    } = await ecosystemModel.deserialize(daoAddress, saneOverrides);
 
     return new Ecosystem(
       sdk,
@@ -130,6 +133,7 @@ export default class Ecosystem extends ElasticModel {
     const ecosystemModel = await this.contract(
       sdk,
       sdk.env.elasticDAO.ecosystemModelAddress,
+      true,
     );
 
     return ecosystemModel.exists(
@@ -171,6 +175,10 @@ export default class Ecosystem extends ElasticModel {
 
   get governanceTokenAddress() {
     return cache[this.id].governanceTokenAddress;
+  }
+
+  get readonlyContract() {
+    return this.constructor.contract(this.sdk, this.address, true);
   }
 
   get tokenHolderModelAddress() {

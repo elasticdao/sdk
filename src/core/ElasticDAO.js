@@ -93,8 +93,8 @@ export default class ElasticDAO extends QueryFilterable {
     this.dao = dao;
   }
 
-  static contract(sdk, address) {
-    return sdk.contract({ abi: ElasticDAOContract.abi, address });
+  static contract(sdk, address, readonly = false) {
+    return sdk.contract({ abi: ElasticDAOContract.abi, address, readonly });
   }
 
   get contract() {
@@ -112,6 +112,10 @@ export default class ElasticDAO extends QueryFilterable {
 
   get id() {
     return this.dao.uuid;
+  }
+
+  get readonlyContract() {
+    return this.constructor.contract(this.sdk, this.dao.uuid, true);
   }
 
   async exit(deltaLambda, overrides = {}) {
@@ -153,7 +157,7 @@ export default class ElasticDAO extends QueryFilterable {
     const pools = [];
     const saneOverrides = sanitizeOverrides(overrides, true);
     let i = 0;
-    let pool = `${await this.contract.liquidityPools(
+    let pool = `${await this.readonlyContract.liquidityPools(
       i,
       saneOverrides,
     )}`.toLowerCase();
@@ -161,7 +165,7 @@ export default class ElasticDAO extends QueryFilterable {
       while (isAddress(pool)) {
         pools.push(pool);
         i += 1;
-        pool = `${await this.contract.liquidityPools(
+        pool = `${await this.readonlyContract.liquidityPools(
           i,
           saneOverrides,
         )}`.toLowerCase();
@@ -210,7 +214,7 @@ export default class ElasticDAO extends QueryFilterable {
   }
 
   async summoners(overrides = {}) {
-    const elasticDAO = await this.contract;
+    const elasticDAO = await this.readonlyContract;
 
     return Promise.all(
       upTo(this.dao.numberOfSummoners).map((i) =>

@@ -1,9 +1,9 @@
 /* eslint class-methods-use-this: 0 */
 import { isBigNumber } from '@pie-dao/utils';
 import { toKey } from '../utils';
-import Base from '../Base';
+import QueryFilterable from '../QueryFilterable';
 
-export default class ElasticModel extends Base {
+export default class ElasticModel extends QueryFilterable {
   constructor(sdk) {
     super(sdk);
     this._loaded = false;

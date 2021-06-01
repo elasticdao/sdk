@@ -30,8 +30,12 @@ export default class ElasticGovernanceToken extends QueryFilterable {
     this.dao = dao;
   }
 
-  static contract(sdk, address) {
-    return sdk.contract({ abi: ElasticGovernanceTokenContract.abi, address });
+  static contract(sdk, address, readonly = false) {
+    return sdk.contract({
+      abi: ElasticGovernanceTokenContract.abi,
+      address,
+      readonly,
+    });
   }
 
   get address() {
@@ -51,12 +55,16 @@ export default class ElasticGovernanceToken extends QueryFilterable {
     return cache[key];
   }
 
+  get readonlyContract() {
+    return this.constructor.contract(this.sdk, this.address, true);
+  }
+
   async getEcosystem() {
     return this.dao.ecosystem.refresh();
   }
 
   async allowance(ownerAddress, spenderAddress, overrides = {}) {
-    const elasticGovernanceToken = await this.contract;
+    const elasticGovernanceToken = await this.readonlyContract;
     const allowance = await elasticGovernanceToken.allowance(
       ownerAddress,
       spenderAddress,
@@ -76,7 +84,7 @@ export default class ElasticGovernanceToken extends QueryFilterable {
   }
 
   async balanceOf(accountAddress, overrides = {}) {
-    const elasticGovernanceToken = await this.contract;
+    const elasticGovernanceToken = await this.readonlyContract;
     const balance = await elasticGovernanceToken.balanceOf(
       accountAddress,
       sanitizeOverrides(overrides, true),
@@ -86,7 +94,7 @@ export default class ElasticGovernanceToken extends QueryFilterable {
   }
 
   async balanceOfInShares(accountAddress, overrides = {}) {
-    const elasticGovernanceToken = await this.contract;
+    const elasticGovernanceToken = await this.readonlyContract;
     const balanceOfInShares = await elasticGovernanceToken.balanceOfInShares(
       accountAddress,
       sanitizeOverrides(overrides, true),
@@ -95,7 +103,7 @@ export default class ElasticGovernanceToken extends QueryFilterable {
   }
 
   async balanceOfVoting(accountAddress, overrides = {}) {
-    const elasticGovernanceToken = await this.contract;
+    const elasticGovernanceToken = await this.readonlyContract;
     const balanceOfVoting = await elasticGovernanceToken.balanceOfVoting(
       accountAddress,
       sanitizeOverrides(overrides, true),
@@ -135,7 +143,7 @@ export default class ElasticGovernanceToken extends QueryFilterable {
   }
 
   async decimals() {
-    const elasticGovernanceToken = await this.contract;
+    const elasticGovernanceToken = await this.readonlyContract;
     const decimals = await elasticGovernanceToken.decimals();
     return decimals;
   }
@@ -145,7 +153,7 @@ export default class ElasticGovernanceToken extends QueryFilterable {
     if (!endingBlock) {
       endingBlock = await this.sdk.provider.getBlockNumber();
     }
-    const tokenHolderModelContract = await this.sdk.models.TokenHolder.contract(
+    const tokenHolderModelContract = await this.sdk.models.TokenHolder.readonlyContract(
       this.dao.ecosystem.tokenHolderModelAddress,
     );
     const holders = new Set();
@@ -195,7 +203,7 @@ export default class ElasticGovernanceToken extends QueryFilterable {
   }
 
   async name(overrides = {}) {
-    const elasticGovernanceToken = await this.contract;
+    const elasticGovernanceToken = await this.readonlyContract;
     const name = await elasticGovernanceToken.name(
       sanitizeOverrides(overrides, true),
     );
@@ -203,7 +211,7 @@ export default class ElasticGovernanceToken extends QueryFilterable {
   }
 
   async numberOfTokenHolders(overrides = {}) {
-    const elasticGovernanceToken = await this.contract;
+    const elasticGovernanceToken = await this.readonlyContract;
     const number = await elasticGovernanceToken.numberOfTokenHolders(
       sanitizeOverrides(overrides, true),
     );
@@ -212,7 +220,7 @@ export default class ElasticGovernanceToken extends QueryFilterable {
   }
 
   async symbol(overrides = {}) {
-    const elasticGovernanceToken = await this.contract;
+    const elasticGovernanceToken = await this.readonlyContract;
     const symbol = await elasticGovernanceToken.symbol(
       sanitizeOverrides(overrides, true),
     );
@@ -221,7 +229,7 @@ export default class ElasticGovernanceToken extends QueryFilterable {
   }
 
   async totalSupply(overrides = {}) {
-    const elasticGovernanceToken = await this.contract;
+    const elasticGovernanceToken = await this.readonlyContract;
     const totalSupply = await elasticGovernanceToken.totalSupply(
       sanitizeOverrides(overrides, true),
     );
@@ -229,7 +237,7 @@ export default class ElasticGovernanceToken extends QueryFilterable {
   }
 
   async totalSupplyInShares(overrides = {}) {
-    const elasticGovernanceToken = await this.contract;
+    const elasticGovernanceToken = await this.readonlyContract;
     const totalSupplyInShares = await elasticGovernanceToken.totalSupplyInShares(
       sanitizeOverrides(overrides, true),
     );

@@ -96,16 +96,16 @@ export default class DAO extends ElasticModel {
 
   // Class functions
 
-  static contract(sdk, address) {
+  static contract(sdk, address, readonly = false) {
     validateIsAddress(address, { prefix });
-    return sdk.contract({ abi: DAOContract.abi, address });
+    return sdk.contract({ abi: DAOContract.abi, address, readonly });
   }
 
   static async deserialize(sdk, uuid, overrides = {}) {
     validateIsAddress(uuid, { prefix });
 
     const ecosystem = await Ecosystem.deserialize(sdk, uuid);
-    const daoModel = await this.contract(sdk, ecosystem.daoModelAddress);
+    const daoModel = await this.contract(sdk, ecosystem.daoModelAddress, true);
 
     const {
       maxVotingLambda,
@@ -136,7 +136,7 @@ export default class DAO extends ElasticModel {
     validateIsAddress(uuid, { prefix });
 
     const ecosystem = await Ecosystem.deserialize(sdk, uuid);
-    const daoModel = await this.contract(sdk, ecosystem.daoModelAddress);
+    const daoModel = await this.contract(sdk, ecosystem.daoModelAddress, true);
     return daoModel.exists(uuid, sanitizeOverrides(overrides, true));
   }
 
@@ -183,6 +183,10 @@ export default class DAO extends ElasticModel {
     return this.toNumber(cache[this.id].numberOfSummoners || 0);
   }
 
+  get readonlyContract() {
+    return this.constructor.contract(this.sdk, this.address, true);
+  }
+
   get summoned() {
     return cache[this.id].summoned;
   }
@@ -202,25 +206,25 @@ export default class DAO extends ElasticModel {
     return this.constructor.deserialize(this.sdk, this.uuid);
   }
 
-  async summoners() {
+  async summoners(overrides = {}) {
     if (
       cache[this.id].summoners &&
       cache[this.id].summoners.length === this.numberOfSummoners
     ) {
       return cache[this.id].summoners;
     }
-    const summoners = await this.elasticDAO.summoners();
+    const summoners = await this.elasticDAO.summoners(overrides);
     cache[this.id].summoners = summoners;
     this.touch();
     return summoners;
   }
 
-  async token(options = {}) {
+  async token(overrides = {}) {
     return Token.deserialize(
       this.sdk,
       this.ecosystem.governanceTokenAddress,
       this.ecosystem,
-      options,
+      overrides,
     );
   }
 
