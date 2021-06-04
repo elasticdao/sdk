@@ -258,11 +258,11 @@ export class SDK extends Subscribable {
     this.touch();
   }
 
-  contract({ abi, address }) {
+  contract({ abi, address, readonly = false }) {
     const { provider, signer } = this;
-    const contract = this._contract({ abi, address }).connect(
-      signer || provider,
-    );
+
+    const connection = readonly ? provider : (signer || provider);
+    const contract = this._contract({ abi, address }).connect(connection);
 
     if (!this.multicall) {
       return contract;
