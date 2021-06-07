@@ -84,7 +84,6 @@ export default class ElasticVote extends Base {
   }
 
   async generateData(block, options = {}) {
-    console.log('block', block);
     const overrides = { blockTag: block };
     const eligibleVoteCreators = options.eligibleVoteCreators || [];
     const balances = {};
@@ -97,14 +96,10 @@ export default class ElasticVote extends Base {
       18,
     );
 
-    console.log('maxVotingTokens', maxVotingTokens);
-
     const liquidityPools = await dao.elasticDAO.liquidityPools(overrides);
     liquidityPools.forEach((poolAddress) => {
       blacklist.push(poolAddress);
     });
-
-    console.log('blacklist', blacklist);
 
     const holders = await dao.elasticGovernanceToken.holders(overrides);
     const chunks = chunkArray(holders, 50);

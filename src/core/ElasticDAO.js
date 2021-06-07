@@ -1,9 +1,10 @@
 /* eslint no-await-in-loop: 0 */
 import { isAddress } from '@pie-dao/utils';
 import BigNumber from 'bignumber.js';
-import BaseEvents from '../BaseEvents';
 
 import { sanitizeOverrides, toKey, upTo } from '../utils';
+import BaseEvents from '../BaseEvents';
+import Cache from '../Cache';
 import QueryFilterable from '../QueryFilterable';
 import ElasticDAOContract from '../../artifacts/ElasticDAO.json';
 
@@ -12,7 +13,7 @@ const onlyBeforeSummoning = 'DAO must not be summoned';
 const prefix = '@elastic-dao/sdk - ElasticDAO';
 const valueGreaterThanZero = 'a value greater than 0 must be provided';
 
-const cache = {};
+const cache = new Cache('ElasticDAO.js', { persist: false });
 
 class Events extends BaseEvents {
   get keyBase() {
@@ -103,11 +104,11 @@ export default class ElasticDAO extends QueryFilterable {
 
   get events() {
     const key = toKey(this.dao.uuid, 'Events');
-    if (cache[key]) {
-      return cache[key];
+    if (cache.has(key)) {
+      return cache.get(key);
     }
-    cache[key] = new Events(this);
-    return cache[key];
+    cache.set(key, new Events(this));
+    return cache.get(key);
   }
 
   get id() {
@@ -215,7 +216,6 @@ export default class ElasticDAO extends QueryFilterable {
 
   async summoners(overrides = {}) {
     const elasticDAO = await this.readonlyContract;
-
     return Promise.all(
       upTo(this.dao.numberOfSummoners).map((i) =>
         elasticDAO.summoners(i, sanitizeOverrides(overrides, true)),

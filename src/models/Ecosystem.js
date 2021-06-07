@@ -1,12 +1,13 @@
 import { ethers } from 'ethers';
 import { validateIsAddress } from '@pie-dao/utils';
 import { sanitizeOverrides, toKey, validate } from '../utils';
+import Cache from '../Cache';
 import EcosystemContract from '../../artifacts/Ecosystem.json';
 import ElasticDAO from '../core/ElasticDAO';
 import ElasticModel from './ElasticModel';
 import BaseEvents from '../BaseEvents';
 
-const cache = {};
+const cache = new Cache('Ecosystem.js');
 const prefix = '@elastic-dao/sdk - Ecosystem';
 
 export const isEcosystem = (thing) =>
@@ -30,16 +31,16 @@ class Events extends BaseEvents {
 const listen = async (ecosystem) => {
   const key = toKey(ecosystem.id, 'SerializedListener');
 
-  if (cache[key]) {
+  if (cache.get(key)) {
     return;
   }
 
   try {
-    cache[key] = true;
+    cache.set(key, true, { persist: false });
     const listenerSubject = await ecosystem.events.Serialized();
     listenerSubject.subscribe(ecosystem.refresh.bind(ecosystem));
   } catch (e) {
-    cache[key] = false;
+    cache.set(key, false, { persist: false });
   }
 };
 
@@ -50,7 +51,7 @@ export default class Ecosystem extends ElasticModel {
     const { daoAddress } = attributes;
     this._id = toKey(daoAddress || ethers.constants.AddressZero, keyAddition);
 
-    let cached = cache[this.id];
+    let cached = cache.get(this.id);
 
     if (Object.keys(attributes).length > 1) {
       const {
@@ -59,9 +60,11 @@ export default class Ecosystem extends ElasticModel {
         governanceTokenAddress,
         tokenHolderModelAddress,
         tokenModelAddress,
+        ttl,
       } = attributes;
 
       cached = {
+        ttl: ttl || this.sdk.blockNumber + 120, // expire the cache in 120 blocks
         daoAddress,
         daoModelAddress,
         ecosystemModelAddress,
@@ -70,7 +73,7 @@ export default class Ecosystem extends ElasticModel {
         tokenModelAddress,
       };
 
-      cache[this.id] = cached;
+      cache.set(this.id, cached);
     }
 
     if (cached) {
@@ -78,8 +81,13 @@ export default class Ecosystem extends ElasticModel {
     }
 
     if (this.loaded) {
+      if (keyAddition === '' && cached.ttl < this.sdk.blockNumber) {
+        this.refresh();
+      }
+
       this.touch();
-      if (sdk.live && `${keyAddition}`.length === 0) {
+
+      if (this.sdk.live && `${keyAddition}`.length === 0) {
         listen(this);
       }
     }
@@ -142,10 +150,15 @@ export default class Ecosystem extends ElasticModel {
     );
   }
 
+  static fromCache(sdk, cached) {
+    const idParts = cached.id.split('|');
+    return new Ecosystem(sdk, cached, idParts[1]);
+  }
+
   // Getters
 
   get address() {
-    return cache[this.id].ecosystemModelAddress;
+    return cache.get(this.id).ecosystemModelAddress;
   }
 
   get contract() {
@@ -153,15 +166,15 @@ export default class Ecosystem extends ElasticModel {
   }
 
   get daoAddress() {
-    return cache[this.id].daoAddress;
+    return cache.get(this.id).daoAddress;
   }
 
   get daoModelAddress() {
-    return cache[this.id].daoModelAddress;
+    return cache.get(this.id).daoModelAddress;
   }
 
   get ecosystemModelAddress() {
-    return cache[this.id].ecosystemModelAddress;
+    return cache.get(this.id).ecosystemModelAddress;
   }
 
   get events() {
@@ -174,7 +187,7 @@ export default class Ecosystem extends ElasticModel {
   }
 
   get governanceTokenAddress() {
-    return cache[this.id].governanceTokenAddress;
+    return cache.get(this.id).governanceTokenAddress;
   }
 
   get readonlyContract() {
@@ -182,11 +195,11 @@ export default class Ecosystem extends ElasticModel {
   }
 
   get tokenHolderModelAddress() {
-    return cache[this.id].tokenHolderModelAddress;
+    return cache.get(this.id).tokenHolderModelAddress;
   }
 
   get tokenModelAddress() {
-    return cache[this.id].tokenModelAddress;
+    return cache.get(this.id).tokenModelAddress;
   }
 
   // Instance functions
@@ -199,7 +212,7 @@ export default class Ecosystem extends ElasticModel {
     const { id } = this;
 
     return this.sanitize({
-      ...cache[id],
+      ...cache.get(id),
       id,
     });
   }

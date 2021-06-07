@@ -261,7 +261,7 @@ export class SDK extends Subscribable {
   contract({ abi, address, readonly = false }) {
     const { provider, signer } = this;
 
-    const connection = readonly ? provider : (signer || provider);
+    const connection = readonly ? provider : signer || provider;
     const contract = this._contract({ abi, address }).connect(connection);
 
     if (!this.multicall) {
