@@ -1,10 +1,13 @@
 /* eslint no-unused-expressions: 0 */
 
 import Base from '../../Base';
+import Cache from '../../Cache';
 import SnapshotProposal from './SnapshotProposal';
 import SnapshotVote from './SnapshotVote';
 
 const ApiUrl = 'https://hub.snapshot.page/api';
+
+const cache = new Cache('SnapshotAPI.js');
 
 export default class SnapshotAPI extends Base {
   constructor(sdk, space, proposalsToFilter) {
@@ -39,11 +42,24 @@ export default class SnapshotAPI extends Base {
   }
 
   async getVotes(proposal) {
-    const url = `${this.url}/${this.space}/proposal/${proposal.id}`;
-    const response = await fetch(url);
-    const json = await response.json();
-    return Object.values(json).map(
+    let votes;
+    const key = `${proposal.id}/votes`;
+
+    if (proposal.closed && cache.has(key)) {
+      votes = cache.get(key);
+    }
+
+    if (!votes) {
+      const url = `${this.url}/${this.space}/proposal/${proposal.id}`;
+      const response = await fetch(url);
+      votes = await response.json();
+      cache.set(key, votes);
+    }
+
+    const voteObjects = Object.values(votes).map(
       (vote) => new SnapshotVote(this, proposal, vote),
     );
+
+    return voteObjects;
   }
 }

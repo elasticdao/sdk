@@ -49,6 +49,7 @@ export default class Ecosystem extends ElasticModel {
     super(sdk);
 
     const { daoAddress } = attributes;
+
     this._id = toKey(daoAddress || ethers.constants.AddressZero, keyAddition);
 
     let cached = cache.get(this.id);
@@ -81,6 +82,10 @@ export default class Ecosystem extends ElasticModel {
     }
 
     if (this.loaded) {
+      this.sdk.integrations.coinGecko.addContractAddress(
+        this.governanceTokenAddress,
+      );
+
       if (keyAddition === '' && cached.ttl < this.sdk.blockNumber) {
         this.refresh();
       }

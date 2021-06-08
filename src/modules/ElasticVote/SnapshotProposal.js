@@ -22,6 +22,10 @@ export default class SnapshotProposal extends Base {
     }, BigNumber(0));
   }
 
+  get active() {
+    return this.status === 'active';
+  }
+
   get author() {
     return this._raw.address.toLowerCase();
   }
@@ -32,6 +36,10 @@ export default class SnapshotProposal extends Base {
 
   get choices() {
     return this._raw.msg.payload.choices;
+  }
+
+  get closed() {
+    return this.status === 'closed';
   }
 
   get end() {
@@ -58,6 +66,10 @@ export default class SnapshotProposal extends Base {
 
       return acc;
     }, BigNumber(0));
+  }
+
+  get pending() {
+    return this.status === 'pending';
   }
 
   get quorum() {
@@ -120,7 +132,8 @@ export default class SnapshotProposal extends Base {
     if (this.isValid) {
       const voteObjects = await this._api.getVotes(this);
       for (let i = 0; i < voteObjects.length; i += 1) {
-        votes[voteObjects[i].voter] = voteObjects[i].load(args.balances);
+        const vote = voteObjects[i];
+        votes[vote.voter] = vote.load(args.balances[vote.voter]);
       }
     }
 

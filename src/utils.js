@@ -192,7 +192,7 @@ export const toBigNumber = (value, decimalShift = 0) => {
   }
 
   return BigNumber(normalizedValue).dividedBy(10 ** decimalShift);
-}
+};
 
 export const toEthersBigNumber = (value, decimalShift = 0) =>
   ethers.BigNumber.from(

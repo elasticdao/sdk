@@ -91,14 +91,7 @@ export class Models extends Base {
   get DAO() {
     return {
       contract: (...args) => DAO.contract(this.sdk, ...args),
-      deserialize: async (...args) => {
-        const dao = await DAO.deserialize(this.sdk, ...args);
-        this.sdk.balanceOf(dao.uuid);
-        this.sdk.integrations.coinGecko.addContractAddress(
-          dao.ecosystem.governanceTokenAddress,
-        );
-        return dao;
-      },
+      deserialize: async (...args) => DAO.deserialize(this.sdk, ...args),
       exists: (...args) => DAO.exists(this.sdk, ...args),
     };
   }
@@ -106,13 +99,7 @@ export class Models extends Base {
   get Ecosystem() {
     return {
       contract: (...args) => Ecosystem.contract(this.sdk, ...args),
-      deserialize: async (...args) => {
-        const ecosystem = await Ecosystem.deserialize(this.sdk, ...args);
-        this.sdk.integrations.coinGecko.addContractAddress(
-          ecosystem.governanceTokenAddress,
-        );
-        return ecosystem;
-      },
+      deserialize: (...args) => Ecosystem.deserialize(this.sdk, ...args),
       exists: (...args) => Ecosystem.exists(this.sdk, ...args),
     };
   }
@@ -120,11 +107,7 @@ export class Models extends Base {
   get Token() {
     return {
       contract: (...args) => Token.contract(this.sdk, ...args),
-      deserialize: async (...args) => {
-        const token = await Token.deserialize(this.sdk, ...args);
-        this.sdk.integrations.coinGecko.addContractAddress(token.uuid);
-        return token;
-      },
+      deserialize: (...args) => Token.deserialize(this.sdk, ...args),
       exists: (...args) => Token.exists(this.sdk, ...args),
     };
   }

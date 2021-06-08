@@ -90,6 +90,11 @@ export default class DAO extends ElasticModel {
         cache.set(this.id, cached);
       }
 
+      this.sdk.balanceOf(this.uuid);
+      this.sdk.integrations.coinGecko.addContractAddress(
+        this.ecosystem.governanceTokenAddress,
+      );
+
       if (this.summoners.length === this.numberOfSummoners) {
         this.touch();
       } else {

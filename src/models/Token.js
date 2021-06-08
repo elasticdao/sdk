@@ -90,11 +90,13 @@ export default class Token extends ElasticModel {
     }
 
     if (this.loaded) {
+      this.sdk.integrations.coinGecko.addContractAddress(this.uuid);
+
       if (cached.ecosystem.constructor !== Ecosystem) {
         cached.ecosystem = Ecosystem.fromCache(this.sdk, cached.ecosystem);
         cache.set(this.id, cached);
       }
-    
+
       if (keyAddition === '' && cached.ttl < this.sdk.blockNumber) {
         this.refresh();
       }
