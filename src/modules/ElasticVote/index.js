@@ -3,8 +3,11 @@ import BigNumber from 'bignumber.js';
 import { get } from '../../integrations/ipfs';
 import { t } from '../../elasticMath';
 import Base from '../../Base';
+import Cache from '../../Cache';
 import SnapshotAPI from './SnapshotAPI';
 import { chunkArray, toBigNumber } from '../../utils';
+
+const cache = new Cache('ElasticVote/index.js');
 
 // proposals we don't want to show because ipfs is immutable.....
 const ProposalsToFilter = [
@@ -44,47 +47,41 @@ export default class ElasticVote extends Base {
   }
 
   async data(blockNumber, fuzzyMatch = true) {
-    const blockKey = `_blockData${blockNumber}${fuzzyMatch ? 'fuzzy' : ''}`;
+    const index = await this.index();
+    let closestBlock = blockNumber;
 
-    return this.cachedValue(blockKey, async () => {
-      const index = await this.index();
-
-      let closestBlock = blockNumber;
-
-      if (
-        typeof index.blocks.list.find((block) => block === blockNumber) ===
-        'undefined'
-      ) {
-        if (fuzzyMatch) {
-          closestBlock =
-            index.blocks.list.reverse().find((block) => block <= blockNumber) ||
-            index.blocks.list[0];
-        }
+    if (
+      typeof index.blocks.list.find((block) => block === blockNumber) ===
+      'undefined'
+    ) {
+      if (fuzzyMatch) {
+        closestBlock =
+          index.blocks.list.reverse().find((block) => block <= blockNumber) ||
+          index.blocks.list[0];
       }
+    }
 
-      const block = index.blocks[`${closestBlock}`];
+    const block = index.blocks[`${closestBlock}`];
 
-      if (!block) {
-        return undefined;
-      }
+    if (!block) {
+      return undefined;
+    }
 
-      const [balancesRaw, statsRaw] = await Promise.all([
-        get(block.hash, block.balances),
-        get(block.hash, block.stats),
-      ]);
+    const [balancesRaw, statsRaw] = await Promise.all([
+      get(block.hash, block.balances),
+      get(block.hash, block.stats),
+    ]);
 
-      this[blockKey] = {
-        block,
-        balances: JSON.parse(balancesRaw),
-        stats: JSON.parse(statsRaw),
-      };
+    const data = {
+      block,
+      balances: JSON.parse(balancesRaw),
+      stats: JSON.parse(statsRaw),
+    };
 
-      return this[blockKey];
-    });
+    return data;
   }
 
   async generateData(block, options = {}) {
-    console.log('block', block);
     const overrides = { blockTag: block };
     const eligibleVoteCreators = options.eligibleVoteCreators || [];
     const balances = {};
@@ -97,14 +94,10 @@ export default class ElasticVote extends Base {
       18,
     );
 
-    console.log('maxVotingTokens', maxVotingTokens);
-
     const liquidityPools = await dao.elasticDAO.liquidityPools(overrides);
     liquidityPools.forEach((poolAddress) => {
       blacklist.push(poolAddress);
     });
-
-    console.log('blacklist', blacklist);
 
     const holders = await dao.elasticGovernanceToken.holders(overrides);
     const chunks = chunkArray(holders, 50);
@@ -187,21 +180,28 @@ export default class ElasticVote extends Base {
   }
 
   async index() {
-    return this.cachedValue('_index', async () => {
-      const hash = await this.indexHash();
-      const raw = await get(hash);
-      this._index = JSON.parse(raw);
-      setTimeout(() => delete this._index, 3600000); // expire after 60 minutes
-    });
+    const hash = await this.indexHash();
+    const raw = await get(hash);
+    return JSON.parse(raw);
   }
 
-  async indexHash() {
-    return this.cachedValue('_indexHash', async () => {
-      const record = await this.getElasticVoteENSRecord();
-      const contentHash = await record.getContentHash();
-      this._indexHash = contentHash.replace('ipfs://', '');
-      setTimeout(() => delete this._indexHash, 300000); // expire after 5 minutes
+  async indexHash({ reload = false } = {}) {
+    const key = `${this.ens}|indexHash`;
+    const cached = cache.get(key);
+
+    if (cached && !reload && Date.now() < cached.ttl) {
+      this.indexHash({ reload: true });
+      return cached.data;
+    }
+
+    const record = await this.getElasticVoteENSRecord();
+    const contentHash = await record.getContentHash();
+    cache.set(key, {
+      data: contentHash.replace('ipfs://', ''),
+      ttl: Date.now() + 5 * 60 * 1000, // 5 minutes
     });
+
+    return cache.get(key).data;
   }
 
   async load(reload = false) {

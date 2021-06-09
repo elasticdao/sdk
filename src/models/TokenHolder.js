@@ -1,12 +1,13 @@
 import { validateIsAddress } from '@pie-dao/utils';
 import { sanitizeOverrides, toKey, validate } from '../utils';
-import { validateIsEcosystem } from './Ecosystem';
-import { validateIsToken } from './Token';
 import BaseEvents from '../BaseEvents';
+import Cache from '../Cache';
+import Ecosystem, { validateIsEcosystem } from './Ecosystem';
 import ElasticModel from './ElasticModel';
+import Token, { validateIsToken } from './Token';
 import TokenHolderContract from '../../artifacts/TokenHolder.json';
 
-const cache = {};
+const cache = new Cache('TokenHolder.js');
 const prefix = '@elastic-dao/sdk - TokenHolder';
 
 export const isTokenHolder = (thing) =>
@@ -30,16 +31,16 @@ class Events extends BaseEvents {
 const listen = async (tokenHolder) => {
   const key = toKey(tokenHolder.id, 'SerializedListener');
 
-  if (cache[key]) {
+  if (cache.get(key)) {
     return;
   }
 
   try {
-    cache[key] = true;
+    cache.set(key, true, { persist: false });
     const listenerSubject = await tokenHolder.events.Serialized();
     listenerSubject.subscribe(tokenHolder.refresh.bind(tokenHolder));
   } catch (e) {
-    cache[key] = false;
+    cache.set(key, false, { persist: false });
   }
 };
 
@@ -50,19 +51,20 @@ export default class TokenHolder extends ElasticModel {
     const { account, token } = attributes;
     this._id = toKey(token.uuid, account, keyAddition);
 
-    let cached = cache[this.id];
+    let cached = cache.get(this.id);
 
     if (Object.keys(attributes).length > 2) {
-      const { ecosystem, lambda } = attributes;
+      const { ecosystem, lambda, ttl } = attributes;
 
       cached = {
+        ttl: ttl || this.sdk.blockNumber + 120, // expire the cache in 120 blocks
         account,
         ecosystem,
         lambda,
         token,
       };
 
-      cache[this.id] = cached;
+      cache.set(this.id, cached);
     }
 
     if (cached) {
@@ -70,7 +72,22 @@ export default class TokenHolder extends ElasticModel {
     }
 
     if (this.loaded) {
+      if (cached.ecosystem.constructor !== Ecosystem) {
+        cached.ecosystem = Ecosystem.fromCache(this.sdk, cached.ecosystem);
+        cache.set(this.id, cached);
+      }
+
+      if (cached.ecosystem.constructor !== Token) {
+        cached.token = Token.fromCache(this.sdk, cached.ecosystem);
+        cache.set(this.id, cached);
+      }
+
+      if (keyAddition === '' && cached.ttl < this.sdk.blockNumber) {
+        this.refresh();
+      }
+
       this.touch();
+
       if (sdk.live && `${keyAddition}`.length === 0) {
         listen(this);
       }
@@ -139,7 +156,7 @@ export default class TokenHolder extends ElasticModel {
   // Getters
 
   get account() {
-    return cache[this.id].account;
+    return cache.get(this.id).account;
   }
 
   get address() {
@@ -151,7 +168,7 @@ export default class TokenHolder extends ElasticModel {
   }
 
   get ecosystem() {
-    return cache[this.id].ecosystem;
+    return cache.get(this.id).ecosystem;
   }
 
   get events() {
@@ -164,7 +181,7 @@ export default class TokenHolder extends ElasticModel {
   }
 
   get lambda() {
-    return this.toBigNumber(cache[this.id].lambda, 18);
+    return this.toBigNumber(cache.get(this.id).lambda, 18);
   }
 
   get readonlyContract() {
@@ -172,7 +189,7 @@ export default class TokenHolder extends ElasticModel {
   }
 
   get token() {
-    return cache[this.id].token;
+    return cache.get(this.id).token;
   }
 
   // Instance functions
@@ -192,7 +209,7 @@ export default class TokenHolder extends ElasticModel {
     const { ecosystem, id, token } = this;
 
     const obj = {
-      ...cache[id],
+      ...cache.get(id),
       id,
       ecosystem: ecosystem.toObject(false),
       token: token.toObject(false),

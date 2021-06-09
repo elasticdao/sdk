@@ -1,3 +1,7 @@
+import Cache from '../Cache';
+
+const cache = new Cache('ipfs.js', { persist: false });
+
 export const nodes = [
   'https://gateway.elasticdao.org',
   'https://gateway.pinata.cloud',
@@ -16,17 +20,25 @@ export const get = (...args) =>
       node = parts.pop();
     }
 
-    const path = [nodes[node], 'ipfs', ...parts].join('/');
+    const key = parts.join('/');
+    const path = [nodes[node], 'ipfs', key].join('/');
 
-    fetch(path, { mode: 'cors' })
-      .then((response) => response.text())
-      .then(resolve)
-      .catch((err) => {
-        const next = node + 1;
-        if (next < nodes.length) {
-          get(...parts, next).then(resolve, reject);
-        } else {
-          reject(err);
-        }
-      });
+    if (cache.has(key)) {
+      resolve(cache.get(key).text);
+    } else {
+      fetch(path, { mode: 'cors' })
+        .then((response) => response.text())
+        .then((text) => {
+          cache.set(key, { path, text });
+          resolve(cache.get(key).text);
+        })
+        .catch((err) => {
+          const next = node + 1;
+          if (next < nodes.length) {
+            get(...parts, next).then(resolve, reject);
+          } else {
+            reject(err);
+          }
+        });
+    }
   });

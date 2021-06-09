@@ -32,7 +32,7 @@ export default class SnapshotVote {
 
   load(balance) {
     try {
-      this._weight = balance[this.voter].balanceOfVoting;
+      this._weight = balance.balanceOfVoting;
     } catch (e) {
       this._weight = 0;
     }

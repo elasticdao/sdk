@@ -1,7 +1,9 @@
 import { ethers } from 'ethers';
 import {
   isAddress,
+  isFunction,
   isNumber,
+  isPOJO,
   validateIsBigNumber,
   validateIsNumber,
 } from '@pie-dao/utils';
@@ -178,8 +180,19 @@ export const swapBigNumber = (obj) => {
   return swappedObj;
 };
 
-export const toBigNumber = (value, decimalShift = 0) =>
-  BigNumber(value.toString()).dividedBy(10 ** decimalShift);
+export const toBigNumber = (value, decimalShift = 0) => {
+  let normalizedValue = value;
+
+  if (isPOJO(normalizedValue) && normalizedValue.type === 'BigNumber') {
+    normalizedValue = ethers.BigNumber.from(normalizedValue);
+  }
+
+  if (isFunction(normalizedValue.toString)) {
+    normalizedValue = normalizedValue.toString();
+  }
+
+  return BigNumber(normalizedValue).dividedBy(10 ** decimalShift);
+};
 
 export const toEthersBigNumber = (value, decimalShift = 0) =>
   ethers.BigNumber.from(

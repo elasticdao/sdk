@@ -3,6 +3,7 @@
 import { ethers } from 'ethers';
 import { shortenAddress, validateIsAddress } from '@pie-dao/utils';
 import Notify from 'bnc-notify';
+
 import Base from './Base';
 import CoinGecko from './integrations/CoinGecko';
 import DAOClass from './models/DAO';
@@ -11,6 +12,7 @@ import ElasticDAOClass from './core/ElasticDAO';
 import ElasticDAOFactoryClass from './core/ElasticDAOFactory';
 import ElasticGovernanceTokenClass from './tokens/ElasticGovernanceToken';
 import ElasticVote from './modules/ElasticVote';
+import erc20 from './abis/ERC20.json';
 import MulticallContract from './MulticallContract';
 import MulticallQueue from './MulticallQueue';
 import Subscribable from './Subscribable';
@@ -32,6 +34,7 @@ import {
 
 const prefix = '@elastic-dao/sdk';
 
+export const erc20ABI = erc20;
 export { abi as DAOABI } from '../artifacts/DAO.json';
 export { abi as EcosystemABI } from '../artifacts/Ecosystem.json';
 export { abi as ElasticDAOABI } from '../artifacts/ElasticDAO.json';
@@ -91,14 +94,7 @@ export class Models extends Base {
   get DAO() {
     return {
       contract: (...args) => DAO.contract(this.sdk, ...args),
-      deserialize: async (...args) => {
-        const dao = await DAO.deserialize(this.sdk, ...args);
-        this.sdk.balanceOf(dao.uuid);
-        this.sdk.integrations.coinGecko.addContractAddress(
-          dao.ecosystem.governanceTokenAddress,
-        );
-        return dao;
-      },
+      deserialize: async (...args) => DAO.deserialize(this.sdk, ...args),
       exists: (...args) => DAO.exists(this.sdk, ...args),
     };
   }
@@ -106,13 +102,7 @@ export class Models extends Base {
   get Ecosystem() {
     return {
       contract: (...args) => Ecosystem.contract(this.sdk, ...args),
-      deserialize: async (...args) => {
-        const ecosystem = await Ecosystem.deserialize(this.sdk, ...args);
-        this.sdk.integrations.coinGecko.addContractAddress(
-          ecosystem.governanceTokenAddress,
-        );
-        return ecosystem;
-      },
+      deserialize: (...args) => Ecosystem.deserialize(this.sdk, ...args),
       exists: (...args) => Ecosystem.exists(this.sdk, ...args),
     };
   }
@@ -120,11 +110,7 @@ export class Models extends Base {
   get Token() {
     return {
       contract: (...args) => Token.contract(this.sdk, ...args),
-      deserialize: async (...args) => {
-        const token = await Token.deserialize(this.sdk, ...args);
-        this.sdk.integrations.coinGecko.addContractAddress(token.uuid);
-        return token;
-      },
+      deserialize: (...args) => Token.deserialize(this.sdk, ...args),
       exists: (...args) => Token.exists(this.sdk, ...args),
     };
   }
@@ -258,10 +244,12 @@ export class SDK extends Subscribable {
     this.touch();
   }
 
-  contract({ abi, address }) {
+  contract({ abi, address, readonly = false }) {
     const { provider, signer } = this;
-    const contract = this._contract({ abi, address }).connect(
-      signer || provider,
+
+    const connection = readonly ? provider : signer || provider;
+    const contract = this._contract({ abi: abi || erc20, address }).connect(
+      connection,
     );
 
     if (!this.multicall) {

@@ -40,4 +40,12 @@ export default class ElasticModel extends QueryFilterable {
     });
     return clean;
   }
+
+  toJSON() {
+    return this.toObject();
+  }
+
+  toObject() {
+    throw new Error(`${this.constructor.name}: 'toObject' must be defined!`);
+  }
 }
