@@ -3,6 +3,7 @@
 import { ethers } from 'ethers';
 import { shortenAddress, validateIsAddress } from '@pie-dao/utils';
 import Notify from 'bnc-notify';
+
 import Base from './Base';
 import CoinGecko from './integrations/CoinGecko';
 import DAOClass from './models/DAO';
@@ -11,6 +12,7 @@ import ElasticDAOClass from './core/ElasticDAO';
 import ElasticDAOFactoryClass from './core/ElasticDAOFactory';
 import ElasticGovernanceTokenClass from './tokens/ElasticGovernanceToken';
 import ElasticVote from './modules/ElasticVote';
+import erc20 from './abis/ERC20.json';
 import MulticallContract from './MulticallContract';
 import MulticallQueue from './MulticallQueue';
 import Subscribable from './Subscribable';
@@ -32,6 +34,7 @@ import {
 
 const prefix = '@elastic-dao/sdk';
 
+export const erc20ABI = erc20;
 export { abi as DAOABI } from '../artifacts/DAO.json';
 export { abi as EcosystemABI } from '../artifacts/Ecosystem.json';
 export { abi as ElasticDAOABI } from '../artifacts/ElasticDAO.json';
@@ -245,7 +248,9 @@ export class SDK extends Subscribable {
     const { provider, signer } = this;
 
     const connection = readonly ? provider : signer || provider;
-    const contract = this._contract({ abi, address }).connect(connection);
+    const contract = this._contract({ abi: abi || erc20, address }).connect(
+      connection,
+    );
 
     if (!this.multicall) {
       return contract;
