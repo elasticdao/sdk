@@ -1,4 +1,4 @@
-import Cache from './cache';
+import Cache from './Cache';
 import { subject } from './observables';
 import { toKey } from './utils';
 
