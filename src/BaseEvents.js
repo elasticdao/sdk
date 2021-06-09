@@ -1,7 +1,8 @@
+import Cache from './cache';
 import { subject } from './observables';
 import { toKey } from './utils';
 
-const cache = {};
+const cache = new Cache('BaseEvents.js', { persist: false });
 
 export default class BaseEvents {
   constructor(target) {
@@ -10,15 +11,15 @@ export default class BaseEvents {
 
   async observeEvent({ eventName, filterArgs, keyBase, subjectBase }) {
     const key = toKey(keyBase, eventName, 'Event');
-    if (cache[key]) {
-      return cache[key];
+    if (cache.has(key)) {
+      return cache.get(key);
     }
-    cache[key] = subject(toKey(subjectBase, eventName, 'Event'));
+    cache.set(key, subject(toKey(subjectBase, eventName, 'Event')));
     const contract = await this.target.readonlyContract;
     const trackedEvent = contract.filters[eventName](...(filterArgs || []));
     contract.on(trackedEvent, (...args) => {
-      cache[key].next(...args);
+      cache.get(key).next(...args);
     });
-    return cache[key];
+    return cache.get(key);
   }
 }

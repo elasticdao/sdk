@@ -18,7 +18,7 @@ export default class Cache extends Subscribable {
   constructor(key = 'default', { persist = true } = {}) {
     super();
 
-    this._key = key;
+    this._key = `@elastic-dao/sdk - ${key}`;
     this._localStorage = false;
     this._store = {};
 

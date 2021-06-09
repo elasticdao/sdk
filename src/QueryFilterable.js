@@ -1,19 +1,20 @@
 import Base from './Base';
+import Cache from './Cache';
 import EventLogCollection from './EventLogCollection';
 
-const eventLogCache = {};
+const cache = new Cache('QueryFilterable.js', { persist: false });
 
 export default class QueryFilterable extends Base {
   async queryFilter(eventName, startingBlock, endingBlock) {
     const key = `${this.constructor.name}|${this.id}|${eventName}`;
-    const collection = eventLogCache[key];
 
-    if (!collection) {
-      eventLogCache[key] = new EventLogCollection(this.sdk, this, eventName);
-      await eventLogCache[key].whenInitialized;
+    if (!cache.has(key)) {
+      cache.set(key, new EventLogCollection(this.sdk, this, eventName));
+      await cache.get(key).whenInitialized;
       return this.queryFilter(eventName, startingBlock, endingBlock);
     }
 
+    const collection = cache.get(key);
     const promises = [];
 
     if (startingBlock && collection.startingBlock > startingBlock) {
@@ -30,7 +31,7 @@ export default class QueryFilterable extends Base {
       promises.push(
         this.contract.queryFilter(
           eventName,
-          eventLogCache[key].endingBlock + 1,
+          collection.endingBlock + 1,
           endingBlock,
         ),
       );
