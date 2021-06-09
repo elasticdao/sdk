@@ -60,6 +60,14 @@ export default class EventLogCollection extends Base {
   }
 
   range(startBlock, endBlock) {
+    if (!startBlock && !endBlock) {
+      return this.sorted;
+    }
+
+    if (!endBlock) {
+      return this.sorted.filter((event) => event.blockNumber >= startBlock);
+    }
+
     return this.sorted.filter(
       (event) =>
         event.blockNumber >= startBlock && event.blockNumber <= endBlock,
