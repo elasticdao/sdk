@@ -14,6 +14,10 @@ export default class SnapshotVote {
     return this.proposal.choices[this._raw.msg.payload.choice - 1];
   }
 
+  get date() {
+    return new Date(this._raw.msg.timestamp * 1000);
+  }
+
   get id() {
     return this._raw.relayerIpfsHash;
   }

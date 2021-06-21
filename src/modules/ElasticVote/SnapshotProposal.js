@@ -116,7 +116,7 @@ export default class SnapshotProposal extends Base {
   }
 
   get votes() {
-    return Object.values(this._votes);
+    return Object.values(this._votes).filter(({ weight }) => BigNumber(weight).isGreaterThan(0));
   }
 
   getScore(address) {
