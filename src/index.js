@@ -177,16 +177,12 @@ export class SDK extends Subscribable {
     this._balances = {};
     this._balancesToTrack = [];
     this._blockNumber = 0;
-    this._fetch = customFetch || window.fetch.bind(window);
-    this._integrations = new Integrations(this);
     this._ipfsGateways = ipfsGateways || [
       'https://gateway.pinata.cloud',
       'https://cloudflare-ipfs.com',
       'https://ipfs.fleek.co',
       'https://ipfs.io',
     ];
-    this._models = new Models(this);
-    this._modules = new Modules(this);
 
     if (this.account) {
       this.balanceOf(this.account);
@@ -202,8 +198,19 @@ export class SDK extends Subscribable {
       this.touch();
     });
 
+    if (customFetch) {
+      this._fetch = customFetch;
+    } else if (window && window.fetch) {
+      this._fetch = window.fetch.bind(window);
+    } else {
+      throw new Error(
+        '@elastic-dao/sdk: SDK constructor unable to find fetch. ' +
+          "Please provide a compatible implementation via the 'customFetch' parameter.",
+      );
+    }
+
     if (this.multicall) {
-      console.warn('@elastic-dao/sdk multicall functionality is experimental');
+      console.warn('@elastic-dao/sdk: multicall functionality is experimental');
       this._queue = new MulticallQueue(this);
     }
 
@@ -213,6 +220,10 @@ export class SDK extends Subscribable {
         darkMode: true,
       });
     }
+
+    this._integrations = new Integrations(this);
+    this._models = new Models(this);
+    this._modules = new Modules(this);
   }
 
   get balances() {
