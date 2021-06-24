@@ -1,6 +1,5 @@
 /* eslint no-await-in-loop: 0 */
 import BigNumber from 'bignumber.js';
-import { get } from '../../integrations/ipfs';
 import { t } from '../../elasticMath';
 import Base from '../../Base';
 import Cache from '../../Cache';
@@ -68,8 +67,8 @@ export default class ElasticVote extends Base {
     }
 
     const [balancesRaw, statsRaw] = await Promise.all([
-      get(block.hash, block.balances),
-      get(block.hash, block.stats),
+      this.sdk.integrations.ipfs(block.hash, block.balances),
+      this.sdk.integrations.ipfs(block.hash, block.stats),
     ]);
 
     const data = {
@@ -181,7 +180,7 @@ export default class ElasticVote extends Base {
 
   async index() {
     const hash = await this.indexHash();
-    const raw = await get(hash);
+    const raw = await this.sdk.integrations.ipfs(hash);
     return JSON.parse(raw);
   }
 

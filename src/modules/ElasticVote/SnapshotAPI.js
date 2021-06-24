@@ -28,7 +28,7 @@ export default class SnapshotAPI extends Base {
 
   async getProposals() {
     const url = `${this.url}/${this.space}/proposals`;
-    const response = await fetch(url);
+    const response = await this.fetch(url);
     const json = await response.json();
     const validIds = Object.keys(json).filter(
       (id) => !this._proposalsToFilter.includes(id),
@@ -51,7 +51,7 @@ export default class SnapshotAPI extends Base {
 
     if (!votes) {
       const url = `${this.url}/${this.space}/proposal/${proposal.id}`;
-      const response = await fetch(url);
+      const response = await this.fetch(url);
       votes = await response.json();
       cache.set(key, votes);
     }
