@@ -180,7 +180,7 @@ export default class ElasticVote extends Base {
 
   async index() {
     const hash = await this.indexHash();
-    const raw = this.sdk.integrations.ipfs(hash);
+    const raw = await this.sdk.integrations.ipfs(hash);
     return JSON.parse(raw);
   }
 
