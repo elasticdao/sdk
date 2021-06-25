@@ -121,6 +121,10 @@ export default class SnapshotProposal extends Base {
     );
   }
 
+  didVote(address) {
+    return !!this.myVote(address);
+  }
+
   getScore(address) {
     return BigNumber(this._votes[address].score);
   }
@@ -143,8 +147,48 @@ export default class SnapshotProposal extends Base {
     return this;
   }
 
-  didVote(address) {
-    return !!this.myVote(address);
+  toJSON() {
+    const voteCount = this.votes.length;
+    const {
+      abstain,
+      active,
+      author,
+      body,
+      choices,
+      closed,
+      end,
+      id,
+      name,
+      no,
+      pending,
+      quorum,
+      snapshot,
+      start,
+      status,
+      yes,
+      voted,
+    } = this;
+
+    return {
+      abstain,
+      active,
+      author,
+      body,
+      choices,
+      closed,
+      end,
+      id,
+      name,
+      no,
+      pending,
+      quorum,
+      snapshot,
+      start,
+      status,
+      yes,
+      voteCount,
+      voted,
+    };
   }
 
   vote(address) {
