@@ -1,10 +1,13 @@
 /* eslint no-await-in-loop: 0 */
 import BigNumber from 'bignumber.js';
+
+import { chunkArray, toBigNumber } from '../../utils';
 import { t } from '../../elasticMath';
 import Base from '../../Base';
 import Cache from '../../Cache';
-import SnapshotAPI from './SnapshotAPI';
-import { chunkArray, toBigNumber } from '../../utils';
+import SnapshotAPIClass from './SnapshotAPI';
+import SnapshotProposalClass from './SnapshotProposal';
+import SnapshotVoteClass from './SnapshotVote';
 
 const cache = new Cache('ElasticVote/index.js');
 
@@ -24,13 +27,13 @@ const ProposalsToFilter = [
   'Qmb9BdVjUgtTiACeN8b63MXXRf1sG3FhxcwpWqAAqYog2u',
 ];
 
-export default class ElasticVote extends Base {
+class ElasticVote extends Base {
   constructor(sdk, ens) {
     super(sdk);
 
     this._ens = ens;
     this._proposals = [];
-    this._snapshotAPI = new SnapshotAPI(this.sdk, ens, ProposalsToFilter);
+    this._snapshotAPI = new SnapshotAPIClass(this.sdk, ens, ProposalsToFilter);
   }
 
   get ens() {
@@ -229,3 +232,9 @@ export default class ElasticVote extends Base {
     delete this._indexHash;
   }
 }
+
+ElasticVote.SnapshotAPI = SnapshotAPIClass;
+ElasticVote.SnapshotProposal = SnapshotProposalClass;
+ElasticVote.SnapshotVote = SnapshotVoteClass;
+
+export default ElasticVote;

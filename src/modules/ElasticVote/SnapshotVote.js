@@ -1,3 +1,5 @@
+import BigNumber from "bignumber.js";
+
 export default class SnapshotVote {
   constructor(api, proposal, raw) {
     this._api = api;
@@ -19,7 +21,7 @@ export default class SnapshotVote {
   }
 
   get id() {
-    return this._raw.relayerIpfsHash;
+    return this._raw.authorIpfsHash;
   }
 
   get proposal() {
@@ -31,7 +33,7 @@ export default class SnapshotVote {
   }
 
   get weight() {
-    return this._weight;
+    return BigNumber(this._weight);
   }
 
   load(balance) {
@@ -46,6 +48,6 @@ export default class SnapshotVote {
   toJSON() {
     const { author, choice, date, id, voter, weight } = this;
 
-    return { author, choice, date, id, voter, weight };
+    return { author, choice, date, id, voter, weight: weight.toFixed(18) };
   }
 }

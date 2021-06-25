@@ -11,7 +11,8 @@ import EcosystemClass from './models/Ecosystem';
 import ElasticDAOClass from './core/ElasticDAO';
 import ElasticDAOFactoryClass from './core/ElasticDAOFactory';
 import ElasticGovernanceTokenClass from './tokens/ElasticGovernanceToken';
-import ElasticVote from './modules/ElasticVote';
+import ElasticRewardsClass from './modules/ElasticRewards';
+import ElasticVoteClass from './modules/ElasticVote';
 import erc20 from './abis/ERC20.json';
 import IPFS from './integrations/IPFS';
 import MulticallContract from './MulticallContract';
@@ -143,11 +144,13 @@ export class Modules extends Base {
       return this.elasticVoteModules[key];
     }
 
-    this.elasticVoteModules[key] = new ElasticVote(this.sdk, ens);
+    this.elasticVoteModules[key] = new ElasticVoteClass(this.sdk, ens);
 
     return this.elasticVoteModules[key];
   }
 }
+Modules.ElasticRewards = ElasticRewardsClass;
+Modules.ElasticVote = ElasticVoteClass;
 
 export class SDK extends Subscribable {
   constructor({
