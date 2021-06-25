@@ -42,4 +42,10 @@ export default class SnapshotVote {
     }
     return this;
   }
+
+  toJSON() {
+    const { author, choice, date, id, voter, weight } = this;
+
+    return { author, choice, date, id, voter, weight };
+  }
 }
