@@ -1,6 +1,7 @@
 import Base from '../../Base';
+import RewardClass from './Reward';
 
-export default class ElasticRewards extends Base {
+class ElasticRewards extends Base {
   constructor(sdk, ens) {
     super(sdk);
 
@@ -35,3 +36,7 @@ export default class ElasticRewards extends Base {
     });
   }
 }
+
+ElasticRewards.Reward = RewardClass;
+
+export default ElasticRewards;
