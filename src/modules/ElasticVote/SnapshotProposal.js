@@ -98,16 +98,6 @@ export default class SnapshotProposal extends Base {
     return status;
   }
 
-  get yes() {
-    return this.votes.reduce((acc, vote) => {
-      if (vote.choice === this.choices[0]) {
-        return acc.plus(vote.weight);
-      }
-
-      return acc;
-    }, BigNumber(0));
-  }
-
   get voted() {
     return this.votes.reduce(
       (acc, vote) => acc.plus(vote.weight),
@@ -119,6 +109,16 @@ export default class SnapshotProposal extends Base {
     return Object.values(this._votes).filter(({ weight }) =>
       BigNumber(weight).isGreaterThan(0),
     );
+  }
+
+  get yes() {
+    return this.votes.reduce((acc, vote) => {
+      if (vote.choice === this.choices[0]) {
+        return acc.plus(vote.weight);
+      }
+
+      return acc;
+    }, BigNumber(0));
   }
 
   didVote(address) {
@@ -165,8 +165,8 @@ export default class SnapshotProposal extends Base {
       snapshot,
       start,
       status,
-      yes,
       voted,
+      yes,
     } = this;
 
     return {
@@ -185,9 +185,9 @@ export default class SnapshotProposal extends Base {
       snapshot,
       start,
       status,
-      yes,
       voteCount,
       voted,
+      yes,
     };
   }
 
