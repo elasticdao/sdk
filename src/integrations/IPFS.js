@@ -25,12 +25,18 @@ export default class IPFS extends Base {
         resolve(cache.get(key).text);
       } else {
         this.fetch(path, { mode: 'cors' })
-          .then((response) => response.text())
+          .then((response) => {
+            if (response.status < 300) {
+              return response.text();
+            }
+            throw new Error(response.statusText);
+          })
           .then((text) => {
             cache.set(key, { path, text });
             resolve(cache.get(key).text);
           })
           .catch((err) => {
+            console.log('IPFS Gateway failure', path, err);
             const next = node + 1;
             if (next < this.gateways.length) {
               this.get(...parts, next).then(resolve, reject);
