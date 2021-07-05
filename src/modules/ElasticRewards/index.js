@@ -1,4 +1,5 @@
 import Base from '../../Base';
+import BlockClass from './Block';
 import RewardClass from './Reward';
 
 class ElasticRewards extends Base {
@@ -37,6 +38,7 @@ class ElasticRewards extends Base {
   }
 }
 
+ElasticRewards.Block = BlockClass;
 ElasticRewards.Reward = RewardClass;
 
 export default ElasticRewards;

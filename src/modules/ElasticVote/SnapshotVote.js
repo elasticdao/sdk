@@ -1,4 +1,4 @@
-import BigNumber from "bignumber.js";
+import BigNumber from 'bignumber.js';
 
 export default class SnapshotVote {
   constructor(api, proposal, raw) {
