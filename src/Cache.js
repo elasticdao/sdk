@@ -1,50 +1,46 @@
 import { isPOJO } from '@pie-dao/utils';
-import Subscribable from './Subscribable';
+import Base from './Base';
 
-const localStorageAvailable = () => {
-  try {
-    const x = '__storage_test__';
-    localStorage.setItem(x, x);
-    localStorage.removeItem(x);
-    return true;
-  } catch (e) {
-    console.error('@elastic-dao/sdk: persistent caching unavailable', e);
-  }
+const localData = {};
 
-  return false;
-};
-
-export default class Cache extends Subscribable {
-  constructor(key = 'default', { persist = true } = {}) {
-    super();
+export default class Cache extends Base {
+  constructor(sdk, key = 'default', { persist = true } = {}) {
+    super(sdk);
 
     this._key = `@elastic-dao/sdk - ${key}`;
     this._localStorage = false;
-    this._store = {};
 
-    if (persist && localStorageAvailable()) {
-      this._localStorage = true;
-      try {
-        this._store = JSON.parse(localStorage.getItem(this.key));
-        if (!isPOJO(this._store)) {
-          this.clear();
-        }
-      } catch (e) {
-        this.clear();
-      }
+    if (!isPOJO(localData[this._key])) {
+      localData[this.key] = {};
     }
+
+    if (persist && this.adapter.available && localData[this.key] === {}) {
+      localData[this.key].loading = true;
+
+      this.adapter
+        .load(this.key)
+        .then((data) => {
+          localData[this.key] = data;
+          if (!isPOJO(localData[this.key])) {
+            this.clear();
+          }
+        })
+        .catch(() => {
+          this.clear();
+        });
+    }
+  }
+
+  get adapter() {
+    return this.sdk.storageAdapter;
   }
 
   get key() {
     return this._key;
   }
 
-  get localStorage() {
-    return this._localStorage;
-  }
-
   get raw() {
-    return this._store;
+    return localData[this.key];
   }
 
   get sdk() {
@@ -52,38 +48,38 @@ export default class Cache extends Subscribable {
   }
 
   clear() {
-    if (this.localStorage) {
-      localStorage.removeItem(this.key);
+    if (this.adapter.available) {
+      this.adapter.remove(this.key);
     }
 
-    this._store = {};
+    localData[this.key] = {};
   }
 
   delete(key, { persist = true } = {}) {
-    delete this._store[key];
+    delete localData[this.key][key];
     if (persist) {
       setTimeout(() => this.persist(), 0);
     }
   }
 
   get(key) {
-    return this._store[key];
+    return localData[this.key][key];
   }
 
   has(key) {
-    return Object.keys(this._store).includes(key);
+    return Object.keys(localData[this.key]).includes(key);
   }
 
   persist() {
-    if (this.localStorage) {
-      localStorage.setItem(this.key, JSON.stringify(this._store));
+    if (this.adapter.available) {
+      this.adapter.persist(this.key, localData[this.key]);
     }
   }
 
   set(key, value, { persist = true } = {}) {
-    this._store[key] = value;
+    localData[this.key][key] = value;
     if (persist) {
-      setTimeout(() => this.persist(), 0);
+      this.persist();
     }
   }
 }

@@ -117,7 +117,7 @@ export default class Reward extends IPFSJsonBase {
         ens: this.ens,
         for: {
           action: this.action,
-          item: this.cache.for.item,
+          item: this.cached.for.item,
           message: this.message,
         },
         from: this.from,

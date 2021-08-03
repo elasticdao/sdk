@@ -1,16 +1,13 @@
-import Base from './Base';
-import Cache from './Cache';
+import Cachable from './Cachable';
 
-const cache = new Cache('IPFSJsonBase.js', { persist: false });
-
-export default class IPFSJsonBase extends Base {
+export default class IPFSJsonBase extends Cachable {
   constructor(sdk, hash) {
     super(sdk);
     this._hash = hash;
   }
 
-  get cache() {
-    return cache.get(this.id);
+  get cached() {
+    return this.cache.get(this.id);
   }
 
   get id() {
@@ -18,7 +15,7 @@ export default class IPFSJsonBase extends Base {
   }
 
   get loaded() {
-    return cache.has(this.id);
+    return this.cache.has(this.id);
   }
 
   get promise() {
@@ -28,8 +25,8 @@ export default class IPFSJsonBase extends Base {
 
     const key = `loading|${this.id}`;
 
-    if (cache.has(key)) {
-      return cache.get(key);
+    if (this.cache.has(key)) {
+      return this.cache.get(key);
     }
 
     return this.constructor.load(this.sdk, this.id).promise;
@@ -40,21 +37,21 @@ export default class IPFSJsonBase extends Base {
     const key = `loading|${hash}`;
 
     if (!instance.loaded) {
-      if (!cache.get(key)) {
+      if (!this.cache.get(key)) {
         const promise = new Promise((resolve, reject) => {
           sdk.integrations.ipfs(hash).then((raw) => {
             try {
-              cache.set(hash, JSON.parse(raw));
+              this.cache.set(hash, JSON.parse(raw));
               resolve(instance);
             } catch (e) {
               console.log('ERROR LOADING INSTANCE', hash, raw);
-              cache.delete(key);
+              this.cache.delete(key);
               reject(e);
             }
           });
         });
 
-        cache.set(key, promise);
+        this.cache.set(key, promise);
       }
     }
 

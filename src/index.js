@@ -15,8 +15,10 @@ import ElasticRewardsClass from './modules/ElasticRewards';
 import ElasticVoteClass from './modules/ElasticVote';
 import erc20 from './abis/ERC20.json';
 import IPFS from './integrations/IPFS';
+import LocalStorageAdapter from './adapters/LocalStorageAdapter';
 import MulticallContract from './MulticallContract';
 import MulticallQueue from './MulticallQueue';
+import RedisAdapter from './adapters/RedisAdapter';
 import Subscribable from './Subscribable';
 import TokenClass from './models/Token';
 import TokenHolderClass from './models/TokenHolder';
@@ -67,6 +69,11 @@ export const ElasticDAOFactory = ElasticDAOFactoryClass;
 export const ElasticGovernanceToken = ElasticGovernanceTokenClass;
 export const Token = TokenClass;
 export const TokenHolder = TokenHolderClass;
+
+export const adpaters = {
+  LocalStorageAdapter,
+  RedisAdapter,
+};
 
 export const utils = {
   amountFormatter,
@@ -163,6 +170,7 @@ export class SDK extends Subscribable {
     multicall,
     provider,
     signer,
+    storageAdapter,
   }) {
     // TODO: option var type checking
     super();
@@ -223,6 +231,8 @@ export class SDK extends Subscribable {
         darkMode: true,
       });
     }
+
+    this._storageAdapter = storageAdapter || new LocalStorageAdapter();
 
     this._integrations = new Integrations(this);
     this._models = new Models(this);

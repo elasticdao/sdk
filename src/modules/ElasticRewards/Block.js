@@ -69,7 +69,7 @@ export default class Block extends IPFSJsonBase {
 
     this._previousBlock = this.constructor.load(
       this.sdk,
-      this.cache.previousBlock,
+      this.cached.previousBlock,
     );
 
     return this._previousBlock;
@@ -119,12 +119,12 @@ export default class Block extends IPFSJsonBase {
         ens: this.ens,
         for: {
           action: this.action,
-          item: this.cache.for.item,
+          item: this.cached.for.item,
           message: this.message,
         },
         hash: this.id,
         hashes: this.hashes,
-        previousBlock: this.cache.previousBlock,
+        previousBlock: this.cached.previousBlock,
         version: '1.0.0',
       };
     }

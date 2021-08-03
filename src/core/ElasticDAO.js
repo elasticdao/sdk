@@ -4,7 +4,6 @@ import BigNumber from 'bignumber.js';
 
 import { sanitizeOverrides, toKey, upTo } from '../utils';
 import BaseEvents from '../BaseEvents';
-import Cache from '../Cache';
 import QueryFilterable from '../QueryFilterable';
 import ElasticDAOContract from '../../artifacts/ElasticDAO.json';
 
@@ -12,8 +11,6 @@ const onlyAfterSummoning = 'DAO must be summoned';
 const onlyBeforeSummoning = 'DAO must not be summoned';
 const prefix = '@elastic-dao/sdk - ElasticDAO';
 const valueGreaterThanZero = 'a value greater than 0 must be provided';
-
-const cache = new Cache('ElasticDAO.js', { persist: false });
 
 class Events extends BaseEvents {
   get keyBase() {
@@ -90,7 +87,7 @@ class Events extends BaseEvents {
 
 export default class ElasticDAO extends QueryFilterable {
   constructor(dao) {
-    super(dao.sdk);
+    super(dao.sdk, { persist: false });
     this.dao = dao;
   }
 
@@ -104,11 +101,11 @@ export default class ElasticDAO extends QueryFilterable {
 
   get events() {
     const key = toKey(this.dao.uuid, 'Events');
-    if (cache.has(key)) {
-      return cache.get(key);
+    if (this.cache.has(key)) {
+      return this.cache.get(key);
     }
-    cache.set(key, new Events(this));
-    return cache.get(key);
+    this.cache.set(key, new Events(this), { persist: false });
+    return this.cache.get(key);
   }
 
   get id() {

@@ -1,13 +1,11 @@
 import { ethers } from 'ethers';
 import { validateIsAddress } from '@pie-dao/utils';
 import { sanitizeOverrides, toKey, validate } from '../utils';
-import Cache from '../Cache';
 import EcosystemContract from '../../artifacts/Ecosystem.json';
 import ElasticDAO from '../core/ElasticDAO';
 import ElasticModel from './ElasticModel';
 import BaseEvents from '../BaseEvents';
 
-const cache = new Cache('Ecosystem.js');
 const prefix = '@elastic-dao/sdk - Ecosystem';
 
 export const isEcosystem = (thing) =>
@@ -28,22 +26,6 @@ class Events extends BaseEvents {
   }
 }
 
-const listen = async (ecosystem) => {
-  const key = toKey(ecosystem.id, 'SerializedListener');
-
-  if (cache.get(key)) {
-    return;
-  }
-
-  try {
-    cache.set(key, true, { persist: false });
-    const listenerSubject = await ecosystem.events.Serialized();
-    listenerSubject.subscribe(ecosystem.refresh.bind(ecosystem));
-  } catch (e) {
-    cache.set(key, false, { persist: false });
-  }
-};
-
 export default class Ecosystem extends ElasticModel {
   constructor(sdk, attributes, keyAddition = '') {
     super(sdk);
@@ -52,7 +34,7 @@ export default class Ecosystem extends ElasticModel {
 
     this._id = toKey(daoAddress || ethers.constants.AddressZero, keyAddition);
 
-    let cached = cache.get(this.id);
+    let cached = this.cache.get(this.id);
 
     if (Object.keys(attributes).length > 1) {
       const {
@@ -74,7 +56,7 @@ export default class Ecosystem extends ElasticModel {
         tokenModelAddress,
       };
 
-      cache.set(this.id, cached);
+      this.cache.set(this.id, cached);
     }
 
     if (cached) {
@@ -93,7 +75,22 @@ export default class Ecosystem extends ElasticModel {
       this.touch();
 
       if (this.sdk.live && `${keyAddition}`.length === 0) {
-        listen(this);
+        const key = toKey(this.id, 'SerializedListener');
+
+        if (this.cache.get(key)) {
+          return;
+        }
+
+        this.cache.set(key, true, { persist: false });
+
+        this.events.Serialized().then(
+          (listenerSubject) => {
+            listenerSubject.subscribe(this.refresh.bind(this));
+          },
+          () => {
+            this.cache.set(key, false, { persist: false });
+          },
+        );
       }
     }
   }
@@ -163,7 +160,7 @@ export default class Ecosystem extends ElasticModel {
   // Getters
 
   get address() {
-    return cache.get(this.id).ecosystemModelAddress;
+    return this.cache.get(this.id).ecosystemModelAddress;
   }
 
   get contract() {
@@ -171,28 +168,28 @@ export default class Ecosystem extends ElasticModel {
   }
 
   get daoAddress() {
-    return cache.get(this.id).daoAddress;
+    return this.cache.get(this.id).daoAddress;
   }
 
   get daoModelAddress() {
-    return cache.get(this.id).daoModelAddress;
+    return this.cache.get(this.id).daoModelAddress;
   }
 
   get ecosystemModelAddress() {
-    return cache.get(this.id).ecosystemModelAddress;
+    return this.cache.get(this.id).ecosystemModelAddress;
   }
 
   get events() {
     const key = toKey(this.id, 'Events');
-    if (cache[key]) {
-      return cache[key];
+    if (this.cache.has(key)) {
+      return this.cache.get(key);
     }
-    cache[key] = new Events(this);
-    return cache[key];
+    this.cache.set(key, new Events(this), { persist: false });
+    return this.cache.get(key);
   }
 
   get governanceTokenAddress() {
-    return cache.get(this.id).governanceTokenAddress;
+    return this.cache.get(this.id).governanceTokenAddress;
   }
 
   get readonlyContract() {
@@ -200,11 +197,11 @@ export default class Ecosystem extends ElasticModel {
   }
 
   get tokenHolderModelAddress() {
-    return cache.get(this.id).tokenHolderModelAddress;
+    return this.cache.get(this.id).tokenHolderModelAddress;
   }
 
   get tokenModelAddress() {
-    return cache.get(this.id).tokenModelAddress;
+    return this.cache.get(this.id).tokenModelAddress;
   }
 
   // Instance functions
@@ -217,7 +214,7 @@ export default class Ecosystem extends ElasticModel {
     const { id } = this;
 
     return this.sanitize({
-      ...cache.get(id),
+      ...this.cache.get(id),
       id,
     });
   }

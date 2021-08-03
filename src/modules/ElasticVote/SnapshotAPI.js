@@ -1,15 +1,12 @@
 /* eslint no-unused-expressions: 0 */
 
-import Base from '../../Base';
-import Cache from '../../Cache';
+import Cachable from '../../Cachable';
 import SnapshotProposal from './SnapshotProposal';
 import SnapshotVote from './SnapshotVote';
 
 const ApiUrl = 'https://hub.snapshot.page/api';
 
-const cache = new Cache('SnapshotAPI.js');
-
-export default class SnapshotAPI extends Base {
+export default class SnapshotAPI extends Cachable {
   constructor(sdk, space, proposalsToFilter) {
     super(sdk);
 
@@ -45,15 +42,15 @@ export default class SnapshotAPI extends Base {
     let votes;
     const key = `${proposal.id}/votes`;
 
-    if (proposal.closed && cache.has(key)) {
-      votes = cache.get(key);
+    if (proposal.closed && this.cache.has(key)) {
+      votes = this.cache.get(key);
     }
 
     if (!votes) {
       const url = `${this.url}/${this.space}/proposal/${proposal.id}`;
       const response = await this.fetch(url);
       votes = await response.json();
-      cache.set(key, votes);
+      this.cache.set(key, votes);
     }
 
     const voteObjects = Object.values(votes).map(
