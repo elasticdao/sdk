@@ -179,6 +179,11 @@ export default class Token extends ElasticModel {
     );
   }
 
+  static fromCache(sdk, cached) {
+    const idParts = cached.id.split('|');
+    return new Token(sdk, cached, idParts[1]);
+  }
+
   // Getters
 
   get address() {
@@ -247,11 +252,6 @@ export default class Token extends ElasticModel {
   }
 
   // Instance functions
-
-  static fromCache(sdk, cached) {
-    const idParts = cached.id.split('|');
-    return new Token(sdk, cached, idParts[1]);
-  }
 
   async refresh() {
     await this.ecosystem.refresh();
