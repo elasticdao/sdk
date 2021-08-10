@@ -78,7 +78,7 @@ export default class TokenHolder extends ElasticModel {
       }
 
       if (cached.token.constructor !== Token) {
-        cached.token = Token.fromCache(this.sdk, { id: cached.token });
+        cached.token = Token.fromCache(this.sdk, cached.token);
         cache.set(this.id, cached);
       }
 
