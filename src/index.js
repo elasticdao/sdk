@@ -70,7 +70,7 @@ export const ElasticGovernanceToken = ElasticGovernanceTokenClass;
 export const Token = TokenClass;
 export const TokenHolder = TokenHolderClass;
 
-export const adpaters = {
+export const adapters = {
   LocalStorageAdapter,
   RedisAdapter,
 };
@@ -90,9 +90,13 @@ export const utils = {
 
 export class Integrations extends Base {
   constructor(sdk) {
+    console.log(21.1);
     super(sdk);
+    console.log(21.2);
     this._coinGecko = new CoinGecko(this.sdk);
+    console.log(21.3);
     this._ipfs = new IPFS(this.sdk);
+    console.log(21.4);
   }
 
   get coinGecko() {
@@ -172,42 +176,61 @@ export class SDK extends Subscribable {
     signer,
     storageAdapter,
   }) {
+    console.log('1');
     // TODO: option var type checking
     super();
 
+    console.log('2');
     this.provider = provider || ethers.getDefaultProvider();
+    console.log('3');
+    this._storageAdapter = storageAdapter || new LocalStorageAdapter();
+    console.log('4', this._storageAdapter);
     this._contract =
       contract || (({ address, abi }) => new ethers.Contract(address, abi));
+    console.log('5');
     this.env = env;
+    console.log('6');
     this.live = !!live;
+    console.log('7');
     this.multicall = !!multicall;
+    console.log('8');
     this.signer = signer;
+    console.log('9');
     this.account = account;
+    console.log('10');
     this.setName();
+    console.log('11');
 
     this._balances = {};
+    console.log('12');
     this._balancesToTrack = [];
+    console.log('13');
     this._blockNumber = 0;
+    console.log('14');
     this._ipfsGateways = ipfsGateways || [
       'https://gateway.pinata.cloud',
       'https://cloudflare-ipfs.com',
       'https://ipfs.fleek.co',
       'https://ipfs.io',
     ];
+    console.log('15');
 
     if (this.account) {
       this.balanceOf(this.account);
+      console.log('16');
     }
 
     this.provider.getBlockNumber().then((blockNumber) => {
       this._blockNumber = blockNumber;
     });
+    console.log('17');
 
     this.provider.on('block', (blockNumber) => {
       this._blockNumber = blockNumber;
       this.updateBalances();
       this.touch();
     });
+    console.log('18');
 
     if (customFetch) {
       this._fetch = customFetch;
@@ -219,11 +242,13 @@ export class SDK extends Subscribable {
           "Please provide a compatible implementation via the 'customFetch' parameter.",
       );
     }
+    console.log('19');
 
     if (this.multicall) {
       console.warn('@elastic-dao/sdk: multicall functionality is experimental');
       this._queue = new MulticallQueue(this);
     }
+    console.log('20');
 
     if (this.env.blocknative) {
       this._notify = Notify(this.env.blocknative);
@@ -231,12 +256,14 @@ export class SDK extends Subscribable {
         darkMode: true,
       });
     }
-
-    this._storageAdapter = storageAdapter || new LocalStorageAdapter();
+    console.log('21');
 
     this._integrations = new Integrations(this);
+    console.log(22);
     this._models = new Models(this);
+    console.log(23);
     this._modules = new Modules(this);
+    console.log(24);
   }
 
   get balances() {
@@ -274,6 +301,10 @@ export class SDK extends Subscribable {
 
   get queue() {
     return this._queue;
+  }
+
+  get storageAdapter() {
+    return this._storageAdapter;
   }
 
   async balanceOf(address) {

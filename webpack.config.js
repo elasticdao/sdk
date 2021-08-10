@@ -7,6 +7,9 @@ module.exports = (env, argv) => ({
   entry: {
     'index': ['./src/index.js'],
   },
+  externals: {
+    redis: 'redis',
+  },
   output: {
     path: path.join(__dirname, '/dist'),
     filename: '[name].js',
