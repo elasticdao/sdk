@@ -238,6 +238,10 @@ export const validate = (result, options) => {
 };
 
 export const truncate = (str, opts = {}) => {
+  if (!str) {
+    return '';
+  }
+
   const ending = opts.ending || '...';
   const length = opts.length || 40;
 
