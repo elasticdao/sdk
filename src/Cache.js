@@ -1,7 +1,9 @@
 import { isPOJO } from '@pie-dao/utils';
 import Base from './Base';
 
-const localData = {};
+const localData = {
+  ignore: {},
+};
 
 export default class Cache extends Base {
   constructor(sdk, key = 'default', { persist = true } = {}) {
@@ -9,6 +11,11 @@ export default class Cache extends Base {
 
     this._key = `@elastic-dao/sdk - ${key}`;
     this._localStorage = false;
+    this._globalPersist = persist;
+
+    if (!isPOJO(localData.ignore[this._key])) {
+      localData.ignore[this._key] = {};
+    }
 
     if (!isPOJO(localData[this._key])) {
       localData[this.key] = {};
@@ -71,8 +78,16 @@ export default class Cache extends Base {
   }
 
   persist() {
-    if (this.adapter.available) {
-      this.adapter.persist(this.key, localData[this.key]);
+    if (this._globalPersist && this.adapter.available) {
+      console.log('PERSISTING', this.key);
+      console.log(localData[this.key])
+      const persistable = {};
+      Object.keys(localData[this.key]).forEach((key) => {
+        if (!localData.ignore[this.key][key]) {
+          persistable[key] = localData[this.key][key];
+        }
+      })
+      this.adapter.persist(this.key, persistable);
     }
   }
 
@@ -80,6 +95,8 @@ export default class Cache extends Base {
     localData[this.key][key] = value;
     if (persist) {
       this.persist();
+    } else {
+      localData.ignore[this.key][key] = true;
     }
   }
 }

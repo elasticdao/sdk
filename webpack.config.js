@@ -3,12 +3,9 @@ const TerserPlugin = require('terser-webpack-plugin');
 
 module.exports = (env, argv) => ({
   mode: 'development',
-  devtool: 'inline-source-map',
+  // devtool: 'inline-source-map',
   entry: {
     'index': ['./src/index.js'],
-  },
-  externals: {
-    Redis: 'redis',
   },
   output: {
     path: path.join(__dirname, '/dist'),
@@ -17,6 +14,7 @@ module.exports = (env, argv) => ({
     libraryTarget: 'umd',
     globalObject: 'this',
   },
+  /*
   optimization: {
     minimizer: [new TerserPlugin({
       terserOptions: {
@@ -26,6 +24,7 @@ module.exports = (env, argv) => ({
       }
     })],
   },
+  */
   module: {
     rules: [{
       test: /\.js$/,

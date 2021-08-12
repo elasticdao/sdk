@@ -1,6 +1,17 @@
 import BigNumber from 'bignumber.js';
 import Base from '../../Base';
 
+/* RAW:
+  id
+  title
+  body
+  choices
+  start
+  end
+  snapshot
+  state
+  author
+*/
 export default class SnapshotProposal extends Base {
   constructor(sdk, api, raw) {
     super(sdk);
@@ -31,15 +42,15 @@ export default class SnapshotProposal extends Base {
   }
 
   get author() {
-    return this._raw.address.toLowerCase();
+    return this._raw.author.toLowerCase();
   }
 
   get body() {
-    return this._raw.msg.payload.body;
+    return this._raw.body;
   }
 
   get choices() {
-    return this._raw.msg.payload.choices;
+    return this._raw.choices;
   }
 
   get closed() {
@@ -47,11 +58,11 @@ export default class SnapshotProposal extends Base {
   }
 
   get end() {
-    return this._raw.msg.payload.end;
+    return this._raw.end;
   }
 
   get id() {
-    return this._raw.authorIpfsHash;
+    return this._raw.id;
   }
 
   get isValid() {
@@ -59,7 +70,7 @@ export default class SnapshotProposal extends Base {
   }
 
   get name() {
-    return this._raw.msg.payload.name;
+    return this._raw.name;
   }
 
   get no() {
@@ -88,11 +99,11 @@ export default class SnapshotProposal extends Base {
   }
 
   get snapshot() {
-    return this._raw.msg.payload.snapshot;
+    return this._raw.snapshot;
   }
 
   get start() {
-    return this._raw.msg.payload.start;
+    return this._raw.start;
   }
 
   get status() {

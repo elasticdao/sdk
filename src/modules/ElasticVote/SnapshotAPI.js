@@ -17,6 +17,11 @@ const queries = {
     '{ id voter created choice } }',
 };
 
+const promises = {
+  proposals: undefined,
+  votes: {},
+};
+
 export default class SnapshotAPI extends Cachable {
   constructor(sdk, space, proposalsToFilter) {
     super(sdk);
@@ -37,8 +42,6 @@ export default class SnapshotAPI extends Cachable {
   async getProposals() {
     const response = await this.fetch(this.url, {
       method: 'POST',
-      mode: 'no-cors',
-      cache: 'no-cache',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         operationName: 'Proposals',
@@ -60,31 +63,55 @@ export default class SnapshotAPI extends Cachable {
   }
 
   async getVotes(proposal) {
-    let votes;
+    let votes = {
+      data: undefined,
+      expires: Date.now() + 60000 // expires after 1 minute
+    };
+    
     const key = `${proposal.id}/votes`;
 
-    if (proposal.closed && this.cache.has(key)) {
+    if (this.cache.has(key)) {
       votes = this.cache.get(key);
     }
 
-    if (!votes) {
-      const response = await this.fetch(this.url, {
-        method: 'POST',
-        mode: 'no-cors',
-        cache: 'no-cache',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          operationName: 'Votes',
-          query: queries.proposals.replace('[PROPOSAL_ID]', proposal.id),
-          variables: null,
-        }),
+    console.log('getVotes before if', votes);
+
+    if (!votes.data && promises.votes[proposal.id]) {
+      console.log('1');
+      votes = await promises.votes[proposal.id];
+    } else if (!votes.data) {
+      promises.votes[proposal.id] = new Promise((resolve, reject) => {
+        this.fetch(this.url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            operationName: 'Votes',
+            query: queries.votes.replace('[PROPOSAL_ID]', proposal.id),
+            variables: null,
+          }),
+        }).then((response) => {
+          return response.json();
+        }).then(({ data }) => {
+          votes.data = data.votes;
+          console.log('loaded votes', votes)
+          this.cache.set(key, votes);
+          resolve(votes);
+        }).catch((e) => {
+          console.log('error loading votes', e);
+          reject(e);
+        });
       });
-      votes = await response.json();
-      votes = votes.data.votes;
-      this.cache.set(key, votes);
+
+      promises.votes[proposal.id].finally(() => {
+        delete promises.votes[proposal.id];
+      });
+
+      votes = await promises.votes[proposal.id];
     }
 
-    const voteObjects = Object.values(votes).map(
+    console.log('VOTES FOR PROPOSAL', proposal.id, votes);
+
+    const voteObjects = Object.values(votes.data).map(
       (vote) => new SnapshotVote(this, proposal, vote),
     );
 

@@ -64,6 +64,8 @@ export default class Token extends ElasticModel {
         uuid,
       };
 
+      window.tokenCached = cached;
+
       this.cache.set(this.id, cached);
     }
 
