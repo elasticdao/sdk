@@ -322,6 +322,12 @@ export class SDK extends Subscribable {
     }
   }
 
+  async sendETH(to, value) {
+    const tx = this.signer.sendTransaction(to, toEthersBigNumber(value, 18));
+    this.notify(tx);
+    return tx;
+  }
+
   async setName() {
     if (this.account) {
       try {
