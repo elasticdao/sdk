@@ -4,7 +4,18 @@ import Cachable from '../../Cachable';
 import SnapshotProposal from './SnapshotProposal';
 import SnapshotVote from './SnapshotVote';
 
-const ApiUrl = 'https://hub.snapshot.page/api';
+const ApiUrl = 'https://hub.snapshot.page/graphql';
+
+const queries = {
+  proposals:
+    'query Proposals { ' +
+    'proposals(where: { space: "[SPACE]" }, orderBy: "created", orderDirection: desc) ' +
+    '{ id title body choices start end snapshot state author } }',
+  votes:
+    'query Votes { ' +
+    'votes(where: { proposal: "[PROPOSAL_ID]" }) ' +
+    '{ id voter created choice } }',
+};
 
 export default class SnapshotAPI extends Cachable {
   constructor(sdk, space, proposalsToFilter) {
@@ -24,15 +35,25 @@ export default class SnapshotAPI extends Cachable {
   }
 
   async getProposals() {
-    const url = `${this.url}/${this.space}/proposals`;
-    const response = await this.fetch(url);
+    const response = await this.fetch(this.url, {
+      method: 'POST',
+      mode: 'no-cors',
+      cache: 'no-cache',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        operationName: 'Proposals',
+        query: queries.proposals.replace('[SPACE]', this.space),
+        variables: null,
+      }),
+    });
     const json = await response.json();
-    const validIds = Object.keys(json).filter(
-      (id) => !this._proposalsToFilter.includes(id),
+    const rawProposals = json.data.proposals.filter(
+      ({ id }) => !this._proposalsToFilter.includes(id),
     );
     const proposals = await Promise.all(
-      validIds.map(
-        async (id) => new SnapshotProposal(this.sdk, this, json[id]),
+      rawProposals.map(
+        async (rawProposal) =>
+          new SnapshotProposal(this.sdk, this, rawProposal),
       ),
     );
     return proposals;
@@ -47,9 +68,19 @@ export default class SnapshotAPI extends Cachable {
     }
 
     if (!votes) {
-      const url = `${this.url}/${this.space}/proposal/${proposal.id}`;
-      const response = await this.fetch(url);
+      const response = await this.fetch(this.url, {
+        method: 'POST',
+        mode: 'no-cors',
+        cache: 'no-cache',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          operationName: 'Votes',
+          query: queries.proposals.replace('[PROPOSAL_ID]', proposal.id),
+          variables: null,
+        }),
+      });
       votes = await response.json();
+      votes = votes.data.votes;
       this.cache.set(key, votes);
     }
 

@@ -1,4 +1,5 @@
-import redis from 'redis';
+/* eslint import/no-unresolved: 0 */
+import redis from 'Redis';
 
 export default class RedisAdapter {
   constructor(config = {}) {
