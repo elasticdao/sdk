@@ -204,24 +204,22 @@ class ElasticVote extends Cachable {
   }
 
   async load(reload = false) {
-    // try {
-    if (this.proposals.length > 0 && !reload) {
-      this.load(true);
-      return this;
-    }
+    try {
+      if (this.proposals.length > 0 && !reload) {
+        this.load(true);
+        return this;
+      }
 
-    const proposals = await this.snapshotAPI.getProposals();
-    this._proposals = await Promise.all(
-      proposals.map(async (proposal) =>
-        proposal.load(await this.data(proposal.snapshot)),
-      ),
-    );
-    /*
+      const proposals = await this.snapshotAPI.getProposals();
+      this._proposals = await Promise.all(
+        proposals.map(async (proposal) =>
+          proposal.load(await this.data(proposal.snapshot)),
+        ),
+      );
     } catch (e) {
       this._proposals = [];
       console.warn('ElasticVote unavailable', e);
     }
-    */
     return this;
   }
 
