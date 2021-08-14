@@ -8,15 +8,6 @@ import SnapshotAPIClass from './SnapshotAPI';
 import SnapshotProposalClass from './SnapshotProposal';
 import SnapshotVoteClass from './SnapshotVote';
 
-/*
-const query = "\nquery Proposals {\n  proposals(\n    where: {\n      space: \"[SPACE]\"\n    },\n"
-  + "    orderBy: \"created\",\n    orderDirection: desc\n  ) {\n    id\n    title\n    body\n"
-  + "    choices\n    start\n    end\n    snapshot\n    state\n    author\n  }\n}\n\nquery Votes"
-  + " {\n  votes (\n    first: 1000\n    where: {\n      proposal: \"[PROPOSAL_ID]\"\n    }\n  )"
-  + " {\n    id\n    voter\n    created\n    choice\n  }\n}\n";
-
-*/
-
 // proposals we don't want to show because ipfs is immutable.....
 const ProposalsToFilter = [
   'QmeyUPyn41VnqAmFg2nsuKMAfFgr3YEZhXaiKENQYqSxhg',
