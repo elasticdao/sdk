@@ -1,6 +1,17 @@
 import BigNumber from 'bignumber.js';
 import Base from '../../Base';
 
+/* RAW:
+  id
+  title
+  body
+  choices
+  start
+  end
+  snapshot
+  state
+  author
+*/
 export default class SnapshotProposal extends Base {
   constructor(sdk, api, raw) {
     super(sdk);
@@ -26,16 +37,20 @@ export default class SnapshotProposal extends Base {
     return this.status === 'active';
   }
 
+  get api() {
+    return this._api;
+  }
+
   get author() {
-    return this._raw.address.toLowerCase();
+    return this._raw.author.toLowerCase();
   }
 
   get body() {
-    return this._raw.msg.payload.body;
+    return this._raw.body;
   }
 
   get choices() {
-    return this._raw.msg.payload.choices;
+    return this._raw.choices;
   }
 
   get closed() {
@@ -43,11 +58,11 @@ export default class SnapshotProposal extends Base {
   }
 
   get end() {
-    return this._raw.msg.payload.end;
+    return this._raw.end;
   }
 
   get id() {
-    return this._raw.authorIpfsHash;
+    return this._raw.id;
   }
 
   get isValid() {
@@ -55,7 +70,7 @@ export default class SnapshotProposal extends Base {
   }
 
   get name() {
-    return this._raw.msg.payload.name;
+    return this._raw.name;
   }
 
   get no() {
@@ -79,12 +94,16 @@ export default class SnapshotProposal extends Base {
     return this.voted.dividedBy(this._fullQuorum).multipliedBy(100);
   }
 
+  get nodeUrl() {
+    return `http://localhost:5001/elasticvote/${this.api.space}/proposals/${this.id}`;
+  }
+
   get snapshot() {
-    return this._raw.msg.payload.snapshot;
+    return this._raw.snapshot;
   }
 
   get start() {
-    return this._raw.msg.payload.start;
+    return this._raw.start;
   }
 
   get status() {
@@ -121,12 +140,69 @@ export default class SnapshotProposal extends Base {
     }, BigNumber(0));
   }
 
+  action(action) {
+    const domain = {
+      name: 'ElasticDAO',
+      chainId: 1,
+    };
+
+    const types = {
+      Proposal: [
+        { name: 'action', type: 'string' },
+        { name: 'id', type: 'string' },
+      ],
+    };
+
+    const value = {
+      action,
+      id: this.id,
+    };
+
+    return { domain, types, value };
+  }
+
   didVote(address) {
     return !!this.myVote(address);
   }
 
+  async finalize() {
+    if (!this.sdk.signer) {
+      return false;
+    }
+
+    const address = this.sdk.account;
+    const signTypedData = (
+      this.sdk.signer._signTypedData || this.sdk.signer.signTypedData
+    ).bind(this.sdk.signer);
+
+    const action = 'finalize';
+    const { domain, types, value } = this.action(action);
+
+    const signature = await signTypedData(domain, types, value);
+    console.log('signature', signature);
+
+    const response = await this.fetch(this.nodeUrl, {
+      method: 'PATCH',
+      mode: 'cors',
+      cache: 'no-cache',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        action,
+        address,
+        signature,
+      }),
+    });
+
+    console.log('response', await response.json());
+
+    return response.json();
+  }
+
   getScore(address) {
-    return BigNumber(this._votes[address].score);
+    const vote = this.vote(address);
+    return BigNumber(vote ? vote.weight : 0);
   }
 
   async load(args) {

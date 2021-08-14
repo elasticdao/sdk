@@ -1,20 +1,17 @@
-import Base from './Base';
-import Cache from './Cache';
+import Cachable from './Cachable';
 import EventLogCollection from './EventLogCollection';
 
-const cache = new Cache('QueryFilterable.js', { persist: false });
-
-export default class QueryFilterable extends Base {
+export default class QueryFilterable extends Cachable {
   async queryFilter(eventName, startingBlock, endingBlock) {
     const key = `${this.constructor.name}|${this.id}|${eventName}`;
 
-    if (!cache.has(key)) {
-      cache.set(key, new EventLogCollection(this.sdk, this, eventName));
-      await cache.get(key).whenInitialized;
+    if (!this.cache.has(key)) {
+      this.cache.set(key, new EventLogCollection(this.sdk, this, eventName));
+      await this.cache.get(key).whenInitialized;
       return this.queryFilter(eventName, startingBlock, endingBlock);
     }
 
-    const collection = cache.get(key);
+    const collection = this.cache.get(key);
     const promises = [];
 
     if (startingBlock && collection.startingBlock > startingBlock) {

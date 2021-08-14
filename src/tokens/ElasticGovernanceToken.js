@@ -1,11 +1,8 @@
 import { ethers } from 'ethers';
 import { sanitizeOverrides, toKey } from '../utils';
 import BaseEvents from '../BaseEvents';
-import Cache from '../Cache';
 import ElasticGovernanceTokenContract from '../../artifacts/ElasticGovernanceToken.json';
 import QueryFilterable from '../QueryFilterable';
-
-const cache = new Cache('ElasticGovernanceToken.js', { persist: false });
 
 class Events extends BaseEvents {
   async Approval() {
@@ -49,11 +46,11 @@ export default class ElasticGovernanceToken extends QueryFilterable {
 
   get events() {
     const key = toKey(this.address, 'Events');
-    if (cache.has(key)) {
-      return cache.get(key);
+    if (this.cache.has(key)) {
+      return this.cache.get(key);
     }
-    cache.set(key, new Events(this));
-    return cache.get(key);
+    this.cache.set(key, new Events(this));
+    return this.cache.get(key);
   }
 
   get readonlyContract() {

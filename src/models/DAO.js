@@ -1,7 +1,6 @@
 import { validateIsAddress } from '@pie-dao/utils';
 import { sanitizeOverrides, toKey, validate } from '../utils';
 import BaseEvents from '../BaseEvents';
-import Cache from '../Cache';
 import DAOContract from '../../artifacts/DAO.json';
 import Ecosystem from './Ecosystem';
 import ElasticDAO from '../core/ElasticDAO';
@@ -9,7 +8,6 @@ import ElasticModel from './ElasticModel';
 import Token from './Token';
 import ElasticGovernanceToken from '../tokens/ElasticGovernanceToken';
 
-const cache = new Cache('DAO.js');
 const prefix = '@elastic-dao/sdk - DAO';
 
 export const isDAO = (thing) =>
@@ -30,22 +28,6 @@ class Events extends BaseEvents {
   }
 }
 
-const listen = async (dao) => {
-  const key = toKey(dao.id, 'SerializedListener');
-
-  if (cache.get(key)) {
-    return;
-  }
-
-  try {
-    cache.set(key, true, { persist: false });
-    const listenerSubject = await dao.events.Serialized();
-    listenerSubject.subscribe(dao.refresh.bind(dao));
-  } catch (e) {
-    cache.set(key, false, { persist: false });
-  }
-};
-
 export default class DAO extends ElasticModel {
   constructor(sdk, attributes, keyAddition = '') {
     super(sdk);
@@ -53,7 +35,7 @@ export default class DAO extends ElasticModel {
     const { uuid } = attributes;
     this._id = toKey(uuid, keyAddition);
 
-    let cached = cache.get(this.id);
+    let cached = this.cache.get(this.id);
     const summoners = (cached || {}).summoners || [];
 
     if (Object.keys(attributes).length > 1) {
@@ -77,7 +59,7 @@ export default class DAO extends ElasticModel {
         uuid,
       };
 
-      cache.set(this.id, cached);
+      this.cache.set(this.id, cached);
     }
 
     if (cached) {
@@ -87,7 +69,7 @@ export default class DAO extends ElasticModel {
     if (this.loaded) {
       if (cached.ecosystem.constructor !== Ecosystem) {
         cached.ecosystem = Ecosystem.fromCache(this.sdk, cached.ecosystem);
-        cache.set(this.id, cached);
+        this.cache.set(this.id, cached);
       }
 
       this.sdk.balanceOf(this.uuid);
@@ -106,7 +88,22 @@ export default class DAO extends ElasticModel {
       }
 
       if (this.sdk.live && `${keyAddition}`.length === 0) {
-        listen(this);
+        const key = toKey(this.id, 'SerializedListener');
+
+        if (this.cache.get(key)) {
+          return;
+        }
+
+        this.cache.set(key, true, { persist: false });
+
+        this.events.Serialized().then(
+          (listenerSubject) => {
+            listenerSubject.subscribe(this.refresh.bind(this));
+          },
+          () => {
+            this.cache.set(key, false, { persist: false });
+          },
+        );
       }
     }
   }
@@ -168,7 +165,7 @@ export default class DAO extends ElasticModel {
   }
 
   get ecosystem() {
-    return cache.get(this.id).ecosystem;
+    return this.cache.get(this.id).ecosystem;
   }
 
   get elasticDAO() {
@@ -181,23 +178,23 @@ export default class DAO extends ElasticModel {
 
   get events() {
     const key = toKey(this.id, 'Events');
-    if (cache[key]) {
-      return cache[key];
+    if (this.cache.has(key)) {
+      return this.cache.get(key);
     }
-    cache[key] = new Events(this);
-    return cache[key];
+    this.cache.set(key, new Events(this), { persist: false });
+    return this.cache.get(key);
   }
 
   get maxVotingLambda() {
-    return this.toBigNumber(cache.get(this.id).maxVotingLambda, 18);
+    return this.toBigNumber(this.cache.get(this.id).maxVotingLambda, 18);
   }
 
   get name() {
-    return cache.get(this.id).name;
+    return this.cache.get(this.id).name;
   }
 
   get numberOfSummoners() {
-    return this.toNumber(cache.get(this.id).numberOfSummoners || 0);
+    return this.toNumber(this.cache.get(this.id).numberOfSummoners || 0);
   }
 
   get readonlyContract() {
@@ -205,11 +202,11 @@ export default class DAO extends ElasticModel {
   }
 
   get summoned() {
-    return cache.get(this.id).summoned;
+    return this.cache.get(this.id).summoned;
   }
 
   get uuid() {
-    return cache.get(this.id).uuid;
+    return this.cache.get(this.id).uuid;
   }
 
   // Instance functions
@@ -225,13 +222,13 @@ export default class DAO extends ElasticModel {
 
   async summoners(overrides = {}) {
     if (
-      cache.get(this.id).summoners &&
-      cache.get(this.id).summoners.length === this.numberOfSummoners
+      this.cache.get(this.id).summoners &&
+      this.cache.get(this.id).summoners.length === this.numberOfSummoners
     ) {
-      return cache.get(this.id).summoners;
+      return this.cache.get(this.id).summoners;
     }
     const summoners = await this.elasticDAO.summoners(overrides);
-    cache.get(this.id).summoners = summoners;
+    this.cache.get(this.id).summoners = summoners;
     this.touch();
     return summoners;
   }
@@ -249,7 +246,7 @@ export default class DAO extends ElasticModel {
     const { ecosystem, id } = this;
 
     const obj = {
-      ...cache.get(id),
+      ...this.cache.get(id),
       id,
       ecosystem: ecosystem.toObject(false),
     };

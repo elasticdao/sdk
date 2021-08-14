@@ -1,9 +1,6 @@
-import Base from '../Base';
-import Cache from '../Cache';
+import Cachable from '../Cachable';
 
-const cache = new Cache('ipfs.js', { persist: false });
-
-export default class IPFS extends Base {
+export default class IPFS extends Cachable {
   get gateways() {
     return this.sdk.ipfsGateways;
   }
@@ -21,16 +18,22 @@ export default class IPFS extends Base {
       const key = parts.join('/');
       const path = [this.gateways[node], 'ipfs', ...parts].join('/');
 
-      if (cache.has(key)) {
-        resolve(cache.get(key).text);
+      if (this.cache.has(key)) {
+        resolve(this.cache.get(key).text);
       } else {
         this.fetch(path, { mode: 'cors' })
-          .then((response) => response.text())
+          .then((response) => {
+            if (response.status < 300) {
+              return response.text();
+            }
+            throw new Error(response.statusText);
+          })
           .then((text) => {
-            cache.set(key, { path, text });
-            resolve(cache.get(key).text);
+            this.cache.set(key, { path, text });
+            resolve(this.cache.get(key).text);
           })
           .catch((err) => {
+            console.log('IPFS Gateway failure', path, err);
             const next = node + 1;
             if (next < this.gateways.length) {
               this.get(...parts, next).then(resolve, reject);

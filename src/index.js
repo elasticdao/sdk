@@ -11,9 +11,11 @@ import EcosystemClass from './models/Ecosystem';
 import ElasticDAOClass from './core/ElasticDAO';
 import ElasticDAOFactoryClass from './core/ElasticDAOFactory';
 import ElasticGovernanceTokenClass from './tokens/ElasticGovernanceToken';
-import ElasticVote from './modules/ElasticVote';
+import ElasticRewardsClass from './modules/ElasticRewards';
+import ElasticVoteClass from './modules/ElasticVote';
 import erc20 from './abis/ERC20.json';
 import IPFS from './integrations/IPFS';
+import LocalStorageAdapter from './adapters/LocalStorageAdapter';
 import MulticallContract from './MulticallContract';
 import MulticallQueue from './MulticallQueue';
 import Subscribable from './Subscribable';
@@ -66,6 +68,10 @@ export const ElasticDAOFactory = ElasticDAOFactoryClass;
 export const ElasticGovernanceToken = ElasticGovernanceTokenClass;
 export const Token = TokenClass;
 export const TokenHolder = TokenHolderClass;
+
+export const adapters = {
+  LocalStorageAdapter,
+};
 
 export const utils = {
   amountFormatter,
@@ -143,11 +149,13 @@ export class Modules extends Base {
       return this.elasticVoteModules[key];
     }
 
-    this.elasticVoteModules[key] = new ElasticVote(this.sdk, ens);
+    this.elasticVoteModules[key] = new ElasticVoteClass(this.sdk, ens);
 
     return this.elasticVoteModules[key];
   }
 }
+Modules.ElasticRewards = ElasticRewardsClass;
+Modules.ElasticVote = ElasticVoteClass;
 
 export class SDK extends Subscribable {
   constructor({
@@ -160,11 +168,13 @@ export class SDK extends Subscribable {
     multicall,
     provider,
     signer,
+    storageAdapter,
   }) {
     // TODO: option var type checking
     super();
 
     this.provider = provider || ethers.getDefaultProvider();
+    this._storageAdapter = storageAdapter || new LocalStorageAdapter();
     this._contract =
       contract || (({ address, abi }) => new ethers.Contract(address, abi));
     this.env = env;
@@ -263,6 +273,10 @@ export class SDK extends Subscribable {
     return this._queue;
   }
 
+  get storageAdapter() {
+    return this._storageAdapter;
+  }
+
   async balanceOf(address) {
     validateIsAddress(address);
     const key = address.toLowerCase();
@@ -344,13 +358,11 @@ export class SDK extends Subscribable {
 
   async setName() {
     if (this.account) {
+      this.name = shortenAddress(this.account);
       try {
         this.name = await this.provider.lookupAddress(this.account);
       } catch (e) {
         console.error('unable to look up ens name', e.message);
-      }
-      if (!this.name) {
-        this.name = shortenAddress(this.account);
       }
     }
   }
