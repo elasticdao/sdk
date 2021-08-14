@@ -79,8 +79,6 @@ export default class Cache extends Base {
 
   persist() {
     if (this._globalPersist && this.adapter.available) {
-      console.log('PERSISTING', this.key);
-      console.log(localData[this.key]);
       const persistable = {};
       Object.keys(localData[this.key]).forEach((key) => {
         if (!localData.ignore[this.key][key]) {
