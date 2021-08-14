@@ -121,12 +121,16 @@ export default class DAO extends ElasticModel {
     const ecosystem = await Ecosystem.deserialize(sdk, uuid);
     const daoModel = await this.contract(sdk, ecosystem.daoModelAddress, true);
 
-    const { maxVotingLambda, name, numberOfSummoners, summoned } =
-      await daoModel.deserialize(
-        uuid,
-        ecosystem.toObject(false),
-        sanitizeOverrides(overrides, true),
-      );
+    const {
+      maxVotingLambda,
+      name,
+      numberOfSummoners,
+      summoned,
+    } = await daoModel.deserialize(
+      uuid,
+      ecosystem.toObject(false),
+      sanitizeOverrides(overrides, true),
+    );
 
     return new DAO(
       sdk,

@@ -4,7 +4,7 @@ import Cachable from '../../Cachable';
 import SnapshotProposal from './SnapshotProposal';
 import SnapshotVote from './SnapshotVote';
 
-const ApiUrl = 'https://hub.snapshot.page/graphql';
+const ApiUrl = 'https://hub.snapshot.org/graphql';
 
 const queries = {
   proposals:
@@ -13,7 +13,7 @@ const queries = {
     '{ id title body choices start end snapshot state author } }',
   votes:
     'query Votes { ' +
-    'votes(where: { proposal: "[PROPOSAL_ID]" }) ' +
+    'votes(first: 1000, where: { proposal: "[PROPOSAL_ID]" }) ' +
     '{ id voter created choice } }',
 };
 
@@ -65,9 +65,9 @@ export default class SnapshotAPI extends Cachable {
   async getVotes(proposal) {
     let votes = {
       data: undefined,
-      expires: Date.now() + 60000 // expires after 1 minute
+      expires: Date.now() + 60000, // expires after 1 minute
     };
-    
+
     const key = `${proposal.id}/votes`;
 
     if (this.cache.has(key)) {
@@ -89,17 +89,18 @@ export default class SnapshotAPI extends Cachable {
             query: queries.votes.replace('[PROPOSAL_ID]', proposal.id),
             variables: null,
           }),
-        }).then((response) => {
-          return response.json();
-        }).then(({ data }) => {
-          votes.data = data.votes;
-          console.log('loaded votes', votes)
-          this.cache.set(key, votes);
-          resolve(votes);
-        }).catch((e) => {
-          console.log('error loading votes', e);
-          reject(e);
-        });
+        })
+          .then((response) => response.json())
+          .then(({ data }) => {
+            votes.data = data.votes;
+            console.log('loaded votes', votes);
+            this.cache.set(key, votes);
+            resolve(votes);
+          })
+          .catch((e) => {
+            console.log('error loading votes', e);
+            reject(e);
+          });
       });
 
       promises.votes[proposal.id].finally(() => {
