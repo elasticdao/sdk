@@ -342,6 +342,22 @@ export class SDK extends Subscribable {
     return tx;
   }
 
+  async isValidETHAddress(address) {
+    if (!address) {
+      return false;
+    }
+    if (ethers.utils.isAddress(address)) {
+      return true;
+    }
+    // attempt to to resolve address from ENS
+    const ensResolvedAddress = await this.provider.resolveName(address);
+    if (!ensResolvedAddress) {
+      // resolving address failed.
+      return false;
+    }
+    return true;
+  }
+
   async setName() {
     if (this.account) {
       try {
