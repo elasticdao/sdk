@@ -4,6 +4,7 @@ export default class IPFSJsonBase extends Cachable {
   constructor(sdk, hash) {
     super(sdk);
     this._hash = hash;
+    this.load();
   }
 
   get cached() {
@@ -32,30 +33,32 @@ export default class IPFSJsonBase extends Cachable {
     return this.constructor.load(this.sdk, this.id).promise;
   }
 
-  static load(sdk, hash) {
-    const instance = new this(sdk, hash);
-    const key = `loading|${hash}`;
-
-    if (!instance.loaded) {
-      if (!this.cache.get(key)) {
-        const promise = new Promise((resolve, reject) => {
-          sdk.integrations.ipfs(hash).then((raw) => {
-            try {
-              this.cache.set(hash, JSON.parse(raw));
-              resolve(instance);
-            } catch (e) {
-              console.log('ERROR LOADING INSTANCE', hash, raw);
-              this.cache.delete(key);
-              reject(e);
-            }
-          });
-        });
-
-        this.cache.set(key, promise);
-      }
+  async load(force = false) {
+    if (!force && this.loaded) {
+      return this;
     }
 
-    return instance;
+    const key = `loading|${this.id}`;
+
+    if (force || !this.cache.get(key)) {
+      const promise = new Promise((resolve, reject) => {
+        this.sdk.integrations.ipfs(this.id).then((raw) => {
+          try {
+            this.cache.set(this.id, JSON.parse(raw));
+            this.cache.delete(key);
+            resolve(this);
+          } catch (e) {
+            console.log('ERROR LOADING INSTANCE', this.id, raw);
+            this.cache.delete(key);
+            reject(e);
+          }
+        });
+      });
+
+      this.cache.set(key, promise, { persist: false });
+    }
+
+    return this.cache.get(key);
   }
 
   _value(key, fallback = '') {
