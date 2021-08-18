@@ -70,7 +70,7 @@ export default class SnapshotProposal extends Base {
   }
 
   get name() {
-    return this._raw.name;
+    return this._raw.title;
   }
 
   get no() {
