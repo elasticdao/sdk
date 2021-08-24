@@ -1,7 +1,6 @@
 .vscode
 /node_modules/
 /public/build/
-/artifacts
 /dist
 
 .DS_Store
