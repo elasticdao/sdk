@@ -74,10 +74,7 @@ export default class SnapshotAPI extends Cachable {
       votes = this.cache.get(key);
     }
 
-    console.log('getVotes before if', votes);
-
     if (!votes.data && promises.votes[proposal.id]) {
-      console.log('1');
       votes = await promises.votes[proposal.id];
     } else if (!votes.data) {
       promises.votes[proposal.id] = new Promise((resolve, reject) => {
@@ -93,12 +90,11 @@ export default class SnapshotAPI extends Cachable {
           .then((response) => response.json())
           .then(({ data }) => {
             votes.data = data.votes;
-            console.log('loaded votes', votes);
             this.cache.set(key, votes);
             resolve(votes);
           })
           .catch((e) => {
-            console.log('error loading votes', e);
+            console.error('error loading votes', e);
             reject(e);
           });
       });
@@ -109,8 +105,6 @@ export default class SnapshotAPI extends Cachable {
 
       votes = await promises.votes[proposal.id];
     }
-
-    console.log('VOTES FOR PROPOSAL', proposal.id, votes);
 
     const voteObjects = Object.values(votes.data).map(
       (vote) => new SnapshotVote(this, proposal, vote),

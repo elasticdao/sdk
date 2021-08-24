@@ -11,13 +11,12 @@
     "analyzer": "yarn stats && yarn webpack-bundle-analyzer stats.json",
     "artifacts": "bash ./scripts/copyArtifacts.sh",
     "build": "npx webpack -c ./webpack.config.production.js",
-    "dev": "yarn artifacts && yarn lint && npx webpack -c ./webpack.config.js --watch",
+    "dev": "yarn lint && npx webpack -c ./webpack.config.js --watch",
     "lint": "yarn prettier && npx eslint src/*.js src/**/*.js src/**/**/*.js src/**/**/**/*.js",
     "prerelease": "yarn build",
-    "prettier": "yarn artifacts && npx prettier --write src/*.js --write src/**/*.js --write src/**/**/*.js --write src/**/**/**/*.js",
+    "prettier": "npx prettier --write src/*.js --write src/**/*.js --write src/**/**/*.js --write src/**/**/**/*.js",
     "release": "npm publish --access=public",
-    "stats": "npx webpack -c ./webpack.config.js --json > stats.json",
-    "workflow:lint": "bash ./scripts/setupArtifacts.sh && npx eslint src/*.js src/**/*.js src/**/**/*.js src/**/**/**/*.js"
+    "stats": "npx webpack -c ./webpack.config.js --json > stats.json"
   },
   "devDependencies": {
     "@babel/core": "^7.12.9",

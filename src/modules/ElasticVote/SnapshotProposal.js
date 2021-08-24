@@ -61,6 +61,10 @@ export default class SnapshotProposal extends Base {
     return this._raw.end;
   }
 
+  get ens() {
+    return this.api.space;
+  }
+
   get id() {
     return this._raw.id;
   }
@@ -70,7 +74,7 @@ export default class SnapshotProposal extends Base {
   }
 
   get name() {
-    return this._raw.name;
+    return this._raw.title;
   }
 
   get no() {

@@ -114,6 +114,7 @@ export default class Reward extends IPFSJsonBase {
       return {
         amount: this.amount.toFixed(18),
         block: this.block,
+        blockNumber: this.blockNumber,
         ens: this.ens,
         for: {
           action: this.action,

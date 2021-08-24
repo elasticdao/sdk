@@ -132,11 +132,12 @@ export default class ElasticGovernanceToken extends QueryFilterable {
 
   async decreaseAllowance(spenderAddress, subtractedValue, overrides = {}) {
     const elasticGovernanceToken = await this.contract;
-    const decreaseAllowanceStatus = await elasticGovernanceToken.decreaseAllowance(
-      spenderAddress,
-      this.toEthersBigNumber(subtractedValue, 18),
-      this.sanitizeOverrides(overrides),
-    );
+    const decreaseAllowanceStatus =
+      await elasticGovernanceToken.decreaseAllowance(
+        spenderAddress,
+        this.toEthersBigNumber(subtractedValue, 18),
+        this.sanitizeOverrides(overrides),
+      );
     return decreaseAllowanceStatus;
   }
 
@@ -151,9 +152,10 @@ export default class ElasticGovernanceToken extends QueryFilterable {
     if (!endingBlock) {
       endingBlock = await this.sdk.provider.getBlockNumber();
     }
-    const tokenHolderModelContract = await this.sdk.models.TokenHolder.readonlyContract(
-      this.dao.ecosystem.tokenHolderModelAddress,
-    );
+    const tokenHolderModelContract =
+      await this.sdk.models.TokenHolder.readonlyContract(
+        this.dao.ecosystem.tokenHolderModelAddress,
+      );
     const holders = new Set();
     const results = await tokenHolderModelContract.queryFilter(
       'Serialized',
@@ -172,11 +174,12 @@ export default class ElasticGovernanceToken extends QueryFilterable {
 
   async increaseAllowance(spenderAddress, addedValue, overrides = {}) {
     const elasticGovernanceToken = await this.contract;
-    const increaseAllowanceStatus = await elasticGovernanceToken.increaseAllowance(
-      spenderAddress,
-      this.toEthersBigNumber(addedValue, 18),
-      this.sanitizeOverrides(overrides),
-    );
+    const increaseAllowanceStatus =
+      await elasticGovernanceToken.increaseAllowance(
+        spenderAddress,
+        this.toEthersBigNumber(addedValue, 18),
+        this.sanitizeOverrides(overrides),
+      );
     return increaseAllowanceStatus;
   }
 
@@ -236,9 +239,10 @@ export default class ElasticGovernanceToken extends QueryFilterable {
 
   async totalSupplyInShares(overrides = {}) {
     const elasticGovernanceToken = await this.readonlyContract;
-    const totalSupplyInShares = await elasticGovernanceToken.totalSupplyInShares(
-      sanitizeOverrides(overrides, true),
-    );
+    const totalSupplyInShares =
+      await elasticGovernanceToken.totalSupplyInShares(
+        sanitizeOverrides(overrides, true),
+      );
     return this.toBigNumber(totalSupplyInShares.toString(), 18);
   }
 
