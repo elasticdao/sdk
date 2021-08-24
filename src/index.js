@@ -377,7 +377,7 @@ export class SDK extends Subscribable {
       this.name = shortenAddress(this.account);
       try {
         const ensName = await this.provider.lookupAddress(this.account);
-        if(ensName) {
+        if (ensName) {
           this.name = ensName;
         }
       } catch (e) {
