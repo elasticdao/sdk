@@ -33,9 +33,10 @@ export default class IPFS extends Cachable {
             resolve(this.cache.get(key).text);
           })
           .catch((err) => {
-            console.log('IPFS Gateway failure', path, err);
+            console.log('IPFS Gateway failure', path, err.message);
             const next = node + 1;
             if (next < this.gateways.length) {
+              console.log('Trying gateway at', this.gateways[next]);
               this.get(...parts, next).then(resolve, reject);
             } else {
               reject(err);

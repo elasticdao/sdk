@@ -67,7 +67,11 @@ export default class Block extends IPFSJsonBase {
       return this._previousBlock;
     }
 
-    this._previousBlock = this.constructor.load(
+    if (!this.cached.previousBlock) {
+      return undefined;
+    }
+
+    this._previousBlock = new this.constructor(
       this.sdk,
       this.cached.previousBlock,
     );
@@ -84,7 +88,7 @@ export default class Block extends IPFSJsonBase {
       return this._rewards;
     }
 
-    this._rewards = this.hashes.map((hash) => Reward.load(this.sdk, hash));
+    this._rewards = this.hashes.map((hash) => new Reward(this.sdk, hash));
 
     return this._rewards;
   }

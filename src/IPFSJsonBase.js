@@ -30,7 +30,7 @@ export default class IPFSJsonBase extends Cachable {
       return this.cache.get(key);
     }
 
-    return this.constructor.load(this.sdk, this.id).promise;
+    return this.load();
   }
 
   async load(force = false) {
@@ -66,6 +66,6 @@ export default class IPFSJsonBase extends Cachable {
       return fallback;
     }
 
-    return key.split('.').reduce((acc, part) => acc[part], this.cache);
+    return key.split('.').reduce((acc, part) => acc[part], this.cached);
   }
 }

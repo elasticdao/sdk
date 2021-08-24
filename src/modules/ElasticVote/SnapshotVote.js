@@ -46,8 +46,16 @@ export default class SnapshotVote {
   }
 
   toJSON() {
-    const { author, choice, date, id, voter, weight } = this;
+    const { author, choice, date, id, proposal, voter, weight } = this;
 
-    return { author, choice, date, id, voter, weight: weight.toFixed(18) };
+    return {
+      author,
+      choice,
+      date,
+      id,
+      voter,
+      proposal: proposal.id,
+      weight: weight.toFixed(18),
+    };
   }
 }
