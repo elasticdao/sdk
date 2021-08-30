@@ -1,43 +1,48 @@
-import Base from '../../Base';
+import APIClass from './API';
 import BlockClass from './Block';
+import Cachable from '../../Cachable';
 import RewardClass from './Reward';
 
-class ElasticRewards extends Base {
+class ElasticRewards extends Cachable {
   constructor(sdk, ens) {
     super(sdk);
 
+    this._api = new APIClass(this.sdk, ens);
     this._ens = ens;
+    this._rewards = {};
+  }
+
+  get api() {
+    return this._api;
   }
 
   get ens() {
     return this._ens;
   }
 
-  async getElasticVoteENSRecord() {
-    const ensRecord = await this.getENSRecord();
-    const elasticRewardsENS = await ensRecord.getText('elasticrewards');
-    return this.sdk.provider.getResolver(elasticRewardsENS);
+  get rewards() {
+    return this._rewards;
   }
 
-  async index() {
-    return this.cachedValue('_index', async () => {
-      const hash = await this.indexHash();
-      const raw = this.sdk.integrations.ipfs(hash);
-      this._index = JSON.parse(raw);
-      setTimeout(() => delete this._index, 3600000); // expire after 60 minutes
-    });
-  }
+  async load(address, reload = false) {
+    const account = address.toLowerCase();
 
-  async indexHash() {
-    return this.cachedValue('_indexHash', async () => {
-      const record = await this.getElasticVoteENSRecord();
-      const contentHash = record.getContentHash();
-      this._indexHash = contentHash.replace('ipfs://', '');
-      setTimeout(() => delete this._indexHash, 300000); // expire after 5 minutes
-    });
+    try {
+      if (this._rewards[account] && this._rewards[account].length > 0 && !reload) {
+        this.load(account, true);
+        return this;
+      }
+
+      this._rewards[account] = await this.api.getRewards(account);
+    } catch (e) {
+      this._rewards[account] = [];
+      console.warn('ElasticRewards unavailable', e);
+    }
+    return this;
   }
 }
 
+ElasticRewards.API = APIClass;
 ElasticRewards.Block = BlockClass;
 ElasticRewards.Reward = RewardClass;
 

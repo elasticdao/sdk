@@ -2,6 +2,7 @@ import { ethers } from 'ethers';
 import BigNumber from 'bignumber.js';
 
 import { buildError } from '../../utils';
+import { t } from '../../elasticMath';
 import IPFSJsonBase from '../../IPFSJsonBase';
 
 const localPrefix = '@elastic-dao/sdk - modules/ElasticRewards/Reward.js';
@@ -10,7 +11,6 @@ const localPrefix = '@elastic-dao/sdk - modules/ElasticRewards/Reward.js';
 Version 1.0.0:
 
 {
-  amount: String,
   blockNumber: Number,
   ens: ENSDomain,
   for: {
@@ -23,7 +23,10 @@ Version 1.0.0:
   },
   from: Address,
   hash: String,
+  k: String,
+  lambda: String,
   locked: Boolean,
+  m: String,
   to: Address,
   verification: {
     reason: String,
@@ -38,7 +41,7 @@ export default class Reward extends IPFSJsonBase {
   }
 
   get amount() {
-    return new BigNumber(this._value('amount', 0));
+    return t(this.lambda, this.m, this.k);
   }
 
   get blockNumber() {
@@ -69,8 +72,20 @@ export default class Reward extends IPFSJsonBase {
     return itemUUID;
   }
 
+  get k() {
+    return new BigNumber(this._value('k', 0));
+  }
+
+  get lambda() {
+    return new BigNumber(this._value('lambda', 0));
+  }
+
   get locked() {
     return this._value('locked', true);
+  }
+
+  get m() {
+    return new BigNumber(this._value('m', 0));
   }
 
   get message() {
@@ -112,7 +127,6 @@ export default class Reward extends IPFSJsonBase {
 
     if (version === '1.0.0') {
       return {
-        amount: this.amount.toFixed(18),
         block: this.block,
         blockNumber: this.blockNumber,
         ens: this.ens,
@@ -123,6 +137,9 @@ export default class Reward extends IPFSJsonBase {
         },
         from: this.from,
         hash: this.id,
+        k: this.k.toFixed(18),
+        lambda: this.lambda.toFixed(18),
+        m: this.m.toFixed(18),
         to: this.to,
         verification: this.verification,
         version: '1.0.0',
