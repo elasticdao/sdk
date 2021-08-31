@@ -1,40 +1,43 @@
+/* eslint class-methods-use-this: 0 */
+
 import BigNumber from 'bignumber.js';
 import Base from '../../Base';
 
 /* RAW:
-  id
-  title
+  abstain
+  active
+  author
   body
   choices
-  start
+  closed
   end
+  id
+  name
+  no
+  pending
+  quorum
   snapshot
-  state
-  author
+  start
+  status
+  voteCount
+  voted
+  yes
 */
-export default class SnapshotProposal extends Base {
+export default class Proposal extends Base {
   constructor(sdk, api, raw) {
     super(sdk);
 
     this._api = api;
-    this._eligibleVoteCreators = [];
-    this._fullQuorum = 0;
     this._raw = raw;
     this._votes = {};
   }
 
   get abstain() {
-    return this.votes.reduce((acc, vote) => {
-      if (vote.choice === this.choices[2]) {
-        return acc.plus(vote.weight);
-      }
-
-      return acc;
-    }, BigNumber(0));
+    return BigNumber(this._raw.abstain);
   }
 
   get active() {
-    return this.status === 'active';
+    return this._raw.active;
   }
 
   get api() {
@@ -54,7 +57,7 @@ export default class SnapshotProposal extends Base {
   }
 
   get closed() {
-    return this.status === 'closed';
+    return this._raw.closed;
   }
 
   get end() {
@@ -70,36 +73,31 @@ export default class SnapshotProposal extends Base {
   }
 
   get isValid() {
-    return this._eligibleVoteCreators.includes(this.author);
+    return true;
   }
 
   get name() {
-    return this._raw.title;
+    return this._raw.name;
   }
 
   get no() {
-    return this.votes.reduce((acc, vote) => {
-      if (vote.choice === this.choices[1]) {
-        return acc.plus(vote.weight);
-      }
-
-      return acc;
-    }, BigNumber(0));
+    return BigNumber(this._raw.no);
   }
 
   get pending() {
-    return this.status === 'pending';
+    return this._raw.pending;
   }
 
   get quorum() {
-    if (this._fullQuorum === 0) {
-      return BigNumber(0);
-    }
-    return this.voted.dividedBy(this._fullQuorum).multipliedBy(100);
+    return BigNumber(this._raw.quorum);
   }
 
   get nodeUrl() {
-    return `http://localhost:5001/elasticvote/${this.api.space}/proposals/${this.id}`;
+    if (this.id) {
+      return `http://localhost:5001/elasticvote/${this.api.space}/proposals/${this.id}`;
+    }
+
+    return `http://localhost:5001/elasticvote/${this.api.space}/proposals`;
   }
 
   get snapshot() {
@@ -111,21 +109,11 @@ export default class SnapshotProposal extends Base {
   }
 
   get status() {
-    const now = Math.floor(Date.now() / 1000);
-    let status = 'active';
-    if (this.end < now) {
-      status = 'closed';
-    } else if (this.start > now) {
-      status = 'pending';
-    }
-    return status;
+    return this._raw.status;
   }
 
   get voted() {
-    return this.votes.reduce(
-      (acc, vote) => acc.plus(vote.weight),
-      BigNumber(0),
-    );
+    return this._raw.voted;
   }
 
   get votes() {
@@ -135,13 +123,7 @@ export default class SnapshotProposal extends Base {
   }
 
   get yes() {
-    return this.votes.reduce((acc, vote) => {
-      if (vote.choice === this.choices[0]) {
-        return acc.plus(vote.weight);
-      }
-
-      return acc;
-    }, BigNumber(0));
+    return BigNumber(this._raw.yes);
   }
 
   action(action) {
@@ -149,6 +131,30 @@ export default class SnapshotProposal extends Base {
       name: 'ElasticDAO',
       chainId: 1,
     };
+
+    if (action === 'create') {
+      const types = {
+        Proposal: [
+          { name: 'action', type: 'string' },
+          { name: 'name', type: 'string' },
+          { name: 'body', type: 'string' },
+          { name: 'start', type: 'uint256' },
+          { name: 'end', type: 'uint256' },
+          { name: 'snapshot', type: 'uint256' },
+        ],
+      };
+
+      const value = {
+        action,
+        name: this.name,
+        body: this.body,
+        start: this.start,
+        end: this.end,
+        snapshot: this.snapshot,
+      };
+
+      return { domain, types, value };
+    }
 
     const types = {
       Proposal: [
@@ -163,6 +169,42 @@ export default class SnapshotProposal extends Base {
     };
 
     return { domain, types, value };
+  }
+
+  async create() {
+    if (!this.sdk.signer) {
+      return false;
+    }
+
+    const address = this.sdk.account;
+    const signTypedData = (
+      this.sdk.signer._signTypedData || this.sdk.signer.signTypedData
+    ).bind(this.sdk.signer);
+
+    const action = 'create';
+    const { domain, types, value } = this.action(action);
+
+    console.log('Proposal create sig data', domain, types, value);
+
+    const signature = await signTypedData(domain, types, value);
+    console.log('signature', signature);
+
+    const response = await this.fetch(this.nodeUrl, {
+      method: 'POST',
+      mode: 'cors',
+      cache: 'no-cache',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        action,
+        address,
+        proposal: value,
+        signature,
+      }),
+    });
+
+    return response.json();
   }
 
   didVote(address) {
@@ -199,6 +241,8 @@ export default class SnapshotProposal extends Base {
       }),
     });
 
+    console.log('response', await response.json());
+
     return response.json();
   }
 
@@ -217,7 +261,7 @@ export default class SnapshotProposal extends Base {
       const voteObjects = await this._api.getVotes(this);
       for (let i = 0; i < voteObjects.length; i += 1) {
         const vote = voteObjects[i];
-        votes[vote.voter] = vote.load(args.balances[vote.voter]);
+        votes[vote.voter] = vote;
       }
     }
 

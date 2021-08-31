@@ -3,10 +3,14 @@ import BigNumber from 'bignumber.js';
 
 import { chunkArray, toBigNumber } from '../../utils';
 import { t } from '../../elasticMath';
+import APIClass from './API';
 import Cachable from '../../Cachable';
+import IPFSProposalClass from './IPFSProposal';
+import ProposalClass from './Proposal';
 import SnapshotAPIClass from './SnapshotAPI';
 import SnapshotProposalClass from './SnapshotProposal';
 import SnapshotVoteClass from './SnapshotVote';
+import VoteClass from './Vote';
 
 // proposals we don't want to show because ipfs is immutable.....
 const ProposalsToFilter = [
@@ -28,9 +32,15 @@ class ElasticVote extends Cachable {
   constructor(sdk, ens) {
     super(sdk);
 
+    this._api = new APIClass(this.sdk, ens);
     this._ens = ens;
     this._proposals = [];
+    this._ipfsProposals = [];
     this._snapshotAPI = new SnapshotAPIClass(this.sdk, ens, ProposalsToFilter);
+  }
+
+  get api() {
+    return this._api;
   }
 
   get ens() {
@@ -38,7 +48,7 @@ class ElasticVote extends Cachable {
   }
 
   get proposals() {
-    return this._proposals;
+    return [...this._proposals, ...this._ipfsProposals];
   }
 
   get snapshotAPI() {
@@ -60,6 +70,7 @@ class ElasticVote extends Cachable {
       }
     }
 
+    // console.log('blocknumber vs closest block', blockNumber, closestBlock);
     const block = index.blocks[`${closestBlock}`];
 
     if (!block) {
@@ -210,6 +221,67 @@ class ElasticVote extends Cachable {
         return this;
       }
 
+      const proposals = await this.api.getProposals();
+      this._proposals = await Promise.all(
+        proposals.map(async (proposal) =>
+          proposal.load(await this.data(proposal.snapshot)),
+        ),
+      );
+    } catch (e) {
+      this._proposals = [];
+      console.warn('ElasticVote node unavailable', e);
+    }
+    return this;
+  }
+
+  async loadIPFS(indexHash) {
+    try {
+      const indexJSON = await this.sdk.integrations.ipfs(indexHash);
+      const indexData = JSON.parse(indexJSON);
+
+      const proposals = [];
+      for (let i = 0; i < indexData.proposals.length; i += 1) {
+        const proposal = new IPFSProposalClass(
+          this.sdk,
+          indexData.proposals[i],
+        );
+        await proposal.promise;
+
+        // TODO: fetch vote data here and compile
+
+        /*
+        const dataHash = indexData[`${proposal.snapshot}`];
+        const dataJSON = await this.sdk.integrations.ipfs(dataHash);
+        const data = JSON.parse(dataJSON);
+        */
+
+        proposals.push(
+          new ProposalClass(this.sdk, this.api, {
+            ...proposal.toJSON(),
+            // votes,
+            // voted,
+            // yes,
+            // no,
+            // abstain,
+            // quorum: BigNumber(voted).dividedBy(data.stats.quorum),
+          }),
+        );
+      }
+
+      this._ipfsProposals = proposals;
+    } catch (e) {
+      this._ipfsProposals = [];
+      console.warn('ElasticVote IPFS unavailable', e);
+    }
+    return this;
+  }
+
+  async loadSnapshot(reload = false) {
+    try {
+      if (this._proposals.length > 0 && !reload) {
+        return this;
+      }
+
       const proposals = await this.snapshotAPI.getProposals();
       this._proposals = await Promise.all(
         proposals.map(async (proposal) =>
@@ -218,7 +290,7 @@ class ElasticVote extends Cachable {
       );
     } catch (e) {
       this._proposals = [];
-      console.warn('ElasticVote unavailable', e);
+      console.warn('ElasticVote Snapshot unavailable', e);
     }
     return this;
   }
@@ -229,8 +301,12 @@ class ElasticVote extends Cachable {
   }
 }
 
+ElasticVote.API = APIClass;
+ElasticVote.IPFSProposal = IPFSProposalClass;
+ElasticVote.Proposal = ProposalClass;
 ElasticVote.SnapshotAPI = SnapshotAPIClass;
 ElasticVote.SnapshotProposal = SnapshotProposalClass;
 ElasticVote.SnapshotVote = SnapshotVoteClass;
+ElasticVote.Vote = VoteClass;
 
 export default ElasticVote;

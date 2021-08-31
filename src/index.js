@@ -108,6 +108,7 @@ export class Models extends Base {
       contract: (...args) => DAO.contract(this.sdk, ...args),
       deserialize: async (...args) => DAO.deserialize(this.sdk, ...args),
       exists: (...args) => DAO.exists(this.sdk, ...args),
+      readonlyContract: (...args) => DAO.contract(this.sdk, ...[...args, true]),
     };
   }
 
@@ -116,6 +117,8 @@ export class Models extends Base {
       contract: (...args) => Ecosystem.contract(this.sdk, ...args),
       deserialize: (...args) => Ecosystem.deserialize(this.sdk, ...args),
       exists: (...args) => Ecosystem.exists(this.sdk, ...args),
+      readonlyContract: (...args) =>
+        Ecosystem.contract(this.sdk, ...[...args, true]),
     };
   }
 
@@ -124,6 +127,8 @@ export class Models extends Base {
       contract: (...args) => Token.contract(this.sdk, ...args),
       deserialize: (...args) => Token.deserialize(this.sdk, ...args),
       exists: (...args) => Token.exists(this.sdk, ...args),
+      readonlyContract: (...args) =>
+        Token.contract(this.sdk, ...[...args, true]),
     };
   }
 
@@ -132,6 +137,8 @@ export class Models extends Base {
       contract: (...args) => TokenHolder.contract(this.sdk, ...args),
       deserialize: (...args) => TokenHolder.deserialize(this.sdk, ...args),
       exists: (...args) => TokenHolder.exists(this.sdk, ...args),
+      readonlyContract: (...args) =>
+        TokenHolder.contract(this.sdk, ...[...args, true]),
     };
   }
 }
@@ -139,7 +146,21 @@ export class Models extends Base {
 export class Modules extends Base {
   constructor(sdk) {
     super(sdk);
+
+    this.elasticRewardsModules = {};
     this.elasticVoteModules = {};
+  }
+
+  elasticRewards(ens) {
+    const key = ens.toLowerCase();
+
+    if (this.elasticRewardsModules[key]) {
+      return this.elasticRewardsModules[key];
+    }
+
+    this.elasticRewardsModules[key] = new ElasticRewardsClass(this.sdk, ens);
+
+    return this.elasticRewardsModules[key];
   }
 
   elasticVote(ens) {
@@ -162,6 +183,7 @@ export class SDK extends Subscribable {
     account,
     contract,
     customFetch,
+    elasticNodeURL,
     env,
     ipfsGateways,
     live,
@@ -187,6 +209,7 @@ export class SDK extends Subscribable {
     this._balances = {};
     this._balancesToTrack = [];
     this._blockNumber = 0;
+    this._elasticNodeURL = elasticNodeURL;
     this._ipfsGateways = ipfsGateways || [
       'https://gateway.pinata.cloud',
       'https://cloudflare-ipfs.com',
@@ -247,6 +270,10 @@ export class SDK extends Subscribable {
   get elasticDAOFactory() {
     validateIsAddress(this.env.factoryAddress, { prefix });
     return new ElasticDAOFactory(this);
+  }
+
+  get elasticNodeURL() {
+    return this._elasticNodeURL;
   }
 
   get fetch() {

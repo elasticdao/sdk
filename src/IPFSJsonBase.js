@@ -1,10 +1,10 @@
 import Cachable from './Cachable';
 
 export default class IPFSJsonBase extends Cachable {
-  constructor(sdk, hash) {
+  constructor(sdk, hash, cacheData) {
     super(sdk);
     this._hash = hash;
-    this.load();
+    this.load(false, cacheData);
   }
 
   get cached() {
@@ -33,8 +33,13 @@ export default class IPFSJsonBase extends Cachable {
     return this.load();
   }
 
-  async load(force = false) {
+  async load(force = false, cacheData) {
     if (!force && this.loaded) {
+      return this;
+    }
+
+    if (cacheData) {
+      this.cache.set(this.id, cacheData);
       return this;
     }
 
