@@ -35,6 +35,7 @@ class ElasticVote extends Cachable {
     this._api = new APIClass(this.sdk, ens);
     this._ens = ens;
     this._proposals = [];
+    this._ipfsProposals = [];
     this._snapshotAPI = new SnapshotAPIClass(this.sdk, ens, ProposalsToFilter);
   }
 
@@ -47,7 +48,7 @@ class ElasticVote extends Cachable {
   }
 
   get proposals() {
-    return this._proposals;
+    return [...this._proposals, ...this._ipfsProposals];
   }
 
   get snapshotAPI() {
@@ -228,15 +229,56 @@ class ElasticVote extends Cachable {
       );
     } catch (e) {
       this._proposals = [];
-      console.warn('ElasticVote unavailable', e);
+      console.warn('ElasticVote node unavailable', e);
+    }
+    return this;
+  }
+
+  async loadIPFS(indexHash) {
+    try {
+      const indexJSON = await this.sdk.integrations.ipfs(indexHash);
+      const indexData = JSON.parse(indexJSON);
+
+      const proposals = [];
+      for (let i = 0; i < indexData.proposals.length; i += 1) {
+        const proposal = new IPFSProposalClass(
+          this.sdk,
+          indexData.proposals[i],
+        );
+        await proposal.promise;
+
+        // TODO: fetch vote data here and compile
+
+        /*
+        const dataHash = indexData[`${proposal.snapshot}`];
+        const dataJSON = await this.sdk.integrations.ipfs(dataHash);
+        const data = JSON.parse(dataJSON);
+        */
+
+        proposals.push(
+          new ProposalClass(this.sdk, this.api, {
+            ...proposal.toJSON(),
+            // votes,
+            // voted,
+            // yes,
+            // no,
+            // abstain,
+            // quorum: BigNumber(voted).dividedBy(data.stats.quorum),
+          }),
+        );
+      }
+
+      this._ipfsProposals = proposals;
+    } catch (e) {
+      this._ipfsProposals = [];
+      console.warn('ElasticVote IPFS unavailable', e);
     }
     return this;
   }
 
   async loadSnapshot(reload = false) {
     try {
-      if (this.proposals.length > 0 && !reload) {
-        this.loadSnapshot(true);
+      if (this._proposals.length > 0 && !reload) {
         return this;
       }
 
@@ -248,7 +290,7 @@ class ElasticVote extends Cachable {
       );
     } catch (e) {
       this._proposals = [];
-      console.warn('ElasticVote unavailable', e);
+      console.warn('ElasticVote Snapshot unavailable', e);
     }
     return this;
   }

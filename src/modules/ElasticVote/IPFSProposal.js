@@ -18,7 +18,7 @@ import IPFSJsonBase from '../../IPFSJsonBase';
 */
 export default class Proposal extends IPFSJsonBase {
   get abstain() {
-    return BigNumber(0); // TODO
+    return BigNumber(0); // Calculated in the loadIPFS function
   }
 
   get active() {
@@ -62,7 +62,7 @@ export default class Proposal extends IPFSJsonBase {
   }
 
   get no() {
-    return BigNumber(0); // TODO
+    return BigNumber(0); // Calculated in the loadIPFS function
   }
 
   get pending() {
@@ -70,7 +70,7 @@ export default class Proposal extends IPFSJsonBase {
   }
 
   get quorum() {
-    return BigNumber(0); // TODO
+    return BigNumber(0); // Calculated in the loadIPFS function
   }
 
   get nodeUrl() {
@@ -102,15 +102,15 @@ export default class Proposal extends IPFSJsonBase {
   }
 
   get voted() {
-    return BigNumber(0); // TODO
+    return BigNumber(0); // Calculated in the loadIPFS function
   }
 
   get votes() {
-    return []; // TODO
+    return []; // Added in the loadIPFS function
   }
 
   get yes() {
-    return BigNumber(0); // TODO
+    return BigNumber(0); // Calculated in the loadIPFS function
   }
 
   didVote(address) {
@@ -121,9 +121,6 @@ export default class Proposal extends IPFSJsonBase {
     const vote = this.vote(address);
     return BigNumber(vote ? vote.weight : 0);
   }
-
-  // TODO
-  // async load(args) {}
 
   toJSON() {
     const voteCount = this.votes.length;
