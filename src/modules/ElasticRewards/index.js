@@ -28,7 +28,11 @@ class ElasticRewards extends Cachable {
     const account = address.toLowerCase();
 
     try {
-      if (this._rewards[account] && this._rewards[account].length > 0 && !reload) {
+      if (
+        this._rewards[account] &&
+        this._rewards[account].length > 0 &&
+        !reload
+      ) {
         this.load(account, true);
         return this;
       }

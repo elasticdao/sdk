@@ -108,6 +108,7 @@ export class Models extends Base {
       contract: (...args) => DAO.contract(this.sdk, ...args),
       deserialize: async (...args) => DAO.deserialize(this.sdk, ...args),
       exists: (...args) => DAO.exists(this.sdk, ...args),
+      readonlyContract: (...args) => DAO.contract(this.sdk, ...[...args, true]),
     };
   }
 
@@ -116,6 +117,8 @@ export class Models extends Base {
       contract: (...args) => Ecosystem.contract(this.sdk, ...args),
       deserialize: (...args) => Ecosystem.deserialize(this.sdk, ...args),
       exists: (...args) => Ecosystem.exists(this.sdk, ...args),
+      readonlyContract: (...args) =>
+        Ecosystem.contract(this.sdk, ...[...args, true]),
     };
   }
 
@@ -124,6 +127,8 @@ export class Models extends Base {
       contract: (...args) => Token.contract(this.sdk, ...args),
       deserialize: (...args) => Token.deserialize(this.sdk, ...args),
       exists: (...args) => Token.exists(this.sdk, ...args),
+      readonlyContract: (...args) =>
+        Token.contract(this.sdk, ...[...args, true]),
     };
   }
 
@@ -132,6 +137,8 @@ export class Models extends Base {
       contract: (...args) => TokenHolder.contract(this.sdk, ...args),
       deserialize: (...args) => TokenHolder.deserialize(this.sdk, ...args),
       exists: (...args) => TokenHolder.exists(this.sdk, ...args),
+      readonlyContract: (...args) =>
+        TokenHolder.contract(this.sdk, ...[...args, true]),
     };
   }
 }

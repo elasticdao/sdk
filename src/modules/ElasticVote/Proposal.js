@@ -93,7 +93,11 @@ export default class Proposal extends Base {
   }
 
   get nodeUrl() {
-    return `http://localhost:5001/elasticvote/${this.api.space}/proposals/${this.id}`;
+    if (this.id) {
+      return `http://localhost:5001/elasticvote/${this.api.space}/proposals/${this.id}`;
+    }
+
+    return `http://localhost:5001/elasticvote/${this.api.space}/proposals`;
   }
 
   get snapshot() {
@@ -128,6 +132,30 @@ export default class Proposal extends Base {
       chainId: 1,
     };
 
+    if (action === 'create') {
+      const types = {
+        Proposal: [
+          { name: 'action', type: 'string' },
+          { name: 'name', type: 'string' },
+          { name: 'body', type: 'string' },
+          { name: 'start', type: 'uint256' },
+          { name: 'end', type: 'uint256' },
+          { name: 'snapshot', type: 'uint256' },
+        ],
+      };
+
+      const value = {
+        action,
+        name: this.name,
+        body: this.body,
+        start: this.start,
+        end: this.end,
+        snapshot: this.snapshot,
+      };
+
+      return { domain, types, value };
+    }
+
     const types = {
       Proposal: [
         { name: 'action', type: 'string' },
@@ -143,8 +171,44 @@ export default class Proposal extends Base {
     return { domain, types, value };
   }
 
+  async create() {
+    if (!this.sdk.signer) {
+      return false;
+    }
+
+    const address = this.sdk.account;
+    const signTypedData = (
+      this.sdk.signer._signTypedData || this.sdk.signer.signTypedData
+    ).bind(this.sdk.signer);
+
+    const action = 'create';
+    const { domain, types, value } = this.action(action);
+
+    console.log('Proposal create sig data', domain, types, value);
+
+    const signature = await signTypedData(domain, types, value);
+    console.log('signature', signature);
+
+    const response = await this.fetch(this.nodeUrl, {
+      method: 'POST',
+      mode: 'cors',
+      cache: 'no-cache',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        action,
+        address,
+        proposal: value,
+        signature,
+      }),
+    });
+
+    return response.json();
+  }
+
   didVote(address) {
-    return !!this.myVote(address);
+    return !!this.vote(address);
   }
 
   async finalize() {

@@ -5,6 +5,7 @@ import { chunkArray, toBigNumber } from '../../utils';
 import { t } from '../../elasticMath';
 import APIClass from './API';
 import Cachable from '../../Cachable';
+import IPFSProposalClass from './IPFSProposal';
 import ProposalClass from './Proposal';
 import SnapshotAPIClass from './SnapshotAPI';
 import SnapshotProposalClass from './SnapshotProposal';
@@ -259,6 +260,7 @@ class ElasticVote extends Cachable {
 }
 
 ElasticVote.API = APIClass;
+ElasticVote.IPFSProposal = IPFSProposalClass;
 ElasticVote.Proposal = ProposalClass;
 ElasticVote.SnapshotAPI = SnapshotAPIClass;
 ElasticVote.SnapshotProposal = SnapshotProposalClass;

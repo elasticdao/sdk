@@ -166,7 +166,7 @@ export default class SnapshotProposal extends Base {
   }
 
   didVote(address) {
-    return !!this.myVote(address);
+    return !!this.vote(address);
   }
 
   async finalize() {
@@ -198,8 +198,6 @@ export default class SnapshotProposal extends Base {
         signature,
       }),
     });
-
-    console.log('response', await response.json());
 
     return response.json();
   }
