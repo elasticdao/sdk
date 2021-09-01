@@ -34,6 +34,34 @@ Version 1.0.0:
   },
   version: '1.0.0',
 }
+
+Version 1.1.0:
+
+{
+  blockNumber: Number,
+  ens: ENSDomain,
+  for: {
+    action: String,
+    item: {
+      type: String,
+      uuid: String,
+    },
+    message: String,
+  },
+  from: Address,
+  hash: String,
+  k: String,
+  lambda: String,
+  locked: Boolean,
+  m: String,
+  to: Address,
+  verification: {
+    reason: String,
+    required: Boolean,
+    signature: String,
+  },
+  version: '1.0.0',
+}
 */
 export default class Reward extends IPFSJsonBase {
   get action() {
@@ -101,7 +129,7 @@ export default class Reward extends IPFSJsonBase {
   }
 
   get version() {
-    return this._value('version', '1.0.0');
+    return this._value('version', '1.1.0');
   }
 
   async getENSRecord() {
@@ -144,7 +172,27 @@ export default class Reward extends IPFSJsonBase {
         verification: this.verification,
         version: '1.0.0',
       };
+    } else if (version === '1.1.0') {
+      return {
+        block: this.block,
+        blockNumber: this.blockNumber,
+        ens: this.ens,
+        for: {
+          action: this.action,
+          item: this.cached.for.item,
+          message: this.message,
+        },
+        from: this.from,
+        hash: this.id,
+        k: this.k.toFixed(18),
+        lambda: this.lambda.toFixed(18),
+        m: this.m.toFixed(18),
+        to: this.to,
+        verification: this.verification,
+        version: '1.1.0',
+      };
     }
+
 
     const message = `Reward version (${version}) unknown`;
     throw new Error(buildError({ localPrefix, message }));
