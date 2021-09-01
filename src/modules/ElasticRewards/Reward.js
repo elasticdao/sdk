@@ -172,7 +172,8 @@ export default class Reward extends IPFSJsonBase {
         verification: this.verification,
         version: '1.0.0',
       };
-    } else if (version === '1.1.0') {
+    }
+    if (version === '1.1.0') {
       return {
         block: this.block,
         blockNumber: this.blockNumber,
@@ -192,7 +193,6 @@ export default class Reward extends IPFSJsonBase {
         version: '1.1.0',
       };
     }
-
 
     const message = `Reward version (${version}) unknown`;
     throw new Error(buildError({ localPrefix, message }));
