@@ -74,7 +74,7 @@ export default class Proposal extends IPFSJsonBase {
   }
 
   get nodeUrl() {
-    return `http://localhost:5001/elasticvote/${this.api.space}/proposals/${this.id}`;
+    return `${this.sdk.elasticNodeURL}/elasticvote/${this.api.space}/proposals/${this.id}`;
   }
 
   get snapshot() {

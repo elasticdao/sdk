@@ -94,10 +94,10 @@ export default class Proposal extends Base {
 
   get nodeUrl() {
     if (this.id) {
-      return `http://localhost:5001/elasticvote/${this.api.space}/proposals/${this.id}`;
+      return `${this.sdk.elasticNodeURL}/elasticvote/${this.api.space}/proposals/${this.id}`;
     }
 
-    return `http://localhost:5001/elasticvote/${this.api.space}/proposals`;
+    return `${this.sdk.elasticNodeURL}/elasticvote/${this.api.space}/proposals`;
   }
 
   get snapshot() {

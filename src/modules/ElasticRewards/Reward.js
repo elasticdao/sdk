@@ -64,6 +64,20 @@ Version 1.1.0:
 }
 */
 export default class Reward extends IPFSJsonBase {
+  static types = {
+    TransferRewards: [
+      { name: 'action', type: 'string' },
+      { name: 'amount', type: 'uint256' },
+      { name: 'fromAddress', type: 'address' },
+      { name: 'toAddress', type: 'address' },
+    ],
+  };
+
+  static domain = {
+    name: 'ElasticDAO',
+    chainId: 1,
+  };
+
   get action() {
     return this._value('for.action');
   }
@@ -132,6 +146,10 @@ export default class Reward extends IPFSJsonBase {
     return this._value('version', '1.1.0');
   }
 
+  get nodeUrl() {
+    return `${this.sdk.elasticNodeURL}/elasticrewards/${this.api.space}/rewards/${this.sdk.account}`;
+  }
+
   async getENSRecord() {
     if (!this.loaded) {
       const { name } = this.constructor;
@@ -140,6 +158,61 @@ export default class Reward extends IPFSJsonBase {
     }
 
     return this.sdk.provider.getResolver(this.ens);
+  }
+
+  action(action) {
+    const domain = this.domain;
+    const types = this.types;
+    const amount = this.amount;
+
+    if (action === 'transfer') {
+      const value = {
+        action,
+        amount,
+        fromAddress: this.from,
+        toAddress: this.to,
+      };
+
+      return { domain, types, value };
+    }
+
+    return { domain, types, value };
+  }
+
+  async transfer() {
+    if (!this.sdk.signer) {
+      return false;
+    }
+
+    const address = this.sdk.account;
+    const signTypedData = (
+      this.sdk.signer._signTypedData || this.sdk.signer.signTypedData
+    ).bind(this.sdk.signer);
+
+    const action = 'transfer';
+    const { domain, types, value } = this.action(action);
+
+    console.log('Transfer create sig data', domain, types, value);
+    const signature = await signTypedData(domain, types, value);
+    console.log('signature', signature);
+
+    const response = await this.fetch(this.nodeUrl, {
+      method: 'POST',
+      mode: 'cors',
+      cache: 'no-cache',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        action,
+        toAddress: to,
+        fromAddress: address,
+        amount: this.amount,
+        signature,
+      }),
+    });
+
+    return response.json();
   }
 
   toJSON() {
@@ -173,6 +246,7 @@ export default class Reward extends IPFSJsonBase {
         version: '1.0.0',
       };
     }
+
     if (version === '1.1.0') {
       return {
         block: this.block,
