@@ -160,25 +160,6 @@ export default class Reward extends IPFSJsonBase {
     return this.sdk.provider.getResolver(this.ens);
   }
 
-  action(action) {
-    const domain = this.domain;
-    const types = this.types;
-    const amount = this.amount;
-
-    if (action === 'transfer') {
-      const value = {
-        action,
-        amount,
-        fromAddress: this.from,
-        toAddress: this.to,
-      };
-
-      return { domain, types, value };
-    }
-
-    return { domain, types, value };
-  }
-
   async transfer() {
     if (!this.sdk.signer) {
       return false;
@@ -190,10 +171,16 @@ export default class Reward extends IPFSJsonBase {
     ).bind(this.sdk.signer);
 
     const action = 'transfer';
-    const { domain, types, value } = this.action(action);
 
-    console.log('Transfer create sig data', domain, types, value);
-    const signature = await signTypedData(domain, types, value);
+    const value = {
+      action,
+      amount: this.amount,
+      fromAddress: this.from,
+      toAddress: this.to,
+    };
+
+    console.log('Transfer create sig data', Reward.domain, Reward.types, value);
+    const signature = await signTypedData(Reward.domain, Reward.types, value);
     console.log('signature', signature);
 
     const response = await this.fetch(this.nodeUrl, {
