@@ -227,7 +227,9 @@ export class SDK extends Subscribable {
 
     this.provider.on('block', (blockNumber) => {
       this._blockNumber = blockNumber;
-      this.updateBalances();
+      this.updateBalances().catch((e) => {
+        console.warn('Failed to update balances', e.message);
+      });
       this.touch();
     });
 
