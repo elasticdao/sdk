@@ -178,29 +178,37 @@ export default class Proposal extends Base {
     }
 
     const address = this.sdk.account;
-    // const signTypedData = (
-    //   this.sdk.signer._signTypedData || this.sdk.signer.signTypedData
-    // ).bind(this.sdk.signer);
+    const signTypedData = (
+      this.sdk.signer._signTypedData || this.sdk.signer.signTypedData
+    ).bind(this.sdk.signer);
 
     const action = 'create';
     const { domain, types, value } = this.action(action);
-    
-    // const value = {
+
+    let signature;
+    await signTypedData(domain, types, value)
+      .then((sig) => {
+        signature = sig;
+      })
+      .catch(async (error) => {
+        // we need to try again if this was due to a HW signing issue.
+        // check that the user didn't just reject the tx.
+        console.log('EIP 712 Signature Failed', error);
+        if (error.message.includes('User denied message signature')) {
+          return;
+        }
+        console.log('EIP 191 Signature Request');
+        const messageHash = ethers.utils.hashMessage(JSON.stringify(value));
+        signature = await this.sdk.signer.signMessage(messageHash);
+      });
+
+
+    // console.log('payload', JSON.stringify({
     //   action,
-    //   name: this.name,
-    //   body: this.body,
-    //   start: this.start,
-    //   end: this.end,
-    //   snapshot: this.snapshot,
-    // };
-
-    const messageHash = ethers.utils.hashMessage(JSON.stringify(value));
-
-    console.log('Proposal create sig data', value, messageHash);
-
-    const signature = await this.sdk.signer.signMessage(messageHash);
-
-    console.log('signature', signature);
+    //   address,
+    //   proposal: value,
+    //   signature,
+    // }));
 
     const response = await this.fetch(this.nodeUrl, {
       method: 'POST',
