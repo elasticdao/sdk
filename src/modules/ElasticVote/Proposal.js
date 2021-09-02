@@ -1,7 +1,6 @@
 /* eslint class-methods-use-this: 0 */
 
 import BigNumber from 'bignumber.js';
-import { ethers } from 'ethers';
 import Base from '../../Base';
 
 /* RAW:
@@ -198,18 +197,10 @@ export default class Proposal extends Base {
           return;
         }
         console.log('EIP 191 Signature Request');
-        const messageHash = ethers.utils.hashMessage(JSON.stringify(value));
-        signature = await this.sdk.signer.signMessage(messageHash);
+        console.log('proposal', JSON.stringify(value));
+        signature = await this.sdk.signer.signMessage(JSON.stringify(value));
       });
-
-
-    // console.log('payload', JSON.stringify({
-    //   action,
-    //   address,
-    //   proposal: value,
-    //   signature,
-    // }));
-
+    console.log('signature', signature);
     const response = await this.fetch(this.nodeUrl, {
       method: 'POST',
       mode: 'cors',
