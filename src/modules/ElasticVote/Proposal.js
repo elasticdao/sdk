@@ -1,6 +1,7 @@
 /* eslint class-methods-use-this: 0 */
 
 import BigNumber from 'bignumber.js';
+import { ethers } from 'ethers';
 import Base from '../../Base';
 
 /* RAW:
@@ -177,16 +178,28 @@ export default class Proposal extends Base {
     }
 
     const address = this.sdk.account;
-    const signTypedData = (
-      this.sdk.signer._signTypedData || this.sdk.signer.signTypedData
-    ).bind(this.sdk.signer);
+    // const signTypedData = (
+    //   this.sdk.signer._signTypedData || this.sdk.signer.signTypedData
+    // ).bind(this.sdk.signer);
 
     const action = 'create';
     const { domain, types, value } = this.action(action);
+    
+    // const value = {
+    //   action,
+    //   name: this.name,
+    //   body: this.body,
+    //   start: this.start,
+    //   end: this.end,
+    //   snapshot: this.snapshot,
+    // };
 
-    console.log('Proposal create sig data', domain, types, value);
+    const messageHash = ethers.utils.hashMessage(JSON.stringify(value));
 
-    const signature = await signTypedData(domain, types, value);
+    console.log('Proposal create sig data', value, messageHash);
+
+    const signature = await this.sdk.signer.signMessage(messageHash);
+
     console.log('signature', signature);
 
     const response = await this.fetch(this.nodeUrl, {
