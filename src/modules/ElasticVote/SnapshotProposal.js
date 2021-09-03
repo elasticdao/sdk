@@ -175,15 +175,14 @@ export default class SnapshotProposal extends Base {
     }
 
     const address = this.sdk.account;
-    const signTypedData = (
-      this.sdk.signer._signTypedData || this.sdk.signer.signTypedData
-    ).bind(this.sdk.signer);
 
     const action = 'finalize';
     const { domain, types, value } = this.action(action);
-
-    const signature = await signTypedData(domain, types, value);
-    console.log('signature', signature);
+    const signature = await this.sdk.signTypedDataOrMessage(
+      domain,
+      types,
+      value,
+    );
 
     const response = await this.fetch(this.nodeUrl, {
       method: 'PATCH',
