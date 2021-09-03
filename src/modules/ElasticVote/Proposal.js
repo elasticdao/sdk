@@ -177,30 +177,15 @@ export default class Proposal extends Base {
     }
 
     const address = this.sdk.account;
-    const signTypedData = (
-      this.sdk.signer._signTypedData || this.sdk.signer.signTypedData
-    ).bind(this.sdk.signer);
 
     const action = 'create';
     const { domain, types, value } = this.action(action);
 
-    let signature;
-    await signTypedData(domain, types, value)
-      .then((sig) => {
-        signature = sig;
-      })
-      .catch(async (error) => {
-        // we need to try again if this was due to a HW signing issue.
-        // check that the user didn't just reject the tx.
-        console.log('EIP 712 Signature Failed', error);
-        if (error.message.includes('User denied message signature')) {
-          return;
-        }
-        console.log('EIP 191 Signature Request');
-        console.log('proposal', JSON.stringify(value));
-        signature = await this.sdk.signer.signMessage(JSON.stringify(value));
-      });
-    console.log('signature', signature);
+    const signature = await this.sdk.signTypedDataOrMessage(
+      domain,
+      types,
+      value,
+    );
     const response = await this.fetch(this.nodeUrl, {
       method: 'POST',
       mode: 'cors',
@@ -229,15 +214,14 @@ export default class Proposal extends Base {
     }
 
     const address = this.sdk.account;
-    const signTypedData = (
-      this.sdk.signer._signTypedData || this.sdk.signer.signTypedData
-    ).bind(this.sdk.signer);
-
     const action = 'finalize';
     const { domain, types, value } = this.action(action);
 
-    const signature = await signTypedData(domain, types, value);
-    console.log('signature', signature);
+    const signature = await this.sdk.signTypedDataOrMessage(
+      domain,
+      types,
+      value,
+    );
 
     const response = await this.fetch(this.nodeUrl, {
       method: 'PATCH',
@@ -252,8 +236,6 @@ export default class Proposal extends Base {
         signature,
       }),
     });
-
-    console.log('response', await response.json());
 
     return response.json();
   }
