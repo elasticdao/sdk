@@ -353,6 +353,10 @@ export class SDK extends Subscribable {
     this.touch();
   }
 
+  /**
+   * Hash - transaction hash 
+   * Object - look at block native  notify -https://docs.blocknative.com/notify#notification
+   */
   notify({ hash, obj }) {
     if (!this._notify) {
       return;

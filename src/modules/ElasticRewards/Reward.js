@@ -64,6 +64,7 @@ Version 1.1.0:
 }
 */
 export default class Reward extends IPFSJsonBase {
+  // create static functions to return these 
   static types = {
     TransferRewards: [
       { name: 'action', type: 'string' },

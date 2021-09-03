@@ -113,6 +113,8 @@ class ElasticVote extends Cachable {
     const chunks = chunkArray(holders, 50);
 
     for (let i = 0; i < chunks.length; i += 1) {
+      // TODO: create retry on failures that we catch here
+      // await and catch and call the function again after waiting period
       await Promise.all(
         chunks[i].map(async (holderAddress) => {
           const balanceOf = toBigNumber(
