@@ -184,11 +184,23 @@ export default class Proposal extends Base {
     const action = 'create';
     const { domain, types, value } = this.action(action);
 
-    console.log('Proposal create sig data', domain, types, value);
-
-    const signature = await signTypedData(domain, types, value);
+    let signature;
+    await signTypedData(domain, types, value)
+      .then((sig) => {
+        signature = sig;
+      })
+      .catch(async (error) => {
+        // we need to try again if this was due to a HW signing issue.
+        // check that the user didn't just reject the tx.
+        console.log('EIP 712 Signature Failed', error);
+        if (error.message.includes('User denied message signature')) {
+          return;
+        }
+        console.log('EIP 191 Signature Request');
+        console.log('proposal', JSON.stringify(value));
+        signature = await this.sdk.signer.signMessage(JSON.stringify(value));
+      });
     console.log('signature', signature);
-
     const response = await this.fetch(this.nodeUrl, {
       method: 'POST',
       mode: 'cors',
