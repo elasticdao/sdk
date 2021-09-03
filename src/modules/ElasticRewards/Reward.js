@@ -64,19 +64,21 @@ Version 1.1.0:
 }
 */
 export default class Reward extends IPFSJsonBase {
-  static types = {
-    TransferRewards: [
-      { name: 'action', type: 'string' },
-      { name: 'amount', type: 'uint256' },
-      { name: 'fromAddress', type: 'address' },
-      { name: 'toAddress', type: 'address' },
-    ],
-  };
+  // static functions to avoid issues with imports
+  static types() {
+    return {
+      TransferRewards: [
+        { name: 'action', type: 'string' },
+        { name: 'amount', type: 'uint256' },
+        { name: 'fromAddress', type: 'address' },
+        { name: 'toAddress', type: 'address' },
+      ],
+    };
+  }
 
-  static domain = {
-    name: 'ElasticDAO',
-    chainId: 1,
-  };
+  static domain() {
+    return { name: 'ElasticDAO', chainId: 1 };
+  }
 
   get action() {
     return this._value('for.action');
@@ -175,10 +177,15 @@ export default class Reward extends IPFSJsonBase {
       toAddress: this.to,
     };
 
-    console.log('Transfer create sig data', Reward.domain, Reward.types, value);
+    console.log(
+      'Transfer create sig data',
+      Reward.domain(),
+      Reward.types(),
+      value,
+    );
     const signature = await this.sdk.signTypedDataOrMessage(
-      Reward.domain,
-      Reward.types,
+      Reward.domain(),
+      Reward.types(),
       value,
     );
     console.log('signature', signature);
@@ -192,7 +199,7 @@ export default class Reward extends IPFSJsonBase {
       },
       body: JSON.stringify({
         action,
-        toAddress: to,
+        toAddress: this.to,
         fromAddress: address,
         amount: this.amount,
         signature,

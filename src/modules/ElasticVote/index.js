@@ -91,10 +91,105 @@ class ElasticVote extends Cachable {
     return data;
   }
 
+  static async _createEligibleVoterBalanceData(
+    overrides,
+    dao,
+    maxVotingTokens,
+    holderAddress,
+    eligibleVoteCreators,
+  ) {
+    const balanceOf = toBigNumber(
+      await dao.elasticGovernanceToken.contract.balanceOf(
+        holderAddress,
+        overrides,
+      ),
+      18,
+    );
+
+    if (balanceOf.isNaN() || balanceOf.isZero()) {
+      return {
+        balanceOf: 0,
+        balanceOfVoting: 0,
+      };
+    }
+    const balanceOfVoting = toBigNumber(
+      await dao.elasticGovernanceToken.contract.balanceOfVoting(
+        holderAddress,
+        overrides,
+      ),
+      18,
+    );
+
+    if (balanceOfVoting.isEqualTo(maxVotingTokens)) {
+      eligibleVoteCreators.push(holderAddress);
+    }
+
+    return {
+      balanceOf: balanceOf.toFixed(18),
+      balanceOfVoting: balanceOfVoting.toFixed(18),
+    };
+  }
+
+  async _getEligibleVoters(
+    addressArray,
+    overrides,
+    dao,
+    maxVotingTokens,
+    eligibleVoteCreators,
+    retryCount,
+    maxRetries,
+  ) {
+    if (retryCount > maxRetries) {
+      // avoid infinite loop
+      throw new Error(
+        `failed to create voter data after ${maxRetries} retries`,
+      );
+    }
+    let balances = {};
+    const retryAddresses = [];
+    await Promise.all(
+      addressArray.map(async (holderAddress) => {
+        ElasticVote._createEligibleVoterBalanceData(
+          overrides,
+          dao,
+          maxVotingTokens,
+          holderAddress,
+          eligibleVoteCreators,
+        )
+          .then((balance) => {
+            if (balance.balanceOf > 0) {
+              balances[holderAddress] = balance;
+              console.log(holderAddress, balance);
+            }
+          })
+          .catch((error) => {
+            console.log('Error with address', holderAddress, error);
+            retryAddresses.push(holderAddress);
+          });
+      }),
+    );
+    if (retryAddresses.length > 0) {
+      await new Promise((resolve) => setTimeout(resolve, 500)); // throttle api calls to alchemy
+      balances = {
+        ...balances,
+        ...(await this._getEligibleVoters(
+          retryAddresses,
+          overrides,
+          dao,
+          maxVotingTokens,
+          eligibleVoteCreators,
+          retryCount + 1,
+          maxRetries,
+        )),
+      };
+    }
+    return balances;
+  }
+
   async generateData(block, options = {}) {
     const overrides = { blockTag: block };
     const eligibleVoteCreators = options.eligibleVoteCreators || [];
-    const balances = {};
+    let balances = {};
     const blacklist = options.blacklist || [];
     const ensRecord = await this.getElasticVoteENSRecord();
     const daoAddress = await ensRecord.getAddress();
@@ -110,44 +205,23 @@ class ElasticVote extends Cachable {
     });
 
     const holders = await dao.elasticGovernanceToken.holders(overrides);
-    const chunks = chunkArray(holders, 50);
+    // smaller chunks to make this a bit easier for processing.
+    const chunks = chunkArray(holders, 25);
 
     for (let i = 0; i < chunks.length; i += 1) {
-      await Promise.all(
-        chunks[i].map(async (holderAddress) => {
-          const balanceOf = toBigNumber(
-            await dao.elasticGovernanceToken.contract.balanceOf(
-              holderAddress,
-              overrides,
-            ),
-            18,
-          );
-
-          if (balanceOf.isNaN() || balanceOf.isZero()) {
-            console.log('skipping', balanceOf.isNaN(), balanceOf.isZero());
-          } else {
-            const balanceOfVoting = toBigNumber(
-              await dao.elasticGovernanceToken.contract.balanceOfVoting(
-                holderAddress,
-                overrides,
-              ),
-              18,
-            );
-
-            if (balanceOfVoting.isEqualTo(maxVotingTokens)) {
-              eligibleVoteCreators.push(holderAddress);
-            }
-
-            balances[holderAddress] = {
-              balanceOf: balanceOf.toFixed(18),
-              balanceOfVoting: balanceOfVoting.toFixed(18),
-            };
-
-            console.log(balances[holderAddress]);
-          }
-        }),
-      );
-      await new Promise((resolve) => setTimeout(resolve, 1000)); // throttle api calls to alchemy
+      balances = {
+        ...balances,
+        ...(await this._getEligibleVoters(
+          chunks[i],
+          overrides,
+          dao,
+          maxVotingTokens,
+          eligibleVoteCreators,
+          0,
+          10,
+        )),
+      };
+      await new Promise((resolve) => setTimeout(resolve, 500)); // throttle api calls to alchemy
     }
 
     const tokenHolders = Object.keys(balances);
