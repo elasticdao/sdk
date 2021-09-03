@@ -354,7 +354,7 @@ export class SDK extends Subscribable {
   }
 
   /**
-   * Hash - transaction hash 
+   * Hash - transaction hash
    * Object - look at block native  notify -https://docs.blocknative.com/notify#notification
    */
   notify({ hash, obj }) {
