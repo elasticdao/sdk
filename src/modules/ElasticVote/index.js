@@ -146,7 +146,10 @@ class ElasticVote extends Cachable {
             console.log(balances[holderAddress]);
           }
         }),
-      );
+      ).catch((error) => {
+        console.error('failed to get balances', error.message);
+      });
+      await new Promise((resolve) => setTimeout(resolve, 1000)); // throttle api calls to alchemy
     }
 
     const tokenHolders = Object.keys(balances);
