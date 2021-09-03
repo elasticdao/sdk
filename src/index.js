@@ -431,13 +431,12 @@ export class SDK extends Subscribable {
     this.touch();
   }
 
-
   /**
    * Hits the elasticNode for the next usable nonce for the registered account.
    * This nonce is VALID for the current transaction and doesn't need to be incremented.
    * @returns next usable nonce
    */
-   async getNonce() {
+  async getNonce() {
     if (!this.account) {
       return null;
     }

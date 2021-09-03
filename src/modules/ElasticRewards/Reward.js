@@ -59,6 +59,7 @@ Version 1.1.0:
     reason: String,
     required: Boolean,
     signature: String,
+    nonce: uint256
   },
   version: '1.1.0',
 }
@@ -72,6 +73,7 @@ export default class Reward extends IPFSJsonBase {
         { name: 'amount', type: 'uint256' },
         { name: 'fromAddress', type: 'address' },
         { name: 'toAddress', type: 'address' },
+        { name: 'nonce', type: 'uint256' },
       ],
     };
   }
@@ -144,6 +146,10 @@ export default class Reward extends IPFSJsonBase {
     return this._value('verification');
   }
 
+  get nonce() {
+    return this._value('verification.nonce');
+  }
+
   get version() {
     return this._value('version', '1.1.0');
   }
@@ -175,6 +181,7 @@ export default class Reward extends IPFSJsonBase {
       amount: this.amount,
       fromAddress: this.from,
       toAddress: this.to,
+      nonce: this.nonce,
     };
 
     console.log(
@@ -203,6 +210,7 @@ export default class Reward extends IPFSJsonBase {
         fromAddress: address,
         amount: this.amount,
         signature,
+        nonce: this.nonce,
       }),
     });
 
