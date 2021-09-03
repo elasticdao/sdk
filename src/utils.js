@@ -83,6 +83,44 @@ export const chunkArray = (arr, chunkSize) => {
   return chunks;
 };
 
+/**
+ * Validates that the provided signature was created by the signerAddress passed in.
+ * First attempt tries to use EIP 712 and if it fails will then attempt to use EIP191
+ * on the hashed JSON of the value object passed in.
+ * @param {*} domain
+ * @param {*} types
+ * @param {*} value
+ * @param {*} signature
+ * @param {*} signerAddress address that created the signature
+ * @returns true if the signerAddress matches the address that created the signature
+ */
+export const isValidTypedDataOrMessageSignature = (
+  domain,
+  types,
+  value,
+  signature,
+  signerAddress,
+) => {
+  let verifiedAddress = ethers.utils.verifyTypedData(
+    domain,
+    types,
+    value,
+    signature,
+  );
+
+  if (signerAddress === verifiedAddress) {
+    return true;
+  }
+
+  // attempt to validate with EIP 191
+  verifiedAddress = ethers.utils.verifyMessage(
+    JSON.stringify(value),
+    signature,
+  );
+
+  return signerAddress === verifiedAddress;
+};
+
 export const sanitizeOverrides = (requested = {}, readonlyMethod = false) => {
   const overrides = {};
   let validKeys = [];
@@ -255,6 +293,7 @@ export const truncate = (str, opts = {}) => {
 export default {
   amountFormatter,
   buildError,
+  isValidTypedDataOrMessageSignature,
   swapBigNumber,
   toBigNumber,
   toEthersBigNumber,

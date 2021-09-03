@@ -25,6 +25,7 @@ import TokenHolderClass from './models/TokenHolder';
 import {
   amountFormatter,
   buildError,
+  isValidTypedDataOrMessageSignature,
   swapBigNumber,
   toBigNumber,
   toEthersBigNumber,
@@ -76,6 +77,7 @@ export const adapters = {
 export const utils = {
   amountFormatter,
   buildError,
+  isValidTypedDataOrMessageSignature,
   swapBigNumber,
   toBigNumber,
   toEthersBigNumber,
