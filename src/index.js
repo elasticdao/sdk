@@ -431,6 +431,37 @@ export class SDK extends Subscribable {
     this.touch();
   }
 
+
+  /**
+   * Hits the elasticNode for the next usable nonce for the registered account.
+   * This nonce is VALID for the current transaction and doesn't need to be incremented.
+   * @returns next usable nonce
+   */
+   async getNonce() {
+    if (!this.account) {
+      return null;
+    }
+    return this.getNonceFromAddress(this.account);
+  }
+
+  /**
+   * Returns the next available nonce for the provided address.
+   * @param {*} address
+   * @returns
+   */
+  async getNonceForAddress(address) {
+    const url = `${this.elasticNodeURL}/nonce/${address}`;
+    const response = await this.fetch(url, {
+      method: 'POST',
+      mode: 'cors',
+      cache: 'no-cache',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+    return response.json();
+  }
+
   /**
    * Attempts to sign the provided typed data using IE 712 standard. If it fails, it will fall back
    * to signing the hashed JSON of the value object provided using EIP 191. The value should either
