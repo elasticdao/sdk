@@ -112,7 +112,7 @@ class ElasticVote extends Cachable {
     const holders = await dao.elasticGovernanceToken.holders(overrides);
     const chunks = chunkArray(holders, 50);
 
-    for (let i = 0; i < chunks.length; i += 1) {
+    for (let i = 0; i < chunks.length; i += 1) {      
       await Promise.all(
         chunks[i].map(async (holderAddress) => {
           const balanceOf = toBigNumber(
@@ -146,10 +146,8 @@ class ElasticVote extends Cachable {
             console.log(balances[holderAddress]);
           }
         }),
-      ).catch((error) => {
-        console.error('failed to get balances', error.message);
-      });
-      await new Promise((resolve) => setTimeout(resolve, 1000)); // throttle api calls to alchemy
+      )
+      await new Promise(resolve => setTimeout(resolve, 1000)); // throttle api calls to alchemy
     }
 
     const tokenHolders = Object.keys(balances);
