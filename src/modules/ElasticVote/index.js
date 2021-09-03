@@ -163,14 +163,13 @@ class ElasticVote extends Cachable {
             }
           })
           .catch((error) => {
-            console.log('Error with address', error);
-            console.log(holderAddress);
+            console.log('Error with address', holderAddress, error);
             retryAddresses.push(holderAddress);
           });
       }),
     );
-    await new Promise((resolve) => setTimeout(resolve, 500)); // throttle api calls to alchemy
     if (retryAddresses.length > 0) {
+      await new Promise((resolve) => setTimeout(resolve, 500)); // throttle api calls to alchemy
       balances = {
         ...balances,
         ...(await this._getEligibleVoters(
