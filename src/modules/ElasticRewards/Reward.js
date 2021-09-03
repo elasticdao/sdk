@@ -145,7 +145,7 @@ export default class Reward extends IPFSJsonBase {
   get verification() {
     return this._value('verification');
   }
-  
+
   get nonce() {
     return this._value('verification.nonce');
   }
