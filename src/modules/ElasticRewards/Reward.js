@@ -60,7 +60,7 @@ Version 1.1.0:
     required: Boolean,
     signature: String,
   },
-  version: '1.0.0',
+  version: '1.1.0',
 }
 */
 export default class Reward extends IPFSJsonBase {
@@ -166,12 +166,8 @@ export default class Reward extends IPFSJsonBase {
     }
 
     const address = this.sdk.account;
-    const signTypedData = (
-      this.sdk.signer._signTypedData || this.sdk.signer.signTypedData
-    ).bind(this.sdk.signer);
 
     const action = 'transfer';
-
     const value = {
       action,
       amount: this.amount,
@@ -180,7 +176,11 @@ export default class Reward extends IPFSJsonBase {
     };
 
     console.log('Transfer create sig data', Reward.domain, Reward.types, value);
-    const signature = await signTypedData(Reward.domain, Reward.types, value);
+    const signature = await this.sdk.signTypedDataOrMessage(
+      Reward.domain,
+      Reward.types,
+      value,
+    );
     console.log('signature', signature);
 
     const response = await this.fetch(this.nodeUrl, {
