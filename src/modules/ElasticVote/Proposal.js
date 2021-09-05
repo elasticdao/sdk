@@ -16,6 +16,7 @@ import Base from '../../Base';
   no
   pending
   quorum
+  signature
   snapshot
   start
   status
@@ -23,6 +24,7 @@ import Base from '../../Base';
   voted
   yes
 */
+
 export default class Proposal extends Base {
   constructor(sdk, api, raw) {
     super(sdk);
@@ -98,6 +100,10 @@ export default class Proposal extends Base {
     }
 
     return `${this.sdk.elasticNodeURL}/elasticvote/${this.api.space}/proposals`;
+  }
+
+  get signature() {
+    return this._raw.signature;
   }
 
   get snapshot() {
@@ -279,6 +285,7 @@ export default class Proposal extends Base {
       no,
       pending,
       quorum,
+      signature,
       snapshot,
       start,
       status,
@@ -299,6 +306,7 @@ export default class Proposal extends Base {
       no,
       pending,
       quorum,
+      signature,
       snapshot,
       start,
       status,

@@ -8,6 +8,7 @@ import BigNumber from 'bignumber.js';
   voter
   proposal
   weight
+  signature:
 */
 export default class Vote {
   constructor(api, proposal, raw) {
@@ -36,6 +37,10 @@ export default class Vote {
     return this._proposal;
   }
 
+  get signature() {
+    return this._raw.signature;
+  }
+
   get voter() {
     return this._raw.voter.toLowerCase();
   }
@@ -44,14 +49,16 @@ export default class Vote {
     return BigNumber(this._raw.weight);
   }
 
+
   toJSON() {
-    const { author, choice, date, id, proposal, voter, weight } = this;
+    const { author, choice, date, id, proposal, signature, voter, weight } = this;
 
     return {
       author,
       choice,
       date,
       id,
+      signature,
       voter,
       proposal: proposal.id,
       weight: weight.toFixed(18),
