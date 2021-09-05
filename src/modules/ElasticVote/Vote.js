@@ -10,11 +10,27 @@ import BigNumber from 'bignumber.js';
   weight
   signature:
 */
+
+// TODO: should this extend IPFSJson base and also ad versioning?
 export default class Vote {
   constructor(api, proposal, raw) {
     this._api = api;
     this._proposal = proposal;
     this._raw = raw;
+  }
+
+  static types() {
+    return {
+      TransferRewards: [
+        { name: 'choice', type: 'string' },
+        { name: 'voter', type: 'address' },
+        { name: 'proposal', type: 'string' },
+      ],
+    };
+  }
+
+  static domain() {
+    return { name: 'ElasticDAO', chainId: 1 };
   }
 
   get author() {
@@ -47,6 +63,12 @@ export default class Vote {
 
   get weight() {
     return BigNumber(this._raw.weight);
+  }
+
+  async sign() {
+    if (!this.sdk.signer) {
+      return false;
+    }
   }
 
 
