@@ -145,6 +145,7 @@ export default class Reward extends Base {
       Reward.types(),
       value,
     );
+    
     console.log('signature', signature);
 
     const response = await this.fetch(this.nodeUrl, {
