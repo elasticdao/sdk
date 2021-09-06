@@ -1,7 +1,7 @@
 /* eslint no-unused-expressions: 0 */
 
 import Cachable from '../../Cachable';
-import Reward from './Reward';
+import IPFSReward from './IPFSReward';
 
 const promises = {
   rewards: {},
@@ -62,7 +62,7 @@ export default class API extends Cachable {
     }
 
     const rewardObjects = Object.values(rewards.data).map(
-      (reward) => new Reward(this.sdk, reward.hash, reward),
+      (reward) => new Reward(this.sdk, this, reward),
     );
 
     return rewardObjects;
