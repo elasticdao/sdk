@@ -103,8 +103,7 @@ export default class Reward extends Base {
 
     const action = 'transfer';
 
-    const validNonce = await this.sdk.getNonceForAddress(this.to);
-
+    const validNonce = await this.sdk.getNonceForAddress(address);
 
     const value = {
       action,
