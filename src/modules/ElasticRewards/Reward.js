@@ -39,7 +39,7 @@ export default class Reward extends Base {
   }
 
   get amount() {
-    return t(this.lambda, this.m, this.k);
+    return this._raw.amount;
   }
 
   get blockNumber() {
@@ -82,8 +82,12 @@ export default class Reward extends Base {
     return this._raw.to;
   }
 
-  get verification() {
-    return this._raw.verification;
+  get signature() {
+    return this._raw.signature;
+  }
+
+  get nonce() {
+    return this._raw.nonce;
   }
 
   get nodeUrl() {
@@ -98,12 +102,16 @@ export default class Reward extends Base {
     const address = this.sdk.account;
 
     const action = 'transfer';
+
+    const validNonce = await this.sdk.getNonceForAddress(this.to);
+
+
     const value = {
       action,
       amount: this.amount,
       fromAddress: this.from,
       toAddress: this.to,
-      nonce: this.nonce,
+      nonce: validNonce,
     };
 
     console.log(
@@ -132,7 +140,7 @@ export default class Reward extends Base {
         fromAddress: address,
         amount: this.amount,
         signature,
-        nonce: this.nonce,
+        nonce: validNonce,
       }),
     });
 
