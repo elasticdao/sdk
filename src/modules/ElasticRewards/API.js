@@ -1,7 +1,7 @@
 /* eslint no-unused-expressions: 0 */
 
 import Cachable from '../../Cachable';
-import IPFSReward from './IPFSReward';
+import Reward from './Reward';
 
 const promises = {
   rewards: {},
