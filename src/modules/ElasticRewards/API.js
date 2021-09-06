@@ -62,7 +62,7 @@ export default class API extends Cachable {
     }
 
     const rewardObjects = Object.values(rewards.data).map(
-      (reward) => new Reward(this.sdk, reward.hash, reward),
+      (reward) => new Reward(this.sdk, this, reward),
     );
 
     return rewardObjects;

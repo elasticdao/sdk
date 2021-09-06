@@ -1,6 +1,6 @@
 import { buildError } from '../../utils';
 import IPFSJsonBase from '../../IPFSJsonBase';
-import Reward from './Reward';
+import IPFSReward from './IPFSReward';
 
 const localPrefix = '@elastic-dao/sdk - modules/ElasticRewards/Block.js';
 
@@ -88,7 +88,7 @@ export default class Block extends IPFSJsonBase {
       return this._rewards;
     }
 
-    this._rewards = this.hashes.map((hash) => new Reward(this.sdk, hash));
+    this._rewards = this.hashes.map((hash) => new IPFSReward(this.sdk, hash));
 
     return this._rewards;
   }
