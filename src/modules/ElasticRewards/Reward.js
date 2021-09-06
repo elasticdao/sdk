@@ -75,7 +75,7 @@ export default class Reward extends Base {
   }
 
   get for() {
-    return this._for;
+    return this._raw.for;
   }
 
   get to() {
