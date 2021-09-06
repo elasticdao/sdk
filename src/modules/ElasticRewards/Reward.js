@@ -1,5 +1,4 @@
 import Base from '../../Base';
-import { t } from '../../elasticMath';
 
 export default class Reward extends Base {
   // static functions to avoid issues with imports (rather than static fields)
