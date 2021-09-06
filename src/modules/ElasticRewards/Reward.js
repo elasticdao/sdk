@@ -1,71 +1,8 @@
-import { ethers } from 'ethers';
-import BigNumber from 'bignumber.js';
-
-import { buildError } from '../../utils';
+import Base from '../../Base';
 import { t } from '../../elasticMath';
-import IPFSJsonBase from '../../IPFSJsonBase';
 
-const localPrefix = '@elastic-dao/sdk - modules/ElasticRewards/Reward.js';
-
-/*
-Version 1.0.0:
-
-{
-  blockNumber: Number,
-  ens: ENSDomain,
-  for: {
-    action: String,
-    item: {
-      type: String,
-      uuid: String,
-    },
-    message: String,
-  },
-  from: Address,
-  hash: String,
-  k: String,
-  lambda: String,
-  locked: Boolean,
-  m: String,
-  to: Address,
-  verification: {
-    reason: String,
-    required: Boolean,
-  },
-  version: '1.0.0',
-}
-
-Version 1.1.0:
-
-{
-  blockNumber: Number,
-  ens: ENSDomain,
-  for: {
-    action: String,
-    item: {
-      type: String,
-      uuid: String,
-    },
-    message: String,
-  },
-  from: Address,
-  hash: String,
-  k: String,
-  lambda: String,
-  locked: Boolean,
-  m: String,
-  to: Address,
-  verification: {
-    reason: String,
-    required: Boolean,
-    signature: String,
-    nonce: uint256
-  },
-  version: '1.1.0',
-}
-*/
-export default class Reward extends IPFSJsonBase {
-  // static functions to avoid issues with imports
+export default class Reward extends Base {
+  // static functions to avoid issues with imports (rather than static fields)
   static types() {
     return {
       TransferRewards: [
@@ -82,8 +19,23 @@ export default class Reward extends IPFSJsonBase {
     return { name: 'ElasticDAO', chainId: 1 };
   }
 
+  constructor(sdk, api, raw) {
+    super(sdk);
+
+    this._api = api;
+    this._raw = raw;
+  }
+
   get action() {
-    return this._value('for.action');
+    return this._raw.action;
+  }
+
+  get item() {
+    return this._raw.item;
+  }
+
+  get api() {
+    return this._api;
   }
 
   get amount() {
@@ -91,81 +43,51 @@ export default class Reward extends IPFSJsonBase {
   }
 
   get blockNumber() {
-    return this._value('blockNumber');
-  }
-
-  get ens() {
-    return this._value('ens');
+    return this._raw.blockNumber;
   }
 
   get from() {
-    return this._value('from', ethers.constants.AddressZero);
-  }
-
-  get item() {
-    if (!this.loaded || !this._value('for.item', false)) {
-      return {};
-    }
-
-    const itemUUID = this._value('for.item.uuid');
-
-    if (this._value('for.item.type') === 'SnapshotProposal') {
-      return this.sdk.modules
-        .elasticVote(this.ens)
-        .proposals.find(({ id }) => id === itemUUID);
-    }
-
-    return itemUUID;
+    return this._raw.from;
   }
 
   get k() {
-    return new BigNumber(this._value('k', 0));
+    return this._raw.k;
   }
 
   get lambda() {
-    return new BigNumber(this._value('lambda', 0));
+    return this._raw.lambda;
   }
 
   get locked() {
-    return this._value('locked', true);
+    return this._raw.locked;
   }
 
   get m() {
-    return new BigNumber(this._value('m', 0));
+    return this._raw.m;
   }
 
   get message() {
-    return this._value('for.message');
+    return this._raw.message;
+  }
+
+  get hash() {
+    return this._raw.hash;
+  }
+
+  get for() {
+    return this._for;
   }
 
   get to() {
-    return this._value('to', ethers.constants.AddressZero);
+    return this._raw.to;
   }
 
   get verification() {
-    return this._value('verification');
-  }
-
-  get nonce() {
-    return this._value('verification.nonce');
-  }
-
-  get version() {
-    return this._value('version', '1.1.0');
+    return this._raw.verification;
   }
 
   get nodeUrl() {
     return `${this.sdk.elasticNodeURL}/elasticrewards/${this.api.space}/rewards/${this.sdk.account}`;
-  }
-
-  async getENSRecord() {
-    if (!this.loaded) {
-      const { name } = this.constructor;
-      const message = `${name} not yet loaded`;
-      throw new Error(buildError({ localPrefix, message }));
-    }
-
-    return this.sdk.provider.getResolver(this.ens);
   }
 
   async transfer() {
@@ -218,59 +140,20 @@ export default class Reward extends IPFSJsonBase {
   }
 
   toJSON() {
-    return this.toVersion(this.version);
-  }
-
-  toVersion(version) {
-    if (!this.loaded) {
-      const { name } = this.constructor;
-      const message = `${name} not yet loaded`;
-      throw new Error(buildError({ localPrefix, message }));
-    }
-
-    if (version === '1.0.0') {
-      return {
-        block: this.block,
-        blockNumber: this.blockNumber,
-        ens: this.ens,
-        for: {
-          action: this.action,
-          item: this.cached.for.item,
-          message: this.message,
-        },
-        from: this.from,
-        hash: this.id,
-        k: this.k.toFixed(18),
-        lambda: this.lambda.toFixed(18),
-        m: this.m.toFixed(18),
-        to: this.to,
-        verification: this.verification,
-        version: '1.0.0',
-      };
-    }
-
-    if (version === '1.1.0') {
-      return {
-        block: this.block,
-        blockNumber: this.blockNumber,
-        ens: this.ens,
-        for: {
-          action: this.action,
-          item: this.cached.for.item,
-          message: this.message,
-        },
-        from: this.from,
-        hash: this.id,
-        k: this.k.toFixed(18),
-        lambda: this.lambda.toFixed(18),
-        m: this.m.toFixed(18),
-        to: this.to,
-        verification: this.verification,
-        version: '1.1.0',
-      };
-    }
-
-    const message = `Reward version (${version}) unknown`;
-    throw new Error(buildError({ localPrefix, message }));
+    return {
+      blockNumber: this.blockNumber,
+      ens: this.api.space,
+      for: this.for,
+      action: this.action,
+      item: this.item,
+      from: this.from,
+      hash: this.hash,
+      k: this.k,
+      lambda: this.lambda,
+      locked: this.locked,
+      m: this.m,
+      to: this.to,
+      verification: this.verification,
+    };
   }
 }
