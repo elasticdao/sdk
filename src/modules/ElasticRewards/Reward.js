@@ -119,7 +119,7 @@ export default class Reward extends Base {
 
     const value = {
       action,
-      amount: wadAmount, // signing an integer required.
+      amount: wadAmount.toString(), 
       fromAddress: this.from,
       toAddress: this.to,
       nonce: validNonce,
