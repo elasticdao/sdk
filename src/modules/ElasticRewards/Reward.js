@@ -113,12 +113,12 @@ export default class Reward extends Base {
     const address = this.sdk.account;
 
     const action = 'transfer';
-
     const validNonce = await this.sdk.getNonceForAddress(address);
+    const wadAmount = this.toEthersBigNumber(this.amount, 18);
 
     const value = {
       action,
-      amount: this.amount,
+      amount: wadAmount.toString(),
       fromAddress: this.from,
       toAddress: this.to,
       nonce: validNonce,
@@ -138,7 +138,7 @@ export default class Reward extends Base {
     console.log('signature', signature);
 
     const response = await this.fetch(this.nodeUrl, {
-      method: 'POST',
+      method: 'PATCH',
       mode: 'cors',
       cache: 'no-cache',
       headers: {

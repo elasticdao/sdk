@@ -457,7 +457,8 @@ export class SDK extends Subscribable {
         'Content-Type': 'application/json',
       },
     });
-    return response.json();
+    const value = await response.json();
+    return value.nonce;
   }
 
   /**
