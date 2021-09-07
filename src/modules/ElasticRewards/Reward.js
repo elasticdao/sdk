@@ -39,9 +39,9 @@ export default class Reward extends Base {
   }
 
   get amount() {
-    if(this._raw.amount) {
-        return this._raw.amount;
-    } 
+    if (this._raw.amount) {
+      return this._raw.amount;
+    }
     return t(this.lambda, this.m, this.k);
   }
 
@@ -91,6 +91,10 @@ export default class Reward extends Base {
 
   get nonce() {
     return this._raw.verification.nonce;
+  }
+
+  get verification() {
+    return this._raw.verification;
   }
 
   get nodeUrl() {
