@@ -2,6 +2,7 @@ import APIClass from './API';
 import BlockClass from './Block';
 import Cachable from '../../Cachable';
 import RewardClass from './Reward';
+import IPFSRewardClass from './IPFSReward';
 
 class ElasticRewards extends Cachable {
   constructor(sdk, ens) {
@@ -49,5 +50,6 @@ class ElasticRewards extends Cachable {
 ElasticRewards.API = APIClass;
 ElasticRewards.Block = BlockClass;
 ElasticRewards.Reward = RewardClass;
+ElasticRewards.IPFSReward = IPFSRewardClass;
 
 export default ElasticRewards;
