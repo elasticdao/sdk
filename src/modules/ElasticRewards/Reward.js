@@ -138,7 +138,7 @@ export default class Reward extends Base {
     console.log('signature', signature);
 
     const response = await this.fetch(this.nodeUrl, {
-      method: 'POST',
+      method: 'PATCH',
       mode: 'cors',
       cache: 'no-cache',
       headers: {
