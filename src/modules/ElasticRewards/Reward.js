@@ -1,4 +1,3 @@
-import { SDK } from '../..';
 import Base from '../../Base';
 import { t } from '../../elasticMath';
 
@@ -15,8 +14,6 @@ export default class Reward extends Base {
       ],
     };
   }
-
-
 
   constructor(sdk, api, raw) {
     super(sdk);
@@ -133,19 +130,13 @@ export default class Reward extends Base {
       nonce: validNonce,
     };
 
-    console.log(
-      'Transfer create sig data',
-      SDK.domain(),
+    console.log('Transfer create sig data', Reward.types(), value);
+
+    const signature = await this.sdk.signTypedDataOrMessage(
       Reward.types(),
       value,
     );
 
-    const signature = await this.sdk.signTypedDataOrMessage(
-      SDK.domain(),
-      Reward.types(),
-      value,
-    );
-    
     console.log('signature', signature);
 
     const response = await this.fetch(this.nodeUrl, {

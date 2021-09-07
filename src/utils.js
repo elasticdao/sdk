@@ -84,10 +84,14 @@ export const chunkArray = (arr, chunkSize) => {
 };
 
 /**
+ * Used for EIP 721 signatures
+ */
+export const domain = { name: 'ElasticDAO', chainId: 1 };
+
+/**
  * Validates that the provided signature was created by the signerAddress passed in.
  * First attempt tries to use EIP 712 and if it fails will then attempt to use EIP191
  * on the hashed JSON of the value object passed in.
- * @param {*} domain
  * @param {*} types
  * @param {*} value
  * @param {*} signature
@@ -95,7 +99,6 @@ export const chunkArray = (arr, chunkSize) => {
  * @returns true if the signerAddress matches the address that created the signature
  */
 export const isValidTypedDataOrMessageSignature = (
-  domain,
   types,
   value,
   signature,
@@ -293,6 +296,7 @@ export const truncate = (str, opts = {}) => {
 export default {
   amountFormatter,
   buildError,
+  domain,
   isValidTypedDataOrMessageSignature,
   swapBigNumber,
   toBigNumber,

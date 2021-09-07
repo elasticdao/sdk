@@ -24,6 +24,7 @@ import TokenHolderClass from './models/TokenHolder';
 
 import {
   amountFormatter,
+  domain,
   buildError,
   isValidTypedDataOrMessageSignature,
   swapBigNumber,
@@ -77,6 +78,7 @@ export const adapters = {
 export const utils = {
   amountFormatter,
   buildError,
+  domain,
   isValidTypedDataOrMessageSignature,
   swapBigNumber,
   toBigNumber,
@@ -261,14 +263,6 @@ export class SDK extends Subscribable {
     this._integrations = new Integrations(this);
     this._models = new Models(this);
     this._modules = new Modules(this);
-  }
-
-  /**
-   * Used for EIP 721 signatures
-   * @returns domain object
-   */
-  static domain() {
-    return { name: 'ElasticDAO', chainId: 1 };
   }
 
   get balances() {
@@ -475,12 +469,17 @@ export class SDK extends Subscribable {
    * be a unique set of attributes (for example a proposal) or contain a nonce/salt to ensure the
    * message is only used to initiate a single transaction in the elastic node (like a transfer).
    * see https://docs.ethers.io/v5/api/signer/#Signer--signing-methods for more info.
-   * @param {} domain
    * @param {*} types
    * @param {*} value
    * @returns signature
    */
+<<<<<<< HEAD
   signTypedDataOrMessage(domain, types, value) {
+=======
+  async signTypedDataOrMessage(types, value) {
+    let signature;
+
+>>>>>>> 1893cf8 (better domain handling)
     const signTypedData = (
       this.signer._signTypedData || this.signer.signTypedData
     ).bind(this.signer);

@@ -1,7 +1,6 @@
 /* eslint class-methods-use-this: 0 */
 
 import BigNumber from 'bignumber.js';
-import { SDK } from '../..';
 import Base from '../../Base';
 
 /* RAW:
@@ -134,8 +133,6 @@ export default class Proposal extends Base {
   }
 
   action(action) {
-    const domain = SDK.domain();
-
     if (action === 'create') {
       const types = {
         Proposal: [
@@ -157,7 +154,7 @@ export default class Proposal extends Base {
         snapshot: this.snapshot,
       };
 
-      return { domain, types, value };
+      return { types, value };
     }
 
     const types = {
@@ -172,7 +169,7 @@ export default class Proposal extends Base {
       id: this.id,
     };
 
-    return { domain, types, value };
+    return { types, value };
   }
 
   async create() {
@@ -183,14 +180,10 @@ export default class Proposal extends Base {
     const address = this.sdk.account;
 
     const action = 'create';
-    const { domain, types, value } = this.action(action);
+    const { types, value } = this.action(action);
 
-    const signature = await this.sdk.signTypedDataOrMessage(
-      domain,
-      types,
-      value,
-    );
-    console.log('signature', signature);
+    const signature = await this.sdk.signTypedDataOrMessage(types, value);
+    
     const response = await this.fetch(this.nodeUrl, {
       method: 'POST',
       mode: 'cors',
@@ -220,13 +213,9 @@ export default class Proposal extends Base {
 
     const address = this.sdk.account;
     const action = 'finalize';
-    const { domain, types, value } = this.action(action);
+    const { types, value } = this.action(action);
 
-    const signature = await this.sdk.signTypedDataOrMessage(
-      domain,
-      types,
-      value,
-    );
+    const signature = await this.sdk.signTypedDataOrMessage(types, value);
 
     const response = await this.fetch(this.nodeUrl, {
       method: 'PATCH',

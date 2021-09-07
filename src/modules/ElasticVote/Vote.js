@@ -11,12 +11,12 @@ import BigNumber from 'bignumber.js';
   signature
 */
 
-
 // 1. Update RAW to include version and signature.
-// 2. Create queue of votes that are to be processed, when queue is empty we right to IPFS (reactor pattern  - https://gist.github.com/dmvt/ebe3236784a7adda11886b962971eb86)
-// 3. back up intermediate state to redis to avoid node crash and loss of unprocessed voots. Add to redis when we add to queue, remove when we write to IPFS
+// 2. Create queue of votes that are to be processed, when queue is empty
+// we right to IPFS (reactor pattern  - https://gist.github.com/dmvt/ebe3236784a7adda11886b962971eb86)
+// 3. back up intermediate state to redis to avoid node crash and loss of unprocessed voots.
+// Add to redis when we add to queue, remove when we write to IPFS
 // 4. Need serialization for the queue (array format / JSON)
-
 
 export default class Vote {
   constructor(api, proposal, raw) {
@@ -79,22 +79,16 @@ export default class Vote {
       action,
       choice: this.choice,
       voter: address,
-      proposal: this.proposal.id,      
+      proposal: this.proposal.id,
     };
 
-    console.log(
-      'Transfer create sig data',
-      SDK.domain(),
+    console.log('Transfer create sig data', Vote.types(), value);
+
+    const signature = await this.sdk.signTypedDataOrMessage(
       Vote.types(),
       value,
     );
 
-    const signature = await this.sdk.signTypedDataOrMessage(
-      SDK.domain(),
-      Vote.types(),
-      value,
-    );
-    
     console.log('signature', signature);
 
     const response = await this.fetch(this.nodeUrl, {
