@@ -114,12 +114,11 @@ export default class Reward extends Base {
 
     const action = 'transfer';
     const validNonce = await this.sdk.getNonceForAddress(address);
-    // TODO: fix this by loading token
-    const wadAmount = this.toBigNumber(this.amount).multipliedBy(10 ** 18); 
+    const wadAmount = this.toEthersBigNumber(this.amount, 18);
 
     const value = {
       action,
-      amount: wadAmount.toString(), 
+      amount: wadAmount.toString(),
       fromAddress: this.from,
       toAddress: this.to,
       nonce: validNonce,
