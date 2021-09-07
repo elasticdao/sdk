@@ -451,8 +451,7 @@ export class SDK extends Subscribable {
   async getNonceForAddress(address) {
     const url = `${this.elasticNodeURL}/nonce/${address}`;
     const response = await this.fetch(url, {
-      method: 'POST',
-      mode: 'cors',
+      method: 'GET',
       cache: 'no-cache',
       headers: {
         'Content-Type': 'application/json',
