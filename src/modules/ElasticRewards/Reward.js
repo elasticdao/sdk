@@ -1,3 +1,4 @@
+import { SDK } from '../..';
 import Base from '../../Base';
 import { t } from '../../elasticMath';
 
@@ -15,9 +16,7 @@ export default class Reward extends Base {
     };
   }
 
-  static domain() {
-    return { name: 'ElasticDAO', chainId: 1 };
-  }
+
 
   constructor(sdk, api, raw) {
     super(sdk);
@@ -136,12 +135,13 @@ export default class Reward extends Base {
 
     console.log(
       'Transfer create sig data',
-      Reward.domain(),
+      SDK.domain(),
       Reward.types(),
       value,
     );
+
     const signature = await this.sdk.signTypedDataOrMessage(
-      Reward.domain(),
+      SDK.domain(),
       Reward.types(),
       value,
     );

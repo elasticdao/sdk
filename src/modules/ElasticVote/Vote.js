@@ -11,7 +11,7 @@ import BigNumber from 'bignumber.js';
   signature
 */
 
-// TODO: should this extend IPFSJson base and also ad versioning?
+
 // 1. Update RAW to include version and signature.
 // 2. Create queue of votes that are to be processed, when queue is empty we right to IPFS (reactor pattern  - https://gist.github.com/dmvt/ebe3236784a7adda11886b962971eb86)
 // 3. back up intermediate state to redis to avoid node crash and loss of unprocessed voots. Add to redis when we add to queue, remove when we write to IPFS
@@ -33,10 +33,6 @@ export default class Vote {
         { name: 'proposal', type: 'string' },
       ],
     };
-  }
-
-  static domain() {
-    return { name: 'ElasticDAO', chainId: 1 };
   }
 
   get author() {

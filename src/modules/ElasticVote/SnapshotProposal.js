@@ -145,11 +145,7 @@ export default class SnapshotProposal extends Base {
   }
 
   action(action) {
-    const domain = {
-      name: 'ElasticDAO',
-      chainId: 1,
-    };
-
+    const domain = SDK.domain();
     const types = {
       Proposal: [
         { name: 'action', type: 'string' },

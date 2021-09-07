@@ -263,6 +263,14 @@ export class SDK extends Subscribable {
     this._modules = new Modules(this);
   }
 
+  /**
+   * Used for EIP 721 signatures
+   * @returns domain object
+   */
+  static domain() {
+    return { name: 'ElasticDAO', chainId: 1 };
+  }
+
   get balances() {
     return this._balances;
   }

@@ -1,6 +1,7 @@
 /* eslint class-methods-use-this: 0 */
 
 import BigNumber from 'bignumber.js';
+import { SDK } from '../..';
 import Base from '../../Base';
 
 /* RAW:
@@ -133,10 +134,7 @@ export default class Proposal extends Base {
   }
 
   action(action) {
-    const domain = {
-      name: 'ElasticDAO',
-      chainId: 1,
-    };
+    const domain = SDK.domain();
 
     if (action === 'create') {
       const types = {
