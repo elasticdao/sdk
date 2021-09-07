@@ -77,6 +77,10 @@ export default class Reward extends Base {
     return this._raw.hash;
   }
 
+  get id() {
+    return this.hash;
+  }
+
   get for() {
     return this._raw.for;
   }
