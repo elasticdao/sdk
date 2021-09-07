@@ -1,4 +1,5 @@
 import Base from '../../Base';
+import { t } from '../../elasticMath';
 
 export default class Reward extends Base {
   // static functions to avoid issues with imports (rather than static fields)
@@ -26,11 +27,11 @@ export default class Reward extends Base {
   }
 
   get action() {
-    return this._raw.action;
+    return this._raw.for.action;
   }
 
   get item() {
-    return this._raw.item;
+    return this._raw.for.item;
   }
 
   get api() {
@@ -38,7 +39,10 @@ export default class Reward extends Base {
   }
 
   get amount() {
-    return this._raw.amount;
+    if(this._raw.amount) {
+        return this._raw.amount;
+    } 
+    return t(this.lambda, this.m, this.k);
   }
 
   get blockNumber() {
@@ -66,7 +70,7 @@ export default class Reward extends Base {
   }
 
   get message() {
-    return this._raw.message;
+    return this._raw.for.message;
   }
 
   get hash() {
@@ -82,11 +86,11 @@ export default class Reward extends Base {
   }
 
   get signature() {
-    return this._raw.signature;
+    return this._raw.verification.signature;
   }
 
   get nonce() {
-    return this._raw.nonce;
+    return this._raw.verification.nonce;
   }
 
   get nodeUrl() {
