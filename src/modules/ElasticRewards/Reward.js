@@ -40,7 +40,7 @@ export default class Reward extends Base {
           .proposals.find(({ id }) => id === itemUUID);
       }
 
-      return itemUUID;
+      return this._raw.for.item;
     }
     return undefined;
   }
