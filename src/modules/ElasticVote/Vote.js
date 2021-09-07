@@ -67,6 +67,10 @@ export default class Vote {
     return BigNumber(this._raw.weight);
   }
 
+  get nodeUrl() {
+    return `${this.sdk.elasticNodeURL}/elasticvote/${this.api.space}/proposals/${this.proposal.id}/votes/${this.sdk.account}`;
+  }
+
   async submitVote() {
     if (!this.sdk.signer) {
       return false;
