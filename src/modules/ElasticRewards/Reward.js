@@ -93,6 +93,10 @@ export default class Reward extends Base {
     return this._raw.verification.nonce;
   }
 
+  get verification() {
+    return this._raw.verification;
+  }
+
   get nodeUrl() {
     return `${this.sdk.elasticNodeURL}/elasticrewards/${this.api.space}/rewards/${this.sdk.account}`;
   }
