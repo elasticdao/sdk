@@ -31,7 +31,18 @@ export default class Reward extends Base {
   }
 
   get item() {
-    return this._raw.for.item;
+    if (this._raw.for.item) {
+      const itemUUID = this._raw.for.item.uuid;
+
+      if (itemUUID && this._raw.for.item === 'SnapshotProposal') {
+        return this.sdk.modules
+          .elasticVote(this.ens)
+          .proposals.find(({ id }) => id === itemUUID);
+      }
+
+      return itemUUID;
+    }
+    return undefined;
   }
 
   get api() {
