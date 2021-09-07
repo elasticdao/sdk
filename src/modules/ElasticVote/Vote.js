@@ -67,10 +67,53 @@ export default class Vote {
     return BigNumber(this._raw.weight);
   }
 
-  async sign() {
+  async submitVote() {
     if (!this.sdk.signer) {
       return false;
     }
+
+    const address = this.sdk.account;
+    const action = 'submit';
+
+    const value = {
+      action,
+      choice: this.choice,
+      voter: address,
+      proposal: this.proposal.id,      
+    };
+
+    console.log(
+      'Transfer create sig data',
+      SDK.domain(),
+      Vote.types(),
+      value,
+    );
+
+    const signature = await this.sdk.signTypedDataOrMessage(
+      SDK.domain(),
+      Vote.types(),
+      value,
+    );
+    
+    console.log('signature', signature);
+
+    const response = await this.fetch(this.nodeUrl, {
+      method: 'POST',
+      mode: 'cors',
+      cache: 'no-cache',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        action,
+        choice: this.choice,
+        voter: address,
+        proposal: this.proposal.id,
+        signature,
+      }),
+    });
+
+    return response.json();
   }
 
   toJSON() {
