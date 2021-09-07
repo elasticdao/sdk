@@ -34,12 +34,11 @@ export default class Reward extends Base {
     if (this._raw.for.item) {
       const itemUUID = this._raw.for.item.uuid;
 
-      if (itemUUID && this._raw.for.item === 'SnapshotProposal') {
+      if (itemUUID && this._raw.for.item.type === 'SnapshotProposal') {
         return this.sdk.modules
-          .elasticVote(this.ens)
+          .elasticVote(this.api.space)
           .proposals.find(({ id }) => id === itemUUID);
       }
-
       return this._raw.for.item;
     }
     return undefined;
