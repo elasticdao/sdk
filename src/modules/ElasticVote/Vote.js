@@ -4,10 +4,8 @@ import BigNumber from 'bignumber.js';
   author
   choice
   date
-  id
   voter
   proposal
-  weight
   signature
 */
 
