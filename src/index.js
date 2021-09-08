@@ -5,6 +5,7 @@ import { shortenAddress, validateIsAddress } from '@pie-dao/utils';
 import Notify from 'bnc-notify';
 
 import Base from './Base';
+import Cache from './Cache';
 import CoinGecko from './integrations/CoinGecko';
 import DAOClass from './models/DAO';
 import EcosystemClass from './models/Ecosystem';
@@ -300,6 +301,31 @@ export class SDK extends Subscribable {
 
   get modules() {
     return this._modules;
+  }
+
+  get promise() {
+    // This is the set of all object constructors
+    // that implement Cachable.
+    const constructorNames = [
+      'API',
+      'Block',
+      'DAO',
+      'Ecosystem',
+      'ElasticGovernanceToken',
+      'ElasticRewards',
+      'ElasticVote',
+      'IPFS',
+      'IPFSReward',
+      'SnapshotAPI',
+      'Token',
+      'TokenHolder',
+    ];
+    return Promise.all(
+      constructorNames.map((constructorName) => {
+        const cash = new Cache(this, constructorName);
+        return cash.promise;
+      }),
+    );
   }
 
   get queue() {
