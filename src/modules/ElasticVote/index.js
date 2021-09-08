@@ -93,18 +93,21 @@ class ElasticVote extends Cachable {
 
   static async _createEligibleVoterBalanceData(
     overrides,
+    additionalTokenBalances,
     dao,
+    minimumVoteCreationBalance,
     maxVotingTokens,
     holderAddress,
     eligibleVoteCreators,
   ) {
+    const additionalBalance = additionalTokenBalances[holderAddress] || 0;
     const balanceOf = toBigNumber(
       await dao.elasticGovernanceToken.contract.balanceOf(
         holderAddress,
         overrides,
       ),
       18,
-    );
+    ).plus(additionalBalance);
 
     if (balanceOf.isNaN() || balanceOf.isZero()) {
       return {
@@ -112,15 +115,19 @@ class ElasticVote extends Cachable {
         balanceOfVoting: 0,
       };
     }
-    const balanceOfVoting = toBigNumber(
+    let balanceOfVoting = toBigNumber(
       await dao.elasticGovernanceToken.contract.balanceOfVoting(
         holderAddress,
         overrides,
       ),
       18,
-    );
+    ).plus(additionalBalance);
 
-    if (balanceOfVoting.isEqualTo(maxVotingTokens)) {
+    if (balanceOfVoting.isGreaterThan(maxVotingTokens)) {
+      balanceOfVoting = toBigNumber(maxVotingTokens);
+    }
+
+    if (balanceOf.isGreaterThanOrEqualTo(minimumVoteCreationBalance)) {
       eligibleVoteCreators.push(holderAddress);
     }
 
@@ -132,8 +139,10 @@ class ElasticVote extends Cachable {
 
   async _getEligibleVoters(
     addressArray,
+    additionalTokenBalances,
     overrides,
     dao,
+    minimumVoteCreationBalance,
     maxVotingTokens,
     eligibleVoteCreators,
     retryCount,
@@ -151,7 +160,9 @@ class ElasticVote extends Cachable {
       addressArray.map(async (holderAddress) => {
         ElasticVote._createEligibleVoterBalanceData(
           overrides,
+          additionalTokenBalances,
           dao,
+          minimumVoteCreationBalance,
           maxVotingTokens,
           holderAddress,
           eligibleVoteCreators,
@@ -174,8 +185,10 @@ class ElasticVote extends Cachable {
         ...balances,
         ...(await this._getEligibleVoters(
           retryAddresses,
+          additionalTokenBalances,
           overrides,
           dao,
+          minimumVoteCreationBalance,
           maxVotingTokens,
           eligibleVoteCreators,
           retryCount + 1,
@@ -189,6 +202,15 @@ class ElasticVote extends Cachable {
   async generateData(block, options = {}) {
     const overrides = { blockTag: block };
     const eligibleVoteCreators = options.eligibleVoteCreators || [];
+    const additionalTokenBalances = options.additionalTokenBalances || {};
+    const { minimumVoteCreationBalance } = options;
+
+    if (!minimumVoteCreationBalance) {
+      throw new Error(
+        'minimumVoteCreationBalance must be defined to calculate voting power',
+      );
+    }
+
     let balances = {};
     const blacklist = options.blacklist || [];
     const ensRecord = await this.getElasticVoteENSRecord();
@@ -213,8 +235,10 @@ class ElasticVote extends Cachable {
         ...balances,
         ...(await this._getEligibleVoters(
           chunks[i],
+          additionalTokenBalances,
           overrides,
           dao,
+          minimumVoteCreationBalance,
           maxVotingTokens,
           eligibleVoteCreators,
           0,
