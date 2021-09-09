@@ -157,27 +157,24 @@ class ElasticVote extends Cachable {
     let balances = {};
     const retryAddresses = [];
     await Promise.all(
-      addressArray.map(async (holderAddress) => {
-        ElasticVote._createEligibleVoterBalanceData(
-          overrides,
-          additionalTokenBalances,
-          dao,
-          minimumVoteCreationBalance,
-          maxVotingTokens,
-          holderAddress,
-          eligibleVoteCreators,
-        )
-          .then((balance) => {
-            if (balance.balanceOf > 0) {
-              balances[holderAddress] = balance;
-              console.log(holderAddress, balance);
-            }
-          })
-          .catch((error) => {
-            console.log('Error with address', holderAddress, error);
-            retryAddresses.push(holderAddress);
-          });
-      }),
+      addressArray.map((holderAddress) => ElasticVote._createEligibleVoterBalanceData(
+        overrides,
+        additionalTokenBalances,
+        dao,
+        minimumVoteCreationBalance,
+        maxVotingTokens,
+        holderAddress,
+        eligibleVoteCreators,
+      )
+        .then((balance) => {
+          if (toBigNumber(balance.balanceOf).isGreaterThan(0)) {
+            balances[holderAddress] = balance;
+          }
+        })
+        .catch((error) => {
+          console.log('Error with address', holderAddress, error);
+          retryAddresses.push(holderAddress);
+        })),
     );
     if (retryAddresses.length > 0) {
       await new Promise((resolve) => setTimeout(resolve, 500)); // throttle api calls to alchemy

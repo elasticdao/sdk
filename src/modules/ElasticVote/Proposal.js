@@ -187,12 +187,12 @@ export default class Proposal extends Base {
     const address = this.sdk.account;
 
     const action = 'create';
-    
+
     this._raw.nonce = await this.sdk.getNonceForAddress(address);
     const { types, value } = this.action(action);
 
     const signature = await this.sdk.signTypedDataOrMessage(types, value);
-
+    console.log(signature, value);
     const response = await this.fetch(this.nodeUrl, {
       method: 'POST',
       mode: 'cors',
