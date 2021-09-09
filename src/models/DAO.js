@@ -36,6 +36,9 @@ export default class DAO extends ElasticModel {
     this._id = toKey(uuid, keyAddition);
 
     let cached = this.cache.get(this.id);
+    console.log('cached', cached);
+    console.log('this.id', this.id);
+
     const summoners = (cached || {}).summoners || [];
 
     if (Object.keys(attributes).length > 1) {

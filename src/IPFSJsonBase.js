@@ -21,7 +21,7 @@ export default class IPFSJsonBase extends Cachable {
 
   get promise() {
     if (this.loaded) {
-      return Promise.resolve();
+      return Promise.resolve(this);
     }
 
     const key = `loading|${this.id}`;

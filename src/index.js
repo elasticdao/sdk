@@ -5,6 +5,7 @@ import { shortenAddress, validateIsAddress } from '@pie-dao/utils';
 import Notify from 'bnc-notify';
 
 import Base from './Base';
+import Cache from './Cache';
 import CoinGecko from './integrations/CoinGecko';
 import DAOClass from './models/DAO';
 import EcosystemClass from './models/Ecosystem';
@@ -24,6 +25,7 @@ import TokenHolderClass from './models/TokenHolder';
 
 import {
   amountFormatter,
+  domain,
   buildError,
   isValidTypedDataOrMessageSignature,
   swapBigNumber,
@@ -77,6 +79,7 @@ export const adapters = {
 export const utils = {
   amountFormatter,
   buildError,
+  domain,
   isValidTypedDataOrMessageSignature,
   swapBigNumber,
   toBigNumber,
@@ -300,6 +303,31 @@ export class SDK extends Subscribable {
     return this._modules;
   }
 
+  get promise() {
+    // This is the set of all object constructors
+    // that implement Cachable.
+    const constructorNames = [
+      'API',
+      'Block',
+      'DAO',
+      'Ecosystem',
+      'ElasticGovernanceToken',
+      'ElasticRewards',
+      'ElasticVote',
+      'IPFS',
+      'IPFSReward',
+      'SnapshotAPI',
+      'Token',
+      'TokenHolder',
+    ];
+    return Promise.all(
+      constructorNames.map((constructorName) => {
+        const cache = new Cache(this, constructorName);
+        return cache.promise;
+      }),
+    );
+  }
+
   get queue() {
     return this._queue;
   }
@@ -467,12 +495,11 @@ export class SDK extends Subscribable {
    * be a unique set of attributes (for example a proposal) or contain a nonce/salt to ensure the
    * message is only used to initiate a single transaction in the elastic node (like a transfer).
    * see https://docs.ethers.io/v5/api/signer/#Signer--signing-methods for more info.
-   * @param {} domain
    * @param {*} types
    * @param {*} value
    * @returns signature
    */
-  signTypedDataOrMessage(domain, types, value) {
+  signTypedDataOrMessage(types, value) {
     const signTypedData = (
       this.signer._signTypedData || this.signer.signTypedData
     ).bind(this.signer);

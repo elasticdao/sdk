@@ -10,20 +10,14 @@ export default class Cache extends Base {
     super(sdk);
 
     this._key = `@elastic-dao/sdk - ${key}`;
-    this._localStorage = false;
     this._globalPersist = persist;
 
     if (!isPOJO(localData.ignore[this._key])) {
       localData.ignore[this._key] = {};
     }
 
-    if (!isPOJO(localData[this._key])) {
-      localData[this.key] = {};
-    }
-
-    if (persist && this.adapter.available && localData[this.key] === {}) {
-      localData[this.key].loading = true;
-
+    if (persist && !localData[this.key]) {
+      localData[this.key] = { loading: true };
       this.adapter
         .load(this.key)
         .then((data) => {
@@ -34,7 +28,12 @@ export default class Cache extends Base {
         })
         .catch(() => {
           this.clear();
+        })
+        .finally(() => {
+          delete localData[this.key].loading;
         });
+    } else if (!localData[this.key]) {
+      localData[this.key] = {};
     }
   }
 
@@ -44,6 +43,22 @@ export default class Cache extends Base {
 
   get key() {
     return this._key;
+  }
+
+  get promise() {
+    if (!this._globalPersist) {
+      return Promise.resolve();
+    }
+
+    if (!localData[this.key].loading && this.sdk.storageAdapter.available) {
+      return Promise.resolve();
+    }
+
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        this.promise.then(resolve);
+      }, 50);
+    });
   }
 
   get raw() {

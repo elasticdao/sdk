@@ -40,17 +40,20 @@ export default class LocalStorageAdapter {
   }
 
   async load(key) {
+    await this.awaitAvailable();
     this.ensureAvailable();
     return JSON.parse(localStorage.getItem(key));
   }
 
   async persist(key, object) {
+    await this.awaitAvailable();
     this.ensureAvailable();
     localStorage.setItem(key, JSON.stringify(object));
     return true;
   }
 
   async remove(key) {
+    await this.awaitAvailable();
     this.ensureAvailable();
     localStorage.removeItem(key);
     return true;
