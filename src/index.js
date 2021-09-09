@@ -499,13 +499,7 @@ export class SDK extends Subscribable {
    * @param {*} value
    * @returns signature
    */
-<<<<<<< HEAD
-  signTypedDataOrMessage(domain, types, value) {
-=======
   async signTypedDataOrMessage(types, value) {
-    let signature;
-
->>>>>>> 1893cf8 (better domain handling)
     const signTypedData = (
       this.signer._signTypedData || this.signer.signTypedData
     ).bind(this.signer);
