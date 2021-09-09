@@ -70,7 +70,6 @@ class ElasticVote extends Cachable {
       }
     }
 
-    // console.log('blocknumber vs closest block', blockNumber, closestBlock);
     const block = index.blocks[`${closestBlock}`];
 
     if (!block) {
@@ -95,19 +94,16 @@ class ElasticVote extends Cachable {
     overrides,
     additionalTokenBalances,
     dao,
-    minimumVoteCreationBalance,
     maxVotingTokens,
     holderAddress,
-    eligibleVoteCreators,
   ) {
+    
     const additionalBalance = additionalTokenBalances[holderAddress] || 0;
-    const balanceOf = toBigNumber(
-      await dao.elasticGovernanceToken.contract.balanceOf(
+    let balanceOf = await dao.elasticGovernanceToken.balanceOf(
         holderAddress,
         overrides,
-      ),
-      18,
-    ).plus(additionalBalance);
+      )
+    balanceOf = balanceOf.plus(additionalBalance);
 
     if (balanceOf.isNaN() || balanceOf.isZero()) {
       return {
@@ -115,22 +111,16 @@ class ElasticVote extends Cachable {
         balanceOfVoting: 0,
       };
     }
-    let balanceOfVoting = toBigNumber(
-      await dao.elasticGovernanceToken.contract.balanceOfVoting(
+    let balanceOfVoting = await dao.elasticGovernanceToken.balanceOfVoting(
         holderAddress,
         overrides,
-      ),
-      18,
-    ).plus(additionalBalance);
+      )
+    balanceOfVoting = balanceOfVoting.plus(additionalBalance);
 
     if (balanceOfVoting.isGreaterThan(maxVotingTokens)) {
       balanceOfVoting = toBigNumber(maxVotingTokens);
     }
-
-    if (balanceOf.isGreaterThanOrEqualTo(minimumVoteCreationBalance)) {
-      eligibleVoteCreators.push(holderAddress);
-    }
-
+    
     return {
       balanceOf: balanceOf.toFixed(18),
       balanceOfVoting: balanceOfVoting.toFixed(18),
@@ -142,9 +132,7 @@ class ElasticVote extends Cachable {
     additionalTokenBalances,
     overrides,
     dao,
-    minimumVoteCreationBalance,
     maxVotingTokens,
-    eligibleVoteCreators,
     retryCount,
     maxRetries,
   ) {
@@ -161,10 +149,8 @@ class ElasticVote extends Cachable {
         overrides,
         additionalTokenBalances,
         dao,
-        minimumVoteCreationBalance,
         maxVotingTokens,
         holderAddress,
-        eligibleVoteCreators,
       )
         .then((balance) => {
           if (toBigNumber(balance.balanceOf).isGreaterThan(0)) {
@@ -185,9 +171,7 @@ class ElasticVote extends Cachable {
           additionalTokenBalances,
           overrides,
           dao,
-          minimumVoteCreationBalance,
           maxVotingTokens,
-          eligibleVoteCreators,
           retryCount + 1,
           maxRetries,
         )),
@@ -224,6 +208,7 @@ class ElasticVote extends Cachable {
     });
 
     const holders = await dao.elasticGovernanceToken.holders(overrides);
+
     // smaller chunks to make this a bit easier for processing.
     const chunks = chunkArray(holders, 25);
 
@@ -235,17 +220,23 @@ class ElasticVote extends Cachable {
           additionalTokenBalances,
           overrides,
           dao,
-          minimumVoteCreationBalance,
           maxVotingTokens,
-          eligibleVoteCreators,
-          0,
-          10,
+          0,  // retry county
+          10, //max retries
         )),
       };
       await new Promise((resolve) => setTimeout(resolve, 500)); // throttle api calls to alchemy
     }
-
+    
     const tokenHolders = Object.keys(balances);
+    for(let i =0; i < tokenHolders.length; i += 1) {
+      const balanceOfTokenHolder = toBigNumber(balances[tokenHolders[i]].balanceOf);
+      if (balanceOfTokenHolder.isGreaterThanOrEqualTo(minimumVoteCreationBalance)) {
+        
+        eligibleVoteCreators.push(tokenHolders[i]);
+      }
+    }
+
     const numberOfHolders = tokenHolders.length;
     const eligibleVoters = tokenHolders.filter(
       (address) => !blacklist.includes(address),
