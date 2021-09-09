@@ -322,8 +322,8 @@ export class SDK extends Subscribable {
     ];
     return Promise.all(
       constructorNames.map((constructorName) => {
-        const cash = new Cache(this, constructorName);
-        return cash.promise;
+        const cache = new Cache(this, constructorName);
+        return cache.promise;
       }),
     );
   }
