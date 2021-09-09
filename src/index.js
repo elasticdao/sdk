@@ -472,28 +472,24 @@ export class SDK extends Subscribable {
    * @param {*} value
    * @returns signature
    */
-  async signTypedDataOrMessage(domain, types, value) {
-    let signature;
-
+  signTypedDataOrMessage(domain, types, value) {
     const signTypedData = (
       this.signer._signTypedData || this.signer.signTypedData
     ).bind(this.signer);
 
-    await signTypedData(domain, types, value)
-      .then((sig) => {
-        signature = sig;
-      })
-      .catch(async (error) => {
-        // we need to try again if this was due to a HW signing issue.
-        // check that the user didn't just reject the tx.
-        console.log('EIP 712 Signature Failed', error);
-        if (error.message.includes('User denied message signature')) {
-          return;
-        }
-        console.log('EIP 191 Signature Request');
-        signature = await this.signer.signMessage(JSON.stringify(value));
-      });
-    console.log('signature', signature);
-    return signature;
+    return new Promise((resolve, reject) => {
+      signTypedData(domain, types, value)
+        .then(resolve)
+        .catch((error) => {
+          // we need to try again if this was due to a HW signing issue.
+          // check that the user didn't just reject the tx.
+          console.log('EIP 712 Signature Failed', error);
+          if (error.message.includes('User denied message signature')) {
+            reject(error);
+          }
+          console.log('EIP 191 Signature Request');
+          this.signer.signMessage(JSON.stringify(value)).then(resolve, reject);
+        });
+    });
   }
 }

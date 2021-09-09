@@ -186,6 +186,7 @@ export default class Proposal extends Base {
       types,
       value,
     );
+    console.log('signature', signature);
     const response = await this.fetch(this.nodeUrl, {
       method: 'POST',
       mode: 'cors',
