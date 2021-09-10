@@ -141,6 +141,7 @@ export default class IPFSProposal extends IPFSJsonBase {
   }
 
   get votes() {
+    console.log("votes", this.index);
     return Object.values(this.index.votes);
   }
 

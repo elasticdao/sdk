@@ -66,11 +66,11 @@ export default class IPFSJsonBase extends Cachable {
     return this.cache.get(key);
   }
 
-  _value(key, fallback = '') {
-    if (!this.loaded) {
+  _value(key, fallback) {
+    try {
+      return key.split('.').reduce((acc, part) => acc[part], this.cached);
+    } catch (error) {
       return fallback;
     }
-
-    return key.split('.').reduce((acc, part) => acc[part], this.cached);
   }
 }

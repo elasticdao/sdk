@@ -26,7 +26,7 @@ export default class Vote {
 
   static types() {
     return {
-      TransferRewards: [
+      Vote: [
         { name: 'choice', type: 'string' },
         { name: 'voter', type: 'address' },
         { name: 'proposal', type: 'string' },
@@ -76,7 +76,7 @@ export default class Vote {
   }
 
   async submitVote() {
-    if (!this.sdk.signer) {
+    if (!this.api.sdk.signer) {
       return false;
     }
 
@@ -101,6 +101,14 @@ export default class Vote {
     );
 
     console.log('signature', signature);
+    console.log('payload', JSON.stringify({
+      action,
+      choice: this.choice,
+      voter: address,
+      proposal: this.proposal.id,
+      signature,
+      nonce: this.nonce,
+    }));
 
     const response = await this.fetch(this.nodeUrl, {
       method: 'POST',

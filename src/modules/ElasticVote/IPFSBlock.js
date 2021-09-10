@@ -24,7 +24,6 @@ export default class IPFSBlock extends IPFSJsonBase {
 
   get promise() {
     if (this.loaded) {
-      console.log('IPFSBlock - 29');
       return Promise.resolve(this);
     }
 
@@ -93,7 +92,7 @@ export default class IPFSBlock extends IPFSJsonBase {
   async load(force = false, cacheData) {
     await super.load(force, cacheData);
     const proposalHashes = Object.keys(this._value('proposals'));
-    console.log('proposalHashes', proposalHashes);
+    const proposalsCreated = []; // need to create this to avoid a concurrency issue with multiple load calls.
     for (let i = 0; i < proposalHashes.length; i += 1) {
       const proposalHash = proposalHashes[i];
       const proposal = new IPFSProposal(this.sdk, proposalHash);
@@ -104,10 +103,10 @@ export default class IPFSBlock extends IPFSJsonBase {
 
       proposal.index = proposalIndex;
       proposal.block = this;
-      this._proposals.push(proposal);
+      proposalsCreated.push(proposal);
       this._proposalIndices[proposalHash] = proposalIndex;
     }
-
+    this._proposals = proposalsCreated;
     await Promise.all(this.proposals.map((proposal) => proposal.promise));
     const blockNumbers = Object.keys(this._value('blocks'));
     for (let i = 0; i < blockNumbers.length; i += 1) {
@@ -116,7 +115,6 @@ export default class IPFSBlock extends IPFSJsonBase {
         this._value('blocks')[blockNumbers[i]],
       );
     }
-
     return this;
   }
 

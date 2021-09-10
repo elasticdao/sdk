@@ -33,7 +33,7 @@ export default class IPFSVote extends IPFSJsonBase {
   }
 
   get proposal() {
-    return new IPFSProposal(this.sdk, this._value('proposal'));
+    return this._value('proposal');
   }
 
   get signature() {

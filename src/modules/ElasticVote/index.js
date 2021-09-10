@@ -335,7 +335,7 @@ class ElasticVote extends Cachable {
       const block = new IPFSBlock(this.sdk, blockHash);
       await block.promise; // this awaits the load of all underlying child objects
       this._ipfsBlock = block;
-      this._ipfsProposals = block.proposals;
+      this._ipfsProposals = block.proposals;      
     } catch (e) {
       this._ipfsProposals = [];
       this._ipfsBlock = [];
