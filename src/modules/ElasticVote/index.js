@@ -6,6 +6,7 @@ import { t } from '../../elasticMath';
 import APIClass from './API';
 import Cachable from '../../Cachable';
 import IPFSProposalClass from './IPFSProposal';
+import IPFSProposalIndex from './IPFSProposalIndex';
 import ProposalClass from './Proposal';
 import SnapshotAPIClass from './SnapshotAPI';
 import SnapshotProposalClass from './SnapshotProposal';
@@ -339,6 +340,11 @@ class ElasticVote extends Cachable {
       for (let i = 0; i < proposals.length; i += 1) {
         const proposal = new IPFSProposalClass(this.sdk, proposals[i]);
         await proposal.promise;
+        const proposalIndex = IPFSProposalIndex(
+          this.sdk,
+          indexData.proposals[proposals[i]],
+        );
+        await proposalIndex.promise;
 
         // TODO: fetch vote data here and compile
 

@@ -7,6 +7,7 @@ import BigNumber from 'bignumber.js';
   voter
   proposal
   signature
+  nonce
 */
 
 // 1. Update RAW to include version and signature.
@@ -29,6 +30,7 @@ export default class Vote {
         { name: 'choice', type: 'string' },
         { name: 'voter', type: 'address' },
         { name: 'proposal', type: 'string' },
+        { name: 'nonce', type: 'uint256' },
       ],
     };
   }
@@ -47,6 +49,10 @@ export default class Vote {
 
   get id() {
     return this._raw.id;
+  }
+
+  get nonce() {
+    return this._raw.nonce;
   }
 
   get proposal() {
@@ -77,14 +83,17 @@ export default class Vote {
     const address = this.sdk.account;
     const action = 'submit';
 
+    this._raw.nonce = await this.sdk.getNonceForAddress(address);
+
     const value = {
       action,
       choice: this.choice,
       voter: address,
       proposal: this.proposal.id,
+      nonce: this.nonce,
     };
 
-    console.log('Transfer create sig data', Vote.types(), value);
+    console.log('Submit vote sig data', Vote.types(), value);
 
     const signature = await this.sdk.signTypedDataOrMessage(
       Vote.types(),
@@ -106,6 +115,7 @@ export default class Vote {
         voter: address,
         proposal: this.proposal.id,
         signature,
+        nonce: this.nonce,
       }),
     });
 
@@ -113,7 +123,7 @@ export default class Vote {
   }
 
   toJSON() {
-    const { author, choice, date, id, proposal, signature, voter, weight } =
+    const { author, choice, date, id, nonce, proposal, signature, voter } =
       this;
 
     return {
@@ -121,10 +131,10 @@ export default class Vote {
       choice,
       date,
       id,
+      nonce,
+      proposal: proposal.id,
       signature,
       voter,
-      proposal: proposal.id,
-      weight: weight.toFixed(18),
     };
   }
 }
