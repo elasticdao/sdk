@@ -104,11 +104,14 @@ export default class IPFSBlock extends IPFSJsonBase {
     const proposalHashes = Object.keys(this._value('proposals'));
     for (let i = 0; i < proposalHashes.length; i += 1) {
       const proposalHash = proposalHashes[i];
-      this._proposals.push(new IPFSProposal(this.sdk, proposalHash));
-      this._proposalIndices[proposalHash] = new IPFSProposalIndex(
+      const proposal = new IPFSProposal(this.sdk, proposalHash);
+      const proposalIndex = new IPFSProposalIndex(
         this.sdk,
         this._value('proposals')[proposalHash],
       );
+      proposal.index = proposalIndex;
+      this._proposals.push(proposal);
+      this._proposalIndices[proposalHash] = proposalIndex;
     }
 
     const blockNumbers = Object.keys(this._value('blocks'));

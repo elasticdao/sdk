@@ -348,6 +348,7 @@ class ElasticVote extends Cachable {
       const proposals = Object.keys(block.proposals);
       for (let i = 0; i < proposals.length; i += 1) {
         const proposal = new IPFSProposalClass(this.sdk, proposals[i]);
+        proposal.block = block;
         await proposal.promise;
         const proposalIndex = IPFSProposalIndex(
           this.sdk,

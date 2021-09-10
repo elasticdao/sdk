@@ -2,6 +2,7 @@
 
 import BigNumber from 'bignumber.js';
 import IPFSJsonBase from '../../IPFSJsonBase';
+import { toBigNumber } from '../../utils';
 
 /*
   Version 1.0.0:
@@ -18,7 +19,12 @@ import IPFSJsonBase from '../../IPFSJsonBase';
 */
 export default class IPFSProposal extends IPFSJsonBase {
   get abstain() {
-    return BigNumber(0); // Calculated in the loadIPFS function
+    return Object.keys(this.index.votes).reduce((total, voter) => {
+      if (this.index.votes[voter].choice === 'abstain') {
+        return total.plus(this.blockData.balances[voter.toLowerCase()] || 0);
+      }
+      return total;
+    }, toBigNumber(0));
   }
 
   get active() {
@@ -27,6 +33,18 @@ export default class IPFSProposal extends IPFSJsonBase {
 
   get author() {
     return this._value('author');
+  }
+
+  get block() {
+    return this._block;
+  }
+
+  set block(_block) {
+    this._block = _block;
+  }
+
+  get blockData() {
+    return this.block.blocks[`${this.snapshot}`];
   }
 
   get body() {
@@ -53,6 +71,14 @@ export default class IPFSProposal extends IPFSJsonBase {
     return this.id;
   }
 
+  get index() {
+    return this._index;
+  }
+
+  set index(_index) {
+    this._index = _index;
+  }
+
   get isValid() {
     return true;
   }
@@ -62,7 +88,12 @@ export default class IPFSProposal extends IPFSJsonBase {
   }
 
   get no() {
-    return BigNumber(0); // Calculated in the loadIPFS function
+    return Object.keys(this.index.votes).reduce((total, voter) => {
+      if (this.index.votes[voter].choice === 'no') {
+        return total.plus(this.blockData.balances[voter.toLowerCase()] || 0);
+      }
+      return total;
+    }, toBigNumber(0));
   }
 
   get pending() {
@@ -70,7 +101,7 @@ export default class IPFSProposal extends IPFSJsonBase {
   }
 
   get quorum() {
-    return BigNumber(0); // Calculated in the loadIPFS function
+    return this.voted.dividedBy(this.blockData.maximumEligibleVotingTokens);
   }
 
   get nodeUrl() {
@@ -102,15 +133,24 @@ export default class IPFSProposal extends IPFSJsonBase {
   }
 
   get voted() {
-    return BigNumber(0); // Calculated in the loadIPFS function
+    return Object.keys(this.index.votes).reduce(
+      (total, voter) =>
+        total.plus(this.blockData.balances[voter.toLowerCase()] || 0),
+      toBigNumber(0),
+    );
   }
 
   get votes() {
-    return []; // Added in the loadIPFS function
+    return Object.values(this.index.votes);
   }
 
   get yes() {
-    return BigNumber(0); // Calculated in the loadIPFS function
+    return Object.keys(this.index.votes).reduce((total, voter) => {
+      if (this.index.votes[voter].choice === 'yes') {
+        return total.plus(this.blockData.balances[voter.toLowerCase()] || 0);
+      }
+      return total;
+    }, toBigNumber(0));
   }
 
   didVote(address) {
