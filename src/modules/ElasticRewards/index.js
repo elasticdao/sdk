@@ -11,10 +11,15 @@ class ElasticRewards extends Cachable {
     this._api = new APIClass(this.sdk, ens);
     this._ens = ens;
     this._rewards = {};
+    this._balances = {};
   }
 
   get api() {
     return this._api;
+  }
+
+  get balances() {
+    return this._balances;
   }
 
   get ens() {
@@ -39,6 +44,7 @@ class ElasticRewards extends Cachable {
       }
 
       this._rewards[account] = await this.api.getRewards(account);
+      this._balances[account] = await this.api.getRewardsBalance(account);
     } catch (e) {
       this._rewards[account] = [];
       console.warn('ElasticRewards unavailable', e);

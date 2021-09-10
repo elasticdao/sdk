@@ -1,5 +1,6 @@
 /* eslint no-unused-expressions: 0 */
 
+import { toBigNumber } from '../../utils';
 import Cachable from '../../Cachable';
 import Reward from './Reward';
 
@@ -26,6 +27,7 @@ export default class API extends Cachable {
     const account = address.toLowerCase();
 
     let rewards = {
+      balance: toBigNumber('0'),
       data: undefined,
       expires: Date.now() + 60000, // expires after 1 minute
     };
@@ -45,6 +47,7 @@ export default class API extends Cachable {
           .then((response) => response.json())
           .then((json) => {
             rewards.data = json.rewards;
+            rewards.balance = toBigNumber(json.balance);
             this.cache.set(account, rewards);
             resolve(rewards);
           })
@@ -66,5 +69,11 @@ export default class API extends Cachable {
     );
 
     return rewardObjects;
+  }
+
+  async getRewardsBalance(address) {
+    const account = address.toLowerCase();
+    await this.getRewards(account);
+    return this.cache.get(account).balance;
   }
 }
