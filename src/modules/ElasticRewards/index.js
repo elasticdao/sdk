@@ -47,6 +47,7 @@ class ElasticRewards extends Cachable {
       this._balances[account] = await this.api.getRewardsBalance(account);
     } catch (e) {
       this._rewards[account] = [];
+      this._balances[account] = [];
       console.warn('ElasticRewards unavailable', e);
     }
     return this;

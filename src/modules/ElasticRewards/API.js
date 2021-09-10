@@ -27,7 +27,7 @@ export default class API extends Cachable {
     const account = address.toLowerCase();
 
     let rewards = {
-      balance: toBigNumber('0'),
+      balance: toBigNumber(0),
       data: undefined,
       expires: Date.now() + 60000, // expires after 1 minute
     };
