@@ -97,12 +97,11 @@ class ElasticVote extends Cachable {
     maxVotingTokens,
     holderAddress,
   ) {
-    
     const additionalBalance = additionalTokenBalances[holderAddress] || 0;
     let balanceOf = await dao.elasticGovernanceToken.balanceOf(
-        holderAddress,
-        overrides,
-      )
+      holderAddress,
+      overrides,
+    );
     balanceOf = balanceOf.plus(additionalBalance);
 
     if (balanceOf.isNaN() || balanceOf.isZero()) {
@@ -112,15 +111,15 @@ class ElasticVote extends Cachable {
       };
     }
     let balanceOfVoting = await dao.elasticGovernanceToken.balanceOfVoting(
-        holderAddress,
-        overrides,
-      )
+      holderAddress,
+      overrides,
+    );
     balanceOfVoting = balanceOfVoting.plus(additionalBalance);
 
     if (balanceOfVoting.isGreaterThan(maxVotingTokens)) {
       balanceOfVoting = toBigNumber(maxVotingTokens);
     }
-    
+
     return {
       balanceOf: balanceOf.toFixed(18),
       balanceOfVoting: balanceOfVoting.toFixed(18),
@@ -145,22 +144,24 @@ class ElasticVote extends Cachable {
     let balances = {};
     const retryAddresses = [];
     await Promise.all(
-      addressArray.map((holderAddress) => ElasticVote._createEligibleVoterBalanceData(
-        overrides,
-        additionalTokenBalances,
-        dao,
-        maxVotingTokens,
-        holderAddress,
-      )
-        .then((balance) => {
-          if (toBigNumber(balance.balanceOf).isGreaterThan(0)) {
-            balances[holderAddress] = balance;
-          }
-        })
-        .catch((error) => {
-          console.log('Error with address', holderAddress, error);
-          retryAddresses.push(holderAddress);
-        })),
+      addressArray.map((holderAddress) =>
+        ElasticVote._createEligibleVoterBalanceData(
+          overrides,
+          additionalTokenBalances,
+          dao,
+          maxVotingTokens,
+          holderAddress,
+        )
+          .then((balance) => {
+            if (toBigNumber(balance.balanceOf).isGreaterThan(0)) {
+              balances[holderAddress] = balance;
+            }
+          })
+          .catch((error) => {
+            console.log('Error with address', holderAddress, error);
+            retryAddresses.push(holderAddress);
+          }),
+      ),
     );
     if (retryAddresses.length > 0) {
       await new Promise((resolve) => setTimeout(resolve, 500)); // throttle api calls to alchemy
@@ -221,18 +222,21 @@ class ElasticVote extends Cachable {
           overrides,
           dao,
           maxVotingTokens,
-          0,  // retry county
-          10, //max retries
+          0, // retry county
+          10, // max retries
         )),
       };
       await new Promise((resolve) => setTimeout(resolve, 500)); // throttle api calls to alchemy
     }
-    
+
     const tokenHolders = Object.keys(balances);
-    for(let i =0; i < tokenHolders.length; i += 1) {
-      const balanceOfTokenHolder = toBigNumber(balances[tokenHolders[i]].balanceOf);
-      if (balanceOfTokenHolder.isGreaterThanOrEqualTo(minimumVoteCreationBalance)) {
-        
+    for (let i = 0; i < tokenHolders.length; i += 1) {
+      const balanceOfTokenHolder = toBigNumber(
+        balances[tokenHolders[i]].balanceOf,
+      );
+      if (
+        balanceOfTokenHolder.isGreaterThanOrEqualTo(minimumVoteCreationBalance)
+      ) {
         eligibleVoteCreators.push(tokenHolders[i]);
       }
     }
@@ -325,13 +329,15 @@ class ElasticVote extends Cachable {
     try {
       const indexJSON = await this.sdk.integrations.ipfs(indexHash);
       const indexData = JSON.parse(indexJSON);
+      // {"ens":"elasticdao.eth",
+      // "proposals":{"QmTp6fBiUyPKvqaWzGqZevaxYnFaHRwVJPnY1REJRgpvWp":
+      // "QmciVBdgcVQHw7TkmMBBLi6wpGvjzjFpn47s67T8Z1js4P"}, // proposal:index
+      // "blocks":{"13194063":"QmbZwpc1h65iGzj71Kv5Q2rcRHvPzXr1a4pvYFgstaC8fN"},
+      // "previousBlock":"QmcF3y2ReHiz8DLhSgcNwBaatTTVS8tzXFFWV7yix4QjqZ"}
 
-      const proposals = [];
-      for (let i = 0; i < indexData.proposals.length; i += 1) {
-        const proposal = new IPFSProposalClass(
-          this.sdk,
-          indexData.proposals[i],
-        );
+      const proposals = Object.keys(indexData.proposals);
+      for (let i = 0; i < proposals.length; i += 1) {
+        const proposal = new IPFSProposalClass(this.sdk, proposals[i]);
         await proposal.promise;
 
         // TODO: fetch vote data here and compile

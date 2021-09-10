@@ -16,7 +16,7 @@ import IPFSJsonBase from '../../IPFSJsonBase';
     start
   }
 */
-export default class Proposal extends IPFSJsonBase {
+export default class IPFSProposal extends IPFSJsonBase {
   get abstain() {
     return BigNumber(0); // Calculated in the loadIPFS function
   }
