@@ -12,6 +12,7 @@ import SnapshotAPIClass from './SnapshotAPI';
 import SnapshotProposalClass from './SnapshotProposal';
 import SnapshotVoteClass from './SnapshotVote';
 import VoteClass from './Vote';
+import IPFSBlock from './IPFSBlock';
 
 // proposals we don't want to show because ipfs is immutable.....
 const ProposalsToFilter = [
@@ -37,6 +38,7 @@ class ElasticVote extends Cachable {
     this._ens = ens;
     this._proposals = [];
     this._ipfsProposals = [];
+    this._ipfsProposalIndices = {};
     this._snapshotAPI = new SnapshotAPIClass(this.sdk, ens, ProposalsToFilter);
   }
 
@@ -46,6 +48,14 @@ class ElasticVote extends Cachable {
 
   get ens() {
     return this._ens;
+  }
+
+  get proposalIndices() {
+    return this._ipfsProposalIndices;
+  }
+
+  get block() {
+    return this._ipfsBlock;
   }
 
   get proposals() {
@@ -326,23 +336,22 @@ class ElasticVote extends Cachable {
     return this;
   }
 
-  async loadIPFS(indexHash) {
+  async loadIPFS(blockHash) {
     try {
-      const indexJSON = await this.sdk.integrations.ipfs(indexHash);
-      const indexData = JSON.parse(indexJSON);
-      // {"ens":"elasticdao.eth",
-      // "proposals":{"QmTp6fBiUyPKvqaWzGqZevaxYnFaHRwVJPnY1REJRgpvWp":
-      // "QmciVBdgcVQHw7TkmMBBLi6wpGvjzjFpn47s67T8Z1js4P"}, // proposal:index
-      // "blocks":{"13194063":"QmbZwpc1h65iGzj71Kv5Q2rcRHvPzXr1a4pvYFgstaC8fN"},
-      // "previousBlock":"QmcF3y2ReHiz8DLhSgcNwBaatTTVS8tzXFFWV7yix4QjqZ"}
+      const block = new IPFSBlock(this.sdk, blockHash);
+      await block.promise;
 
-      const proposals = Object.keys(indexData.proposals);
+      this._ipfsProposals = [];
+      this._ipfsBlock = block;
+      this._ipfsProposalIndices = {};
+
+      const proposals = Object.keys(block.proposals);
       for (let i = 0; i < proposals.length; i += 1) {
         const proposal = new IPFSProposalClass(this.sdk, proposals[i]);
         await proposal.promise;
         const proposalIndex = IPFSProposalIndex(
           this.sdk,
-          indexData.proposals[proposals[i]],
+          block.proposals[proposals[i]],
         );
         await proposalIndex.promise;
 
@@ -353,8 +362,8 @@ class ElasticVote extends Cachable {
         const dataJSON = await this.sdk.integrations.ipfs(dataHash);
         const data = JSON.parse(dataJSON);
         */
-
-        proposals.push(
+        this._ipfsProposalIndices[proposal.id] = proposalIndex;
+        this._ipfsProposals.push(
           new ProposalClass(this.sdk, this.api, {
             ...proposal.toJSON(),
             // votes,
@@ -366,10 +375,9 @@ class ElasticVote extends Cachable {
           }),
         );
       }
-
-      this._ipfsProposals = proposals;
     } catch (e) {
       this._ipfsProposals = [];
+      this._ipfsBlock = [];
       console.warn('ElasticVote IPFS unavailable', e);
     }
     return this;

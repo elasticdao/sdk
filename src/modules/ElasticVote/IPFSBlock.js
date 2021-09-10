@@ -76,6 +76,9 @@ export default class IPFSBlock extends IPFSJsonBase {
     return !statuses.has(false);
   }
 
+  /**
+   * represent eth block numbers and their associated data.
+   */
   get blocks() {
     return this._blocks;
   }
