@@ -6,7 +6,6 @@ import { t } from '../../elasticMath';
 import APIClass from './API';
 import Cachable from '../../Cachable';
 import IPFSProposalClass from './IPFSProposal';
-import IPFSProposalIndex from './IPFSProposalIndex';
 import ProposalClass from './Proposal';
 import SnapshotAPIClass from './SnapshotAPI';
 import SnapshotProposalClass from './SnapshotProposal';
@@ -38,7 +37,6 @@ class ElasticVote extends Cachable {
     this._ens = ens;
     this._proposals = [];
     this._ipfsProposals = [];
-    this._ipfsProposalIndices = {};
     this._snapshotAPI = new SnapshotAPIClass(this.sdk, ens, ProposalsToFilter);
   }
 
@@ -48,10 +46,6 @@ class ElasticVote extends Cachable {
 
   get ens() {
     return this._ens;
-  }
-
-  get proposalIndices() {
-    return this._ipfsProposalIndices;
   }
 
   get block() {
@@ -339,43 +333,9 @@ class ElasticVote extends Cachable {
   async loadIPFS(blockHash) {
     try {
       const block = new IPFSBlock(this.sdk, blockHash);
-      await block.promise;
-
-      this._ipfsProposals = [];
+      await block.promise; // this awaits the load of all underlying child objects
       this._ipfsBlock = block;
-      this._ipfsProposalIndices = {};
-
-      const proposals = Object.keys(block.proposals);
-      for (let i = 0; i < proposals.length; i += 1) {
-        const proposal = new IPFSProposalClass(this.sdk, proposals[i]);
-        proposal.block = block;
-        await proposal.promise;
-        const proposalIndex = IPFSProposalIndex(
-          this.sdk,
-          block.proposals[proposals[i]],
-        );
-        await proposalIndex.promise;
-
-        // TODO: fetch vote data here and compile
-
-        /*
-        const dataHash = indexData[`${proposal.snapshot}`];
-        const dataJSON = await this.sdk.integrations.ipfs(dataHash);
-        const data = JSON.parse(dataJSON);
-        */
-        this._ipfsProposalIndices[proposal.id] = proposalIndex;
-        this._ipfsProposals.push(
-          new ProposalClass(this.sdk, this.api, {
-            ...proposal.toJSON(),
-            // votes,
-            // voted,
-            // yes,
-            // no,
-            // abstain,
-            // quorum: BigNumber(voted).dividedBy(data.stats.quorum),
-          }),
-        );
-      }
+      this._ipfsProposals = block.proposals;
     } catch (e) {
       this._ipfsProposals = [];
       this._ipfsBlock = [];

@@ -20,7 +20,7 @@ import { toBigNumber } from '../../utils';
 export default class IPFSProposal extends IPFSJsonBase {
   get abstain() {
     return Object.keys(this.index.votes).reduce((total, voter) => {
-      if (this.index.votes[voter].choice === 'abstain') {
+      if (this.index.votes[voter].choice === 'Abstain') {
         return total.plus(this.blockData.balances[voter.toLowerCase()] || 0);
       }
       return total;
@@ -89,7 +89,7 @@ export default class IPFSProposal extends IPFSJsonBase {
 
   get no() {
     return Object.keys(this.index.votes).reduce((total, voter) => {
-      if (this.index.votes[voter].choice === 'no') {
+      if (this.index.votes[voter].choice === 'No') {
         return total.plus(this.blockData.balances[voter.toLowerCase()] || 0);
       }
       return total;
@@ -146,7 +146,7 @@ export default class IPFSProposal extends IPFSJsonBase {
 
   get yes() {
     return Object.keys(this.index.votes).reduce((total, voter) => {
-      if (this.index.votes[voter].choice === 'yes') {
+      if (this.index.votes[voter].choice === 'Yes') {
         return total.plus(this.blockData.balances[voter.toLowerCase()] || 0);
       }
       return total;

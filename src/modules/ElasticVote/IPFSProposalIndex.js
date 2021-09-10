@@ -65,11 +65,11 @@ export default class IPFSProposalIndex extends IPFSJsonBase {
   }
 
   get votes() {
-    return this._votes;
+    return this._votes || {};
   }
 
   async load(force = false, cacheData) {
-    this.super(force, cacheData);
+    await super.load(force, cacheData);
 
     const voters = Object.keys(this._value('votes'));
     for (let i = 0; i < voters.length; i += 1) {
