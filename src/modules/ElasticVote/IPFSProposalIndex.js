@@ -1,6 +1,5 @@
 /* eslint class-methods-use-this: 0 */
 import IPFSJsonBase from '../../IPFSJsonBase';
-import IPFSProposal from './IPFSProposal';
 import IPFSVote from './IPFSVote';
 /*
   Version 1.0.0:
@@ -57,7 +56,11 @@ export default class IPFSProposalIndex extends IPFSJsonBase {
   }
 
   get proposal() {
-    return new IPFSProposal(this.sdk, this._value('proposal'));
+    return this._proposal;
+  }
+
+  set proposal(_proposal) {
+    this._proposal = _proposal;
   }
 
   get rewardsDenyList() {
@@ -72,10 +75,9 @@ export default class IPFSProposalIndex extends IPFSJsonBase {
     await super.load(force, cacheData);
     const voters = Object.keys(this._value('votes'));
     for (let i = 0; i < voters.length; i += 1) {
-      this._votes[voters[i]] = new IPFSVote(
-        this.sdk,
-        this._value('votes')[voters[i]],
-      );
+      const ipfsVote = new IPFSVote(this.sdk, this._value('votes')[voters[i]]);
+      ipfsVote.proposalObject = ipfsVote;
+      this._votes[voters[i]] = ipfsVote;
     }
     return this;
   }

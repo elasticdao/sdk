@@ -1,6 +1,5 @@
 /* eslint class-methods-use-this: 0 */
 
-import BigNumber from 'bignumber.js';
 import IPFSJsonBase from '../../IPFSJsonBase';
 import { toBigNumber } from '../../utils';
 
@@ -21,10 +20,7 @@ export default class IPFSProposal extends IPFSJsonBase {
   get abstain() {
     return Object.keys(this.index.votes).reduce((total, voter) => {
       if (this.index.votes[voter].choice === 'Abstain') {
-        return total.plus(
-          (this.blockData.balances[voter.toLowerCase()] || {})
-            .balanceOfVoting || 0,
-        );
+        return total.plus(this.balanceOfVoter(voter));
       }
       return total;
     }, toBigNumber(0));
@@ -93,10 +89,7 @@ export default class IPFSProposal extends IPFSJsonBase {
   get no() {
     return Object.keys(this.index.votes).reduce((total, voter) => {
       if (this.index.votes[voter].choice === 'No') {
-        return total.plus(
-          (this.blockData.balances[voter.toLowerCase()] || {})
-            .balanceOfVoting || 0,
-        );
+        return total.plus(this.balanceOfVoter(voter));
       }
       return total;
     }, toBigNumber(0));
@@ -140,11 +133,7 @@ export default class IPFSProposal extends IPFSJsonBase {
 
   get voted() {
     return Object.keys(this.index.votes).reduce(
-      (total, voter) =>
-        total.plus(
-          (this.blockData.balances[voter.toLowerCase()] || {})
-            .balanceOfVoting || 0,
-        ),
+      (total, voter) => total.plus(this.balanceOfVoter(voter)),
       toBigNumber(0),
     );
   }
@@ -157,22 +146,17 @@ export default class IPFSProposal extends IPFSJsonBase {
     console.log('voted yes', this.index.votes);
     return Object.keys(this.index.votes).reduce((total, voter) => {
       if (this.index.votes[voter].choice === 'Yes') {
-        return total.plus(
-          (this.blockData.balances[voter.toLowerCase()] || {})
-            .balanceOfVoting || 0,
-        );
+        return total.plus(this.balanceOfVoter(voter));
       }
       return total;
     }, toBigNumber(0));
   }
 
-  didVote(address) {
-    return !!this.vote(address);
-  }
-
-  getScore(address) {
-    const vote = this.vote(address);
-    return BigNumber(vote ? vote.weight : 0);
+  balanceOfVoter(voterAddress) {
+    return toBigNumber(
+      (this.blockData.balances[voterAddress.toLowerCase()] || {})
+        .balanceOfVoting || 0,
+    );
   }
 
   toJSON() {
@@ -217,9 +201,5 @@ export default class IPFSProposal extends IPFSJsonBase {
       voted,
       yes,
     };
-  }
-
-  vote(address) {
-    return this._votes[`${address}`.toLowerCase()];
   }
 }

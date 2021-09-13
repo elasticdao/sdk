@@ -35,8 +35,20 @@ export default class IPFSVote extends IPFSJsonBase {
     return this._value('proposal');
   }
 
+  get proposalObject() {
+    return this._proposalObject;
+  }
+
+  set proposalObject(_proposalObject) {
+    this._proposalObject = _proposalObject;
+  }
+
   get signature() {
     return this._value('signature');
+  }
+
+  get weight() {
+    return this.proposal.balanceOfVoter(this.voter);
   }
 
   get voter() {
@@ -44,7 +56,8 @@ export default class IPFSVote extends IPFSJsonBase {
   }
 
   toJSON() {
-    const { author, choice, date, nonce, proposal, signature, voter } = this;
+    const { author, choice, date, nonce, proposal, signature, weight, voter } =
+      this;
 
     return {
       author,
@@ -53,6 +66,7 @@ export default class IPFSVote extends IPFSJsonBase {
       nonce,
       proposal,
       signature,
+      weight,
       voter,
     };
   }
