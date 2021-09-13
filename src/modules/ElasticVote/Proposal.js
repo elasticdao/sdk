@@ -23,6 +23,7 @@ import Base from '../../Base';
   voteCount
   voted
   yes
+  nonce
 */
 
 export default class Proposal extends Base {
@@ -80,6 +81,10 @@ export default class Proposal extends Base {
 
   get name() {
     return this._raw.name;
+  }
+
+  get nonce() {
+    return this._raw.nonce;
   }
 
   get no() {
@@ -142,6 +147,7 @@ export default class Proposal extends Base {
           { name: 'start', type: 'uint256' },
           { name: 'end', type: 'uint256' },
           { name: 'snapshot', type: 'uint256' },
+          { name: 'nonce', type: 'uint256' },
         ],
       };
 
@@ -152,6 +158,7 @@ export default class Proposal extends Base {
         start: this.start,
         end: this.end,
         snapshot: this.snapshot,
+        nonce: this.nonce,
       };
 
       return { types, value };
@@ -180,10 +187,12 @@ export default class Proposal extends Base {
     const address = this.sdk.account;
 
     const action = 'create';
+
+    this._raw.nonce = await this.sdk.getNonceForAddress(address);
     const { types, value } = this.action(action);
 
     const signature = await this.sdk.signTypedDataOrMessage(types, value);
-
+    console.log(signature, value);
     const response = await this.fetch(this.nodeUrl, {
       method: 'POST',
       mode: 'cors',
@@ -270,6 +279,7 @@ export default class Proposal extends Base {
       id,
       name,
       no,
+      nonce,
       pending,
       quorum,
       signature,
@@ -291,6 +301,7 @@ export default class Proposal extends Base {
       id,
       name,
       no,
+      nonce,
       pending,
       quorum,
       signature,

@@ -25,5 +25,6 @@ module.exports = {
     'no-use-before-define': 0,
     'object-curly-newline': 0,
     'operator-linebreak': 0,
+    'no-multi-assign': 0,
   },
 };

@@ -11,6 +11,7 @@ import SnapshotAPIClass from './SnapshotAPI';
 import SnapshotProposalClass from './SnapshotProposal';
 import SnapshotVoteClass from './SnapshotVote';
 import VoteClass from './Vote';
+import IPFSBlock from './IPFSBlock';
 
 // proposals we don't want to show because ipfs is immutable.....
 const ProposalsToFilter = [
@@ -47,6 +48,10 @@ class ElasticVote extends Cachable {
     return this._ens;
   }
 
+  get block() {
+    return this._ipfsBlock;
+  }
+
   get proposals() {
     return [...this._proposals, ...this._ipfsProposals];
   }
@@ -70,7 +75,6 @@ class ElasticVote extends Cachable {
       }
     }
 
-    // console.log('blocknumber vs closest block', blockNumber, closestBlock);
     const block = index.blocks[`${closestBlock}`];
 
     if (!block) {
@@ -95,19 +99,15 @@ class ElasticVote extends Cachable {
     overrides,
     additionalTokenBalances,
     dao,
-    minimumVoteCreationBalance,
     maxVotingTokens,
     holderAddress,
-    eligibleVoteCreators,
   ) {
     const additionalBalance = additionalTokenBalances[holderAddress] || 0;
-    const balanceOf = toBigNumber(
-      await dao.elasticGovernanceToken.contract.balanceOf(
-        holderAddress,
-        overrides,
-      ),
-      18,
-    ).plus(additionalBalance);
+    let balanceOf = await dao.elasticGovernanceToken.balanceOf(
+      holderAddress,
+      overrides,
+    );
+    balanceOf = balanceOf.plus(additionalBalance);
 
     if (balanceOf.isNaN() || balanceOf.isZero()) {
       return {
@@ -115,20 +115,14 @@ class ElasticVote extends Cachable {
         balanceOfVoting: 0,
       };
     }
-    let balanceOfVoting = toBigNumber(
-      await dao.elasticGovernanceToken.contract.balanceOfVoting(
-        holderAddress,
-        overrides,
-      ),
-      18,
-    ).plus(additionalBalance);
+    let balanceOfVoting = await dao.elasticGovernanceToken.balanceOfVoting(
+      holderAddress,
+      overrides,
+    );
+    balanceOfVoting = balanceOfVoting.plus(additionalBalance);
 
     if (balanceOfVoting.isGreaterThan(maxVotingTokens)) {
       balanceOfVoting = toBigNumber(maxVotingTokens);
-    }
-
-    if (balanceOf.isGreaterThanOrEqualTo(minimumVoteCreationBalance)) {
-      eligibleVoteCreators.push(holderAddress);
     }
 
     return {
@@ -142,9 +136,7 @@ class ElasticVote extends Cachable {
     additionalTokenBalances,
     overrides,
     dao,
-    minimumVoteCreationBalance,
     maxVotingTokens,
-    eligibleVoteCreators,
     retryCount,
     maxRetries,
   ) {
@@ -157,27 +149,24 @@ class ElasticVote extends Cachable {
     let balances = {};
     const retryAddresses = [];
     await Promise.all(
-      addressArray.map(async (holderAddress) => {
+      addressArray.map((holderAddress) =>
         ElasticVote._createEligibleVoterBalanceData(
           overrides,
           additionalTokenBalances,
           dao,
-          minimumVoteCreationBalance,
           maxVotingTokens,
           holderAddress,
-          eligibleVoteCreators,
         )
           .then((balance) => {
-            if (balance.balanceOf > 0) {
+            if (toBigNumber(balance.balanceOf).isGreaterThan(0)) {
               balances[holderAddress] = balance;
-              console.log(holderAddress, balance);
             }
           })
           .catch((error) => {
             console.log('Error with address', holderAddress, error);
             retryAddresses.push(holderAddress);
-          });
-      }),
+          }),
+      ),
     );
     if (retryAddresses.length > 0) {
       await new Promise((resolve) => setTimeout(resolve, 500)); // throttle api calls to alchemy
@@ -188,9 +177,7 @@ class ElasticVote extends Cachable {
           additionalTokenBalances,
           overrides,
           dao,
-          minimumVoteCreationBalance,
           maxVotingTokens,
-          eligibleVoteCreators,
           retryCount + 1,
           maxRetries,
         )),
@@ -227,6 +214,7 @@ class ElasticVote extends Cachable {
     });
 
     const holders = await dao.elasticGovernanceToken.holders(overrides);
+
     // smaller chunks to make this a bit easier for processing.
     const chunks = chunkArray(holders, 25);
 
@@ -238,17 +226,26 @@ class ElasticVote extends Cachable {
           additionalTokenBalances,
           overrides,
           dao,
-          minimumVoteCreationBalance,
           maxVotingTokens,
-          eligibleVoteCreators,
-          0,
-          10,
+          0, // retry county
+          10, // max retries
         )),
       };
       await new Promise((resolve) => setTimeout(resolve, 500)); // throttle api calls to alchemy
     }
 
     const tokenHolders = Object.keys(balances);
+    for (let i = 0; i < tokenHolders.length; i += 1) {
+      const balanceOfTokenHolder = toBigNumber(
+        balances[tokenHolders[i]].balanceOf,
+      );
+      if (
+        balanceOfTokenHolder.isGreaterThanOrEqualTo(minimumVoteCreationBalance)
+      ) {
+        eligibleVoteCreators.push(tokenHolders[i]);
+      }
+    }
+
     const numberOfHolders = tokenHolders.length;
     const eligibleVoters = tokenHolders.filter(
       (address) => !blacklist.includes(address),
@@ -333,43 +330,15 @@ class ElasticVote extends Cachable {
     return this;
   }
 
-  async loadIPFS(indexHash) {
+  async loadIPFS(blockHash) {
     try {
-      const indexJSON = await this.sdk.integrations.ipfs(indexHash);
-      const indexData = JSON.parse(indexJSON);
-
-      const proposals = [];
-      for (let i = 0; i < indexData.proposals.length; i += 1) {
-        const proposal = new IPFSProposalClass(
-          this.sdk,
-          indexData.proposals[i],
-        );
-        await proposal.promise;
-
-        // TODO: fetch vote data here and compile
-
-        /*
-        const dataHash = indexData[`${proposal.snapshot}`];
-        const dataJSON = await this.sdk.integrations.ipfs(dataHash);
-        const data = JSON.parse(dataJSON);
-        */
-
-        proposals.push(
-          new ProposalClass(this.sdk, this.api, {
-            ...proposal.toJSON(),
-            // votes,
-            // voted,
-            // yes,
-            // no,
-            // abstain,
-            // quorum: BigNumber(voted).dividedBy(data.stats.quorum),
-          }),
-        );
-      }
-
-      this._ipfsProposals = proposals;
+      const block = new IPFSBlock(this.sdk, blockHash);
+      await block.promise; // this awaits the load of all underlying child objects
+      this._ipfsBlock = block;
+      this._ipfsProposals = block.proposals;
     } catch (e) {
       this._ipfsProposals = [];
+      this._ipfsBlock = [];
       console.warn('ElasticVote IPFS unavailable', e);
     }
     return this;

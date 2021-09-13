@@ -1,7 +1,7 @@
 /* eslint class-methods-use-this: 0 */
 
-import BigNumber from 'bignumber.js';
 import IPFSJsonBase from '../../IPFSJsonBase';
+import { toBigNumber } from '../../utils';
 
 /*
   Version 1.0.0:
@@ -16,9 +16,14 @@ import IPFSJsonBase from '../../IPFSJsonBase';
     start
   }
 */
-export default class Proposal extends IPFSJsonBase {
+export default class IPFSProposal extends IPFSJsonBase {
   get abstain() {
-    return BigNumber(0); // Calculated in the loadIPFS function
+    return Object.keys(this.index.votes).reduce((total, voter) => {
+      if (this.index.votes[voter].choice === 'Abstain') {
+        return total.plus(this.balanceOfVoter(voter));
+      }
+      return total;
+    }, toBigNumber(0));
   }
 
   get active() {
@@ -27,6 +32,18 @@ export default class Proposal extends IPFSJsonBase {
 
   get author() {
     return this._value('author');
+  }
+
+  get block() {
+    return this._block;
+  }
+
+  set block(_block) {
+    this._block = _block;
+  }
+
+  get blockData() {
+    return this.block.blocks[`${this.snapshot}`];
   }
 
   get body() {
@@ -53,6 +70,14 @@ export default class Proposal extends IPFSJsonBase {
     return this.id;
   }
 
+  get index() {
+    return this._index;
+  }
+
+  set index(_index) {
+    this._index = _index;
+  }
+
   get isValid() {
     return true;
   }
@@ -62,7 +87,12 @@ export default class Proposal extends IPFSJsonBase {
   }
 
   get no() {
-    return BigNumber(0); // Calculated in the loadIPFS function
+    return Object.keys(this.index.votes).reduce((total, voter) => {
+      if (this.index.votes[voter].choice === 'No') {
+        return total.plus(this.balanceOfVoter(voter));
+      }
+      return total;
+    }, toBigNumber(0));
   }
 
   get pending() {
@@ -70,7 +100,7 @@ export default class Proposal extends IPFSJsonBase {
   }
 
   get quorum() {
-    return BigNumber(0); // Calculated in the loadIPFS function
+    return this.voted.dividedBy(this.blockData.maximumEligibleVotingTokens);
   }
 
   get nodeUrl() {
@@ -102,24 +132,30 @@ export default class Proposal extends IPFSJsonBase {
   }
 
   get voted() {
-    return BigNumber(0); // Calculated in the loadIPFS function
+    return Object.keys(this.index.votes).reduce(
+      (total, voter) => total.plus(this.balanceOfVoter(voter)),
+      toBigNumber(0),
+    );
   }
 
   get votes() {
-    return []; // Added in the loadIPFS function
+    return Object.values(this.index.votes);
   }
 
   get yes() {
-    return BigNumber(0); // Calculated in the loadIPFS function
+    return Object.keys(this.index.votes).reduce((total, voter) => {
+      if (this.index.votes[voter].choice === 'Yes') {
+        return total.plus(this.balanceOfVoter(voter));
+      }
+      return total;
+    }, toBigNumber(0));
   }
 
-  didVote(address) {
-    return !!this.vote(address);
-  }
-
-  getScore(address) {
-    const vote = this.vote(address);
-    return BigNumber(vote ? vote.weight : 0);
+  balanceOfVoter(voterAddress) {
+    return toBigNumber(
+      (this.blockData.balances[voterAddress.toLowerCase()] || {})
+        .balanceOfVoting || 0,
+    );
   }
 
   toJSON() {
@@ -164,9 +200,5 @@ export default class Proposal extends IPFSJsonBase {
       voted,
       yes,
     };
-  }
-
-  vote(address) {
-    return this._votes[`${address}`.toLowerCase()];
   }
 }
