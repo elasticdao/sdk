@@ -501,7 +501,7 @@ export class SDK extends Subscribable {
    */
   signTypedDataOrMessage(types, value) {
     const signTypedData = (
-      this.signer._signTypedData || this.signer.signTypedData
+      this.signer.signTypedData_v4 || this.signer.signTypedData || this.signer._signTypedData
     ).bind(this.signer);
 
     return new Promise((resolve, reject) => {
