@@ -70,7 +70,6 @@ export default class IPFSProposalIndex extends IPFSJsonBase {
 
   async load(force = false, cacheData) {
     await super.load(force, cacheData);
-
     const voters = Object.keys(this._value('votes'));
     for (let i = 0; i < voters.length; i += 1) {
       this._votes[voters[i]] = new IPFSVote(
@@ -78,7 +77,6 @@ export default class IPFSProposalIndex extends IPFSJsonBase {
         this._value('votes')[voters[i]],
       );
     }
-
     return this;
   }
 

@@ -124,6 +124,7 @@ export default class Proposal extends Base {
   }
 
   get voted() {
+    console.log('Proposal voted', this._raw.voted);
     return this._raw.voted;
   }
 

@@ -21,7 +21,10 @@ export default class IPFSProposal extends IPFSJsonBase {
   get abstain() {
     return Object.keys(this.index.votes).reduce((total, voter) => {
       if (this.index.votes[voter].choice === 'Abstain') {
-        return total.plus(this.blockData.balances[voter.toLowerCase()] || 0);
+        return total.plus(
+          (this.blockData.balances[voter.toLowerCase()] || {})
+            .balanceOfVoting || 0,
+        );
       }
       return total;
     }, toBigNumber(0));
@@ -90,7 +93,10 @@ export default class IPFSProposal extends IPFSJsonBase {
   get no() {
     return Object.keys(this.index.votes).reduce((total, voter) => {
       if (this.index.votes[voter].choice === 'No') {
-        return total.plus(this.blockData.balances[voter.toLowerCase()] || 0);
+        return total.plus(
+          (this.blockData.balances[voter.toLowerCase()] || {})
+            .balanceOfVoting || 0,
+        );
       }
       return total;
     }, toBigNumber(0));
@@ -135,20 +141,26 @@ export default class IPFSProposal extends IPFSJsonBase {
   get voted() {
     return Object.keys(this.index.votes).reduce(
       (total, voter) =>
-        total.plus(this.blockData.balances[voter.toLowerCase()] || 0),
+        total.plus(
+          (this.blockData.balances[voter.toLowerCase()] || {})
+            .balanceOfVoting || 0,
+        ),
       toBigNumber(0),
     );
   }
 
   get votes() {
-    console.log('votes', this.index);
     return Object.values(this.index.votes);
   }
 
   get yes() {
+    console.log('voted yes', this.index.votes);
     return Object.keys(this.index.votes).reduce((total, voter) => {
       if (this.index.votes[voter].choice === 'Yes') {
-        return total.plus(this.blockData.balances[voter.toLowerCase()] || 0);
+        return total.plus(
+          (this.blockData.balances[voter.toLowerCase()] || {})
+            .balanceOfVoting || 0,
+        );
       }
       return total;
     }, toBigNumber(0));
