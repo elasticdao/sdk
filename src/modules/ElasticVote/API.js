@@ -77,7 +77,7 @@ export default class API extends Cachable {
     }
 
     const voteObjects = Object.values(votes.data).map(
-      (vote) => new Vote(sdk, this, proposal, vote),
+      (vote) => new Vote(this.sdk, this, proposal, vote),
     );
 
     return voteObjects;

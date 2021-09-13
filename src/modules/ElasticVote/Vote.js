@@ -1,7 +1,6 @@
 import BigNumber from 'bignumber.js';
 import Base from '../../Base';
 
-
 /* RAW
   author
   choice
@@ -87,7 +86,7 @@ export default class Vote extends Base {
     const action = 'submit';
 
     this._raw.nonce = await this._api.sdk.getNonceForAddress(address);
-    
+
     const value = {
       choice: this.choice,
       voter: address,
