@@ -501,7 +501,7 @@ export class SDK extends Subscribable {
    */
   signTypedDataOrMessage(types, value) {
     const signTypedData = (
-      this.signer._signTypedData || this.signer.signTypedData
+      this.signer.signTypedData || this.signer._signTypedData
     ).bind(this.signer);
 
     return new Promise((resolve, reject) => {
@@ -513,6 +513,9 @@ export class SDK extends Subscribable {
           console.log('EIP 712 Signature Failed', error);
           if (error.message.includes('User denied message signature')) {
             reject(error);
+            // not sure why return is needed, 
+            // but currently without it we continue to EIP 191 signing
+            return; 
           }
           console.log('EIP 191 Signature Request');
           this.signer.signMessage(JSON.stringify(value)).then(resolve, reject);
