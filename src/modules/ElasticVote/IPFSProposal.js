@@ -143,7 +143,6 @@ export default class IPFSProposal extends IPFSJsonBase {
   }
 
   get yes() {
-    console.log('voted yes', this.index.votes);
     return Object.keys(this.index.votes).reduce((total, voter) => {
       if (this.index.votes[voter].choice === 'Yes') {
         return total.plus(this.balanceOfVoter(voter));

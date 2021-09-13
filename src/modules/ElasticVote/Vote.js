@@ -1,4 +1,6 @@
 import BigNumber from 'bignumber.js';
+import Base from '../../Base';
+
 
 /* RAW
   author
@@ -17,8 +19,9 @@ import BigNumber from 'bignumber.js';
 // Add to redis when we add to queue, remove when we write to IPFS
 // 4. Need serialization for the queue (array format / JSON)
 
-export default class Vote {
-  constructor(api, proposal, raw) {
+export default class Vote extends Base {
+  constructor(sdk, api, proposal, raw) {
+    super(sdk);
     this._api = api;
     this._proposal = proposal;
     this._raw = raw;
@@ -72,21 +75,20 @@ export default class Vote {
   }
 
   get nodeUrl() {
-    return `${this.sdk.elasticNodeURL}/elasticvote/${this.api.space}/proposals/${this.proposal.id}/votes/${this.sdk.account}`;
+    return `${this._api.sdk.elasticNodeURL}/elasticvote/${this._api.space}/proposals/${this.proposal.id}/votes`;
   }
 
   async submitVote() {
-    if (!this.api.sdk.signer) {
+    if (!this._api.sdk.signer) {
       return false;
     }
 
-    const address = this.sdk.account;
+    const address = this._api.sdk.account;
     const action = 'submit';
 
-    this._raw.nonce = await this.sdk.getNonceForAddress(address);
-
+    this._raw.nonce = await this._api.sdk.getNonceForAddress(address);
+    
     const value = {
-      action,
       choice: this.choice,
       voter: address,
       proposal: this.proposal.id,
@@ -95,7 +97,7 @@ export default class Vote {
 
     console.log('Submit vote sig data', Vote.types(), value);
 
-    const signature = await this.sdk.signTypedDataOrMessage(
+    const signature = await this._api.sdk.signTypedDataOrMessage(
       Vote.types(),
       value,
     );
