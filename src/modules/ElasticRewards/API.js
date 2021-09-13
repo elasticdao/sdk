@@ -46,7 +46,6 @@ export default class API extends Cachable {
         })
           .then((response) => response.json())
           .then((json) => {
-            console.log('API', json);
             rewards.data = json.rewards;
             rewards.balance = toBigNumber(json.balance);
             this.cache.set(account, rewards);
