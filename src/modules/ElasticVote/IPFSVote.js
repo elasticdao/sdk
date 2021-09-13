@@ -1,6 +1,5 @@
 /* eslint class-methods-use-this: 0 */
 import IPFSJsonBase from '../../IPFSJsonBase';
-import IPFSProposal from './IPFSProposal';
 
 /*
   Version 1.0.0:

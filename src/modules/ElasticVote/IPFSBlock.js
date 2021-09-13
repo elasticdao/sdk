@@ -92,7 +92,8 @@ export default class IPFSBlock extends IPFSJsonBase {
   async load(force = false, cacheData) {
     await super.load(force, cacheData);
     const proposalHashes = Object.keys(this._value('proposals'));
-    const proposalsCreated = []; // need to create this to avoid a concurrency issue with multiple load calls.
+    // need to create this local array to avoid a concurrency issue with multiple load calls.
+    const proposalsCreated = [];
     for (let i = 0; i < proposalHashes.length; i += 1) {
       const proposalHash = proposalHashes[i];
       const proposal = new IPFSProposal(this.sdk, proposalHash);

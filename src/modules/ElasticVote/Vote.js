@@ -101,14 +101,17 @@ export default class Vote {
     );
 
     console.log('signature', signature);
-    console.log('payload', JSON.stringify({
-      action,
-      choice: this.choice,
-      voter: address,
-      proposal: this.proposal.id,
-      signature,
-      nonce: this.nonce,
-    }));
+    console.log(
+      'payload',
+      JSON.stringify({
+        action,
+        choice: this.choice,
+        voter: address,
+        proposal: this.proposal.id,
+        signature,
+        nonce: this.nonce,
+      }),
+    );
 
     const response = await this.fetch(this.nodeUrl, {
       method: 'POST',
