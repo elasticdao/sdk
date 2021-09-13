@@ -32,15 +32,11 @@ export default class IPFSVote extends IPFSJsonBase {
   }
 
   get proposal() {
-    return this._value('proposal');
+    return this._proposal;
   }
 
-  get proposalObject() {
-    return this._proposalObject;
-  }
-
-  set proposalObject(_proposalObject) {
-    this._proposalObject = _proposalObject;
+  set proposal(_proposal) {
+    this._proposal = _proposal;
   }
 
   get signature() {
@@ -64,7 +60,7 @@ export default class IPFSVote extends IPFSJsonBase {
       choice,
       date,
       nonce,
-      proposal,
+      proposal: proposal.id,
       signature,
       weight,
       voter,

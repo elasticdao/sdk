@@ -76,8 +76,8 @@ export default class IPFSProposalIndex extends IPFSJsonBase {
     const voters = Object.keys(this._value('votes'));
     for (let i = 0; i < voters.length; i += 1) {
       const ipfsVote = new IPFSVote(this.sdk, this._value('votes')[voters[i]]);
-      ipfsVote.proposalObject = ipfsVote;
       this._votes[voters[i]] = ipfsVote;
+      ipfsVote.proposal = this.proposal;
     }
     return this;
   }
