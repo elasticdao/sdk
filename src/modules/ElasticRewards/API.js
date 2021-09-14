@@ -71,6 +71,30 @@ export default class API extends Cachable {
     return rewardObjects;
   }
 
+  /**
+   * Used to calculate voting power at a given block
+   * @param {*} address
+   * @param {*} blockNumber optional parameter, defaults to current block
+   * @returns the rewards balance of a user at a given block
+   */
+  getRewardBalanceAtBlock(address, blockNumber = this.sdk.blockNumber) {
+    const account = address.toLowerCase();
+    return new Promise((resolve, reject) => {
+      this.fetch(`${this.url}/${blockNumber}/balance/${account}`, {
+        method: 'get',
+        headers: { 'Content-Type': 'application/json' },
+      })
+        .then((response) => response.json())
+        .then((json) => {
+          resolve(json.rewardsBalance);
+        })
+        .catch((e) => {
+          console.error('error loading rewards balance', e);
+          reject(e);
+        });
+    });
+  }
+
   async getRewardsBalance(address) {
     const account = address.toLowerCase();
     await this.getRewards(account);
