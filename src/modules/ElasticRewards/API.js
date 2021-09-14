@@ -86,7 +86,7 @@ export default class API extends Cachable {
       })
         .then((response) => response.json())
         .then((json) => {
-          resolve(json.rewardsBalance);
+          resolve(toBigNumber(json.rewardsBalance));
         })
         .catch((e) => {
           console.error('error loading rewards balance', e);
