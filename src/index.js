@@ -513,9 +513,9 @@ export class SDK extends Subscribable {
           console.log('EIP 712 Signature Failed', error);
           if (error.message.includes('User denied message signature')) {
             reject(error);
-            // not sure why return is needed, 
+            // not sure why return is needed,
             // but currently without it we continue to EIP 191 signing
-            return; 
+            return;
           }
           console.log('EIP 191 Signature Request');
           this.signer.signMessage(JSON.stringify(value)).then(resolve, reject);
