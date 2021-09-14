@@ -52,13 +52,14 @@ export default class IPFSVote extends IPFSJsonBase {
   }
 
   toJSON() {
-    const { author, choice, date, nonce, proposal, signature, weight, voter } =
+    const { author, choice, date, id, nonce, proposal, signature, weight, voter } =
       this;
 
     return {
       author,
       choice,
       date,
+      id,
       nonce,
       proposal: proposal.id,
       signature,
