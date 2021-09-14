@@ -1,3 +1,4 @@
+import { ethers } from 'ethers';
 import Base from '../../Base';
 import { t } from '../../elasticMath';
 
@@ -117,7 +118,21 @@ export default class Reward extends Base {
     }
 
     const address = this.sdk.account;
-
+    const toAddress = await (async () => {
+      if (
+        this.sdk.isValidETHAddress(this.to) &&
+        !ethers.utils.isAddress(this.to)
+      ) {
+        return this.sdk.provider.resolveName(this.to);
+      }
+      if (
+        this.sdk.isValidETHAddress(this.to) &&
+        ethers.utils.isAddress(this.to)
+      ) {
+        return this.to;
+      }
+      return undefined;
+    })();
     const action = 'transfer';
     const validNonce = await this.sdk.getNonceForAddress(address);
     const wadAmount = this.toEthersBigNumber(this.amount, 18);
@@ -126,7 +141,7 @@ export default class Reward extends Base {
       action,
       amount: wadAmount.toString(),
       fromAddress: this.from,
-      toAddress: this.to,
+      toAddress,
       nonce: validNonce,
     };
 
@@ -148,7 +163,7 @@ export default class Reward extends Base {
       },
       body: JSON.stringify({
         action,
-        toAddress: this.to,
+        toAddress,
         fromAddress: address,
         amount: this.amount,
         signature,
