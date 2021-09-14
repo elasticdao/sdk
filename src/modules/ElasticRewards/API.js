@@ -72,7 +72,7 @@ export default class API extends Cachable {
   }
 
   /**
-   *
+   * Used to calculate voting power at a given block
    * @param {*} address
    * @param {*} blockNumber optional parameter, defaults to current block
    * @returns the rewards balance of a user at a given block
@@ -86,7 +86,6 @@ export default class API extends Cachable {
       })
         .then((response) => response.json())
         .then((json) => {
-          console.log(json);
           resolve(json.rewardsBalance);
         })
         .catch((e) => {
