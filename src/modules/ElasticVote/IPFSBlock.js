@@ -77,6 +77,10 @@ export default class IPFSBlock extends IPFSJsonBase {
     return this._value('ens');
   }
 
+  get finalized() {
+    return this._value('finalized', []);
+  }
+
   get previousBlock() {
     return new IPFSBlock(this.sdk, this._value('previousBlock'));
   }

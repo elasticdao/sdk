@@ -70,6 +70,10 @@ export default class IPFSProposal extends IPFSJsonBase {
     return this.id;
   }
 
+  get finalized() {
+    return this.status === 'finalized';
+  }
+
   get index() {
     return this._index;
   }
@@ -120,6 +124,10 @@ export default class IPFSProposal extends IPFSJsonBase {
   }
 
   get status() {
+    if (this.block.finalized.includes(this.id)) {
+      return 'finalized';
+    }
+
     if (this.startDate > new Date()) {
       return 'pending';
     }
@@ -151,6 +159,48 @@ export default class IPFSProposal extends IPFSJsonBase {
     }, toBigNumber(0));
   }
 
+  action(action) {
+    if (action === 'create') {
+      const types = {
+        Proposal: [
+          { name: 'action', type: 'string' },
+          { name: 'name', type: 'string' },
+          { name: 'body', type: 'string' },
+          { name: 'start', type: 'uint256' },
+          { name: 'end', type: 'uint256' },
+          { name: 'snapshot', type: 'uint256' },
+          { name: 'nonce', type: 'uint256' },
+        ],
+      };
+
+      const value = {
+        action,
+        name: this.name,
+        body: this.body,
+        start: this.start,
+        end: this.end,
+        snapshot: this.snapshot,
+        nonce: this.nonce,
+      };
+
+      return { types, value };
+    }
+
+    const types = {
+      Proposal: [
+        { name: 'action', type: 'string' },
+        { name: 'id', type: 'string' },
+      ],
+    };
+
+    const value = {
+      action,
+      id: this.id,
+    };
+
+    return { types, value };
+  }
+
   balanceOfVoter(voterAddress) {
     return toBigNumber(
       (this.blockData.balances[voterAddress.toLowerCase()] || {})
@@ -168,6 +218,7 @@ export default class IPFSProposal extends IPFSJsonBase {
       choices,
       closed,
       end,
+      finalized,
       id,
       name,
       no,
@@ -188,6 +239,7 @@ export default class IPFSProposal extends IPFSJsonBase {
       choices,
       closed,
       end,
+      finalized,
       id,
       name,
       no,
