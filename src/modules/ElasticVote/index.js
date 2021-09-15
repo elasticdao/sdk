@@ -5,13 +5,16 @@ import { chunkArray, toBigNumber } from '../../utils';
 import { t } from '../../elasticMath';
 import APIClass from './API';
 import Cachable from '../../Cachable';
+import IPFSBlockClass from './IPFSBlock';
+import IPFSBlockDataClass from './IPFSBlockData';
 import IPFSProposalClass from './IPFSProposal';
+import IPFSProposalIndexClass from './IPFSProposalIndex';
+import IPFSVoteClass from './IPFSVote';
 import ProposalClass from './Proposal';
 import SnapshotAPIClass from './SnapshotAPI';
 import SnapshotProposalClass from './SnapshotProposal';
 import SnapshotVoteClass from './SnapshotVote';
 import VoteClass from './Vote';
-import IPFSBlock from './IPFSBlock';
 
 // proposals we don't want to show because ipfs is immutable.....
 const ProposalsToFilter = [
@@ -332,7 +335,7 @@ class ElasticVote extends Cachable {
 
   async loadIPFS(blockHash) {
     try {
-      const block = new IPFSBlock(this.sdk, blockHash);
+      const block = new IPFSBlockClass(this.sdk, blockHash);
       await block.promise; // this awaits the load of all underlying child objects
       this._ipfsBlock = block;
       this._ipfsProposals = block.proposals;
@@ -370,7 +373,11 @@ class ElasticVote extends Cachable {
 }
 
 ElasticVote.API = APIClass;
+ElasticVote.IPFSBlock = IPFSBlockClass;
+ElasticVote.IPFSBlockData = IPFSBlockDataClass;
 ElasticVote.IPFSProposal = IPFSProposalClass;
+ElasticVote.IPFSProposalIndex = IPFSProposalIndexClass;
+ElasticVote.IPFSVote = IPFSVoteClass;
 ElasticVote.Proposal = ProposalClass;
 ElasticVote.SnapshotAPI = SnapshotAPIClass;
 ElasticVote.SnapshotProposal = SnapshotProposalClass;

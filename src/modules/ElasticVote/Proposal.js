@@ -71,6 +71,10 @@ export default class Proposal extends Base {
     return this.api.space;
   }
 
+  get finalized() {
+    return this._raw.finalized;
+  }
+
   get id() {
     return this._raw.id;
   }

@@ -68,7 +68,9 @@ export default class IPFSJsonBase extends Cachable {
 
   _value(key, fallback) {
     try {
-      return key.split('.').reduce((acc, part) => acc[part], this.cached);
+      return (
+        key.split('.').reduce((acc, part) => acc[part], this.cached) || fallback
+      );
     } catch (error) {
       return fallback;
     }
