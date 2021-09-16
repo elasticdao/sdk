@@ -127,7 +127,7 @@ export default class IPFSBlock extends IPFSJsonBase {
       console.log('block number', i, blockNumbers[i]);
       this._blocks[blockNumbers[i]] = new IPFSBlockData(
         this.sdk,
-        this._value('blocks')[blockNumbers[i]],
+        blocks[blockNumbers[i]],
       );
     }
     return this;
