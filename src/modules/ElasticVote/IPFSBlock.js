@@ -109,7 +109,6 @@ export default class IPFSBlock extends IPFSJsonBase {
         this.sdk,
         proposals[proposalHash],
       );
-
       proposal.index = proposalIndex;
       proposalIndex.proposal = proposal;
 
@@ -118,7 +117,7 @@ export default class IPFSBlock extends IPFSJsonBase {
     }
     this._proposals = proposalsCreated;
     await Promise.all(this.proposals.map((proposal) => proposal.promise));
-    const blockNumbers = Object.keys(this._value('blocks'));
+    const blockNumbers = Object.keys(this.blocks); // CHECK WITH LSDAN
     for (let i = 0; i < blockNumbers.length; i += 1) {
       this._blocks[blockNumbers[i]] = new IPFSBlockData(
         this.sdk,
