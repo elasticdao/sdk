@@ -9,14 +9,6 @@ Version 1.0.0:
 
 {
   ens: String,
-  for: {
-    action: String,
-    item: {
-      type: String,
-      uuid: String,
-    },
-    message: String,
-  },
   hash: String
   hashes: [String,...],
   previousBlock: String,
@@ -34,26 +26,6 @@ export default class Block extends IPFSJsonBase {
 
   get hashes() {
     return this._value('hashes', []);
-  }
-
-  get item() {
-    if (!this.loaded || !this._value('for.item', false)) {
-      return {};
-    }
-
-    const itemUUID = this._value('for.item.uuid');
-
-    if (this._value('for.item.type') === 'SnapshotProposal') {
-      return this.sdk.modules
-        .elasticVote(this.ens)
-        .proposals.find(({ id }) => id === itemUUID);
-    }
-
-    return itemUUID;
-  }
-
-  get message() {
-    return this._value('for.message');
   }
 
   get previousBlock() {
@@ -121,11 +93,6 @@ export default class Block extends IPFSJsonBase {
     if (version === '1.0.0') {
       return {
         ens: this.ens,
-        for: {
-          action: this.action,
-          item: this.cached.for.item,
-          message: this.message,
-        },
         hash: this.id,
         hashes: this.hashes,
         previousBlock: this.cached.previousBlock,
@@ -133,7 +100,7 @@ export default class Block extends IPFSJsonBase {
       };
     }
 
-    const message = `Reward version (${version}) unknown`;
+    const message = `Block version (${version}) unknown`;
     throw new Error(buildError({ localPrefix, message }));
   }
 }

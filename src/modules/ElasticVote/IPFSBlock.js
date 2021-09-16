@@ -11,6 +11,7 @@ import IPFSBlockData from './IPFSBlockData';
     ens
     proposals
     blocks
+    finalized
     previousBlock
   }
 */
@@ -95,7 +96,8 @@ export default class IPFSBlock extends IPFSJsonBase {
 
   async load(force = false, cacheData) {
     await super.load(force, cacheData);
-    const proposalHashes = Object.keys(this._value('proposals'));
+    const proposals = this._value('proposals', {});
+    const proposalHashes = Object.keys(proposals);
     // need to create this local array to avoid a concurrency issue with multiple load calls.
     const proposalsCreated = [];
     for (let i = 0; i < proposalHashes.length; i += 1) {
@@ -105,7 +107,7 @@ export default class IPFSBlock extends IPFSJsonBase {
 
       const proposalIndex = new IPFSProposalIndex(
         this.sdk,
-        this._value('proposals')[proposalHash],
+        proposals[proposalHash],
       );
 
       proposal.index = proposalIndex;
