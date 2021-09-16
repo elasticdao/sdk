@@ -95,6 +95,7 @@ export default class IPFSBlock extends IPFSJsonBase {
   }
 
   async load(force = false, cacheData) {
+    console.log('Cache data', cacheData);
     await super.load(force, cacheData);
     const proposals = this._value('proposals', {});
     const proposalHashes = Object.keys(proposals);
@@ -116,9 +117,14 @@ export default class IPFSBlock extends IPFSJsonBase {
       this._proposalIndices[proposalHash] = proposalIndex;
     }
     this._proposals = proposalsCreated;
+    const blocks = this._value('blocks');
+    console.log('IPFSBLOCK before error', this.proposals.length, blocks)
     await Promise.all(this.proposals.map((proposal) => proposal.promise));
-    const blockNumbers = Object.keys(this.blocks); // CHECK WITH LSDAN
+    console.log('????', blocks)
+    const blockNumbers = Object.keys(blocks);
+    console.log('blockNumbers', blockNumbers);
     for (let i = 0; i < blockNumbers.length; i += 1) {
+      console.log('block number', i, blockNumbers[i]);
       this._blocks[blockNumbers[i]] = new IPFSBlockData(
         this.sdk,
         this._value('blocks')[blockNumbers[i]],
