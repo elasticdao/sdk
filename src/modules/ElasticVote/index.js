@@ -390,6 +390,7 @@ class ElasticVote extends Cachable {
           pendingBlock,
         );
         await block.promise;
+        console.log("393");
         block.load(true, pendingBlock);
       } else {
         block = new IPFSBlockClass(this.sdk, blockHash);

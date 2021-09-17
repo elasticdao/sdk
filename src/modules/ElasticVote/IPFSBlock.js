@@ -55,6 +55,13 @@ export default class IPFSBlock extends IPFSJsonBase {
   get loaded() {
     const statuses = new Set();
     statuses.add(this.cache.has(this.id));
+    const keyLength = Object.keys(this._value('proposals', {})).length;
+    console.log("IPFSBlokcLoaded", this.proposals.length, keyLength);
+    if(keyLength !== this.proposals.length) {
+      console.log("return false");
+      return false;
+    }
+    
     for (let i = 0; i < this.proposals.length; i += 1) {
       statuses.add(this.proposals[i].loaded);
     }
@@ -98,7 +105,9 @@ export default class IPFSBlock extends IPFSJsonBase {
     console.log('Cache data', cacheData);
     await super.load(force, cacheData);
     const proposals = this._value('proposals', {});
+    
     const proposalHashes = Object.keys(proposals);
+    console.log("load-102", proposalHashes.length);
     // need to create this local array to avoid a concurrency issue with multiple load calls.
     const proposalsCreated = [];
     for (let i = 0; i < proposalHashes.length; i += 1) {
