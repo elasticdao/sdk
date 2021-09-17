@@ -56,12 +56,10 @@ export default class IPFSBlock extends IPFSJsonBase {
     const statuses = new Set();
     statuses.add(this.cache.has(this.id));
     const keyLength = Object.keys(this._value('proposals', {})).length;
-    console.log("IPFSBlokcLoaded", this.proposals.length, keyLength);
-    if(keyLength !== this.proposals.length) {
-      console.log("return false");
+    if (keyLength !== this.proposals.length) {
       return false;
     }
-    
+
     for (let i = 0; i < this.proposals.length; i += 1) {
       statuses.add(this.proposals[i].loaded);
     }
@@ -102,12 +100,10 @@ export default class IPFSBlock extends IPFSJsonBase {
   }
 
   async load(force = false, cacheData) {
-    console.log('Cache data', cacheData);
     await super.load(force, cacheData);
     const proposals = this._value('proposals', {});
-    
+
     const proposalHashes = Object.keys(proposals);
-    console.log("load-102", proposalHashes.length);
     // need to create this local array to avoid a concurrency issue with multiple load calls.
     const proposalsCreated = [];
     for (let i = 0; i < proposalHashes.length; i += 1) {
@@ -127,13 +123,9 @@ export default class IPFSBlock extends IPFSJsonBase {
     }
     this._proposals = proposalsCreated;
     const blocks = this._value('blocks');
-    console.log('IPFSBLOCK before error', this.proposals.length, blocks)
     await Promise.all(this.proposals.map((proposal) => proposal.promise));
-    console.log('????', blocks)
     const blockNumbers = Object.keys(blocks);
-    console.log('blockNumbers', blockNumbers);
     for (let i = 0; i < blockNumbers.length; i += 1) {
-      console.log('block number', i, blockNumbers[i]);
       this._blocks[blockNumbers[i]] = new IPFSBlockData(
         this.sdk,
         blocks[blockNumbers[i]],
