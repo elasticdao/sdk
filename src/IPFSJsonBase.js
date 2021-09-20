@@ -5,6 +5,9 @@ export default class IPFSJsonBase extends Cachable {
     super(sdk);
     this._hash = hash;
     this.load(false, cacheData);
+
+    this.load = this.load.bind(this);
+    this._value = this._value.bind(this);
   }
 
   get cached() {

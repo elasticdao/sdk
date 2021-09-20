@@ -190,6 +190,10 @@ class ElasticVote extends Cachable {
   }
 
   async generateData(block, options = {}) {
+    if (this.block.blocks[`${block}`]) {
+      return this.block.blocks[`${block}`];
+    }
+
     const overrides = { blockTag: block };
     const eligibleVoteCreators = options.eligibleVoteCreators || [];
     const additionalTokenBalances = options.additionalTokenBalances || {};
@@ -216,7 +220,18 @@ class ElasticVote extends Cachable {
       blacklist.push(poolAddress);
     });
 
-    const holders = await dao.elasticGovernanceToken.holders(overrides);
+    let holders = new Set();
+    const onChainHolders = await dao.elasticGovernanceToken.holders(overrides);
+
+    for (let i = 0; i < onChainHolders.length; i += 1) {
+      holders.add(onChainHolders[i]);
+    }
+
+    const offChainHolders = Object.keys(additionalTokenBalances);
+    for (let i = 0; i < offChainHolders.length; i += 1) {
+      holders.add(offChainHolders[i]);
+    }
+    holders = Array.from(holders);
 
     // smaller chunks to make this a bit easier for processing.
     const chunks = chunkArray(holders, 25);
@@ -335,7 +350,22 @@ class ElasticVote extends Cachable {
 
   async loadIPFS(blockHash) {
     try {
-      const block = new IPFSBlockClass(this.sdk, blockHash);
+      const pendingBlock = await this.sdk.storageAdapter.load(
+        'elasticVotePendingBlock',
+      );
+      let block;
+      if (pendingBlock) {
+        console.log('Pending block', pendingBlock);
+        block = new IPFSBlockClass(
+          this.sdk,
+          'pendingElasticVoteBlock',
+          pendingBlock,
+        );
+        await block.promise;
+        block.load(true, pendingBlock);
+      } else {
+        block = new IPFSBlockClass(this.sdk, blockHash);
+      }
       await block.promise; // this awaits the load of all underlying child objects
       this._ipfsBlock = block;
       this._ipfsProposals = block.proposals;

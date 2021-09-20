@@ -11,6 +11,7 @@ import IPFSBlockData from './IPFSBlockData';
     ens
     proposals
     blocks
+    finalized
     previousBlock
   }
 */
@@ -54,6 +55,11 @@ export default class IPFSBlock extends IPFSJsonBase {
   get loaded() {
     const statuses = new Set();
     statuses.add(this.cache.has(this.id));
+    const keyLength = Object.keys(this._value('proposals', {})).length;
+    if (keyLength !== this.proposals.length) {
+      return false;
+    }
+
     for (let i = 0; i < this.proposals.length; i += 1) {
       statuses.add(this.proposals[i].loaded);
     }
@@ -95,7 +101,9 @@ export default class IPFSBlock extends IPFSJsonBase {
 
   async load(force = false, cacheData) {
     await super.load(force, cacheData);
-    const proposalHashes = Object.keys(this._value('proposals'));
+    const proposals = this._value('proposals', {});
+
+    const proposalHashes = Object.keys(proposals);
     // need to create this local array to avoid a concurrency issue with multiple load calls.
     const proposalsCreated = [];
     for (let i = 0; i < proposalHashes.length; i += 1) {
@@ -105,9 +113,8 @@ export default class IPFSBlock extends IPFSJsonBase {
 
       const proposalIndex = new IPFSProposalIndex(
         this.sdk,
-        this._value('proposals')[proposalHash],
+        proposals[proposalHash],
       );
-
       proposal.index = proposalIndex;
       proposalIndex.proposal = proposal;
 
@@ -115,12 +122,13 @@ export default class IPFSBlock extends IPFSJsonBase {
       this._proposalIndices[proposalHash] = proposalIndex;
     }
     this._proposals = proposalsCreated;
+    const blocks = this._value('blocks');
     await Promise.all(this.proposals.map((proposal) => proposal.promise));
-    const blockNumbers = Object.keys(this._value('blocks'));
+    const blockNumbers = Object.keys(blocks);
     for (let i = 0; i < blockNumbers.length; i += 1) {
       this._blocks[blockNumbers[i]] = new IPFSBlockData(
         this.sdk,
-        this._value('blocks')[blockNumbers[i]],
+        blocks[blockNumbers[i]],
       );
     }
     return this;

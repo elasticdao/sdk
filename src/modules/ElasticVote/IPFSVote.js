@@ -39,6 +39,10 @@ export default class IPFSVote extends IPFSJsonBase {
     this._proposal = _proposal;
   }
 
+  get proposalHash() {
+    return this._value('proposal');
+  }
+
   get signature() {
     return this._value('signature');
   }

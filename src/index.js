@@ -156,8 +156,19 @@ export class Modules extends Base {
     this.elasticVoteModules = {};
   }
 
-  elasticRewards(ens) {
+  elasticRewards(ens, fresh = false) {
     const key = ens.toLowerCase();
+
+    if (fresh) {
+      const module = new ElasticRewardsClass(this.sdk, ens);
+      return [
+        module,
+        async () => {
+          this.elasticRewardsModules[key] = module;
+          return module;
+        },
+      ];
+    }
 
     if (this.elasticRewardsModules[key]) {
       return this.elasticRewardsModules[key];
@@ -168,8 +179,19 @@ export class Modules extends Base {
     return this.elasticRewardsModules[key];
   }
 
-  elasticVote(ens) {
+  elasticVote(ens, fresh = false) {
     const key = ens.toLowerCase();
+
+    if (fresh) {
+      const module = new ElasticVoteClass(this.sdk, ens);
+      return [
+        module,
+        async () => {
+          this.elasticVoteModules[key] = module;
+          return true;
+        },
+      ];
+    }
 
     if (this.elasticVoteModules[key]) {
       return this.elasticVoteModules[key];

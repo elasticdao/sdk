@@ -38,7 +38,7 @@ export default class IPFSProposalIndex extends IPFSJsonBase {
       if (this.cache.has(key)) {
         // object has loaded, but we need to wait until all child objects are loaded / resolved
         Promise.all([
-          this.proposal.promise(),
+          this.proposal.promise,
           ...Object.values(this.votes).map((vote) => vote.promise),
         ]).then(() => resolve(this));
       } else {
@@ -46,7 +46,7 @@ export default class IPFSProposalIndex extends IPFSJsonBase {
         this.load()
           .then(() =>
             Promise.all([
-              this.proposal.promise(),
+              this.proposal.promise,
               ...Object.values(this.votes).map((vote) => vote.promise),
             ]),
           )
