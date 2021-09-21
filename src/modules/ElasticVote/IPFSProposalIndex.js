@@ -17,6 +17,14 @@ export default class IPFSProposalIndex extends IPFSJsonBase {
   }
 
   get loaded() {
+    if (!super.loaded) {
+      return false;
+    }
+
+    if (Object.keys(this._value('votes')).length !== Object.keys(this.votes).length) {
+      return false;
+    }
+
     const statuses = new Set();
     statuses.add(this.cache.has(this.id));
 
@@ -34,24 +42,14 @@ export default class IPFSProposalIndex extends IPFSJsonBase {
     }
 
     return new Promise((resolve) => {
-      const key = `loading|${this.id}`;
-      if (this.cache.has(key)) {
-        // object has loaded, but we need to wait until all child objects are loaded / resolved
-        Promise.all([
-          this.proposal.promise,
-          ...Object.values(this.votes).map((vote) => vote.promise),
-        ]).then(() => resolve(this));
-      } else {
-        // object has not loaded and we need to load all child objects after we load this.
-        this.load()
-          .then(() =>
-            Promise.all([
-              this.proposal.promise,
-              ...Object.values(this.votes).map((vote) => vote.promise),
-            ]),
-          )
-          .then(() => resolve(this));
-      }
+      this.load()
+        .then(() =>
+          Promise.all([
+            this.proposal.promise,
+            ...Object.values(this.votes).map((vote) => vote.promise),
+          ]),
+        )
+        .then(() => resolve(this));
     });
   }
 
@@ -74,11 +72,13 @@ export default class IPFSProposalIndex extends IPFSJsonBase {
   async load(force = false, cacheData) {
     await super.load(force, cacheData);
     const voters = Object.keys(this._value('votes'));
+    const votes = {};
     for (let i = 0; i < voters.length; i += 1) {
       const ipfsVote = new IPFSVote(this.sdk, this._value('votes')[voters[i]]);
-      this._votes[voters[i]] = ipfsVote;
+      votes[voters[i]] = ipfsVote;
       ipfsVote.proposal = this.proposal;
     }
+    this._votes = votes;
     return this;
   }
 
