@@ -21,7 +21,10 @@ export default class IPFSProposalIndex extends IPFSJsonBase {
       return false;
     }
 
-    if (Object.keys(this._value('votes')).length !== Object.keys(this.votes).length) {
+    if (
+      Object.keys(this._value('votes')).length !==
+      Object.keys(this.votes).length
+    ) {
       return false;
     }
 
