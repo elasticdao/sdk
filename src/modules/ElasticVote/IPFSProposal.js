@@ -267,7 +267,7 @@ export default class IPFSProposal extends IPFSJsonBase {
   }
 
   vote(address) {
-    const account = address.toLowerCase();
+    const account = `${address}`.toLowerCase();
     return this.votes.find(({ voter }) => voter === account);
   }
 }
