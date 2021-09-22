@@ -190,8 +190,10 @@ class ElasticVote extends Cachable {
   }
 
   async generateData(block, options = {}) {
-    if (this.block.blocks[`${block}`]) {
-      return this.block.blocks[`${block}`];
+    const existingBlockData = this.block.blocks[`${block}`];
+    if (existingBlockData) {
+      // return the raw version of the data to match return when generated
+      return existingBlockData.cache.get(existingBlockData.id);
     }
 
     const overrides = { blockTag: block };
