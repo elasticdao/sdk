@@ -355,7 +355,6 @@ class ElasticVote extends Cachable {
       );
       let block;
       if (pendingBlock) {
-        console.log('Pending block', pendingBlock);
         block = new IPFSBlockClass(
           this.sdk,
           'pendingElasticVoteBlock',
