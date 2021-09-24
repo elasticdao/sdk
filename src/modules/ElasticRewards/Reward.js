@@ -150,6 +150,12 @@ export default class Reward extends Base {
       value,
     );
 
+    console.log('signature', signature);
+
+    return { value, signature };
+  }
+
+  async patchTransfer({ value, signature }) {
     const response = await this.fetch(this.nodeUrl, {
       method: 'PATCH',
       mode: 'cors',
@@ -158,15 +164,14 @@ export default class Reward extends Base {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        action,
-        toAddress,
-        fromAddress: address,
+        action: value.action,
+        toAddress: value.toAddress,
+        fromAddress: this.sdk.account,
         amount: this.amount,
         signature,
-        nonce: validNonce,
+        nonce: value.nonce,
       }),
     });
-
     return response.json();
   }
 

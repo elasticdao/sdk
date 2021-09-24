@@ -403,6 +403,20 @@ export class SDK extends Subscribable {
     this.touch();
   }
 
+  async getNodeJob(uuid) {
+    const hash = uuid.toLowerCase();
+    return new Promise((resolve, reject) => {
+      this.fetch(`${this.elasticNodeURL}/jobs/${hash}`, {
+        method: 'get',
+        headers: { 'Content-Type': 'application/json' },
+      })
+        .then((response) => resolve(response.json()))
+        .catch((e) => {
+          reject(e);
+        });
+    });
+  }
+
   /**
    * Hash - transaction hash
    * Object - look at block native  notify -https://docs.blocknative.com/notify#notification
