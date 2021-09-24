@@ -19,7 +19,7 @@ export default class CoinGecko extends Base {
     this.checkPrices();
     setInterval(() => {
       this.checkPrices();
-    }, 5000);
+    }, 60000);
   }
 
   get contractAddresses() {
