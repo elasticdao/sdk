@@ -145,8 +145,7 @@ export default class Reward extends Base {
       nonce: validNonce,
     };
 
-    const signature = await this.sdk.signTypedDataOrMessage(
-      Reward.types(),
+    const signature = await this.sdk.basicEipSign(
       value,
     );
 
