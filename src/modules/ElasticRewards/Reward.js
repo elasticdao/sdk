@@ -154,7 +154,7 @@ export default class Reward extends Base {
 
   async patchTransfer({ value, signature }) {
     const response = await this.fetch(this.nodeUrl, {
-      method: 'PATCH',
+      method: 'POST',
       mode: 'cors',
       cache: 'no-cache',
       headers: {
