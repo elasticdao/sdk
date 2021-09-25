@@ -192,12 +192,12 @@ export default class Proposal extends Base {
     const { value } = this.action(action);
 
     const signature = await this.sdk.signMessage(value);
-  
+
     const requestBody = {
       author: address,
-      signature: signature,
-      ...value
-    }
+      signature,
+      ...value,
+    };
     const response = await this.fetch(this.nodeUrl, {
       method: 'POST',
       mode: 'cors',
