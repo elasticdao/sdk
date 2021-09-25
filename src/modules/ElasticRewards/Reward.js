@@ -145,10 +145,7 @@ export default class Reward extends Base {
       nonce: validNonce,
     };
 
-    const signature = await this.sdk.signTypedDataOrMessage(
-      Reward.types(),
-      value,
-    );
+    const signature = await this.sdk.signMessage(value);
 
     console.log('signature', signature);
 

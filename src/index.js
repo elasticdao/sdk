@@ -526,36 +526,18 @@ export class SDK extends Subscribable {
   }
 
   /**
-   * Attempts to sign the provided typed data using IE 712 standard. If it fails, it will fall back
-   * to signing the hashed JSON of the value object provided using EIP 191. The value should either
+   * Attempts to sign the provided typed data using EIP 191 standard. The value should either
    * be a unique set of attributes (for example a proposal) or contain a nonce/salt to ensure the
    * message is only used to initiate a single transaction in the elastic node (like a transfer).
    * see https://docs.ethers.io/v5/api/signer/#Signer--signing-methods for more info.
-   * @param {*} types
    * @param {*} value
    * @returns signature
    */
-  signTypedDataOrMessage(types, value) {
-    const signTypedData = (
-      this.signer.signTypedData || this.signer._signTypedData
-    ).bind(this.signer);
 
+  signMessage(value) {
     return new Promise((resolve, reject) => {
-      signTypedData(domain, types, value)
-        .then(resolve)
-        .catch((error) => {
-          // we need to try again if this was due to a HW signing issue.
-          // check that the user didn't just reject the tx.
-          console.log('EIP 712 Signature Failed', error);
-          if (error.message.includes('User denied message signature')) {
-            reject(error);
-            // not sure why return is needed,
-            // but currently without it we continue to EIP 191 signing
-            return;
-          }
-          console.log('EIP 191 Signature Request');
-          this.signer.signMessage(JSON.stringify(value)).then(resolve, reject);
-        });
+      console.log('EIP 191 Signature Request');
+      this.signer.signMessage(JSON.stringify(value)).then(resolve, reject);
     });
   }
 }
