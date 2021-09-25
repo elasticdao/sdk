@@ -195,7 +195,7 @@ export default class Proposal extends Base {
     this._raw.nonce = await this.sdk.getNonceForAddress(address);
     const { value } = this.action(action);
 
-    const signature = await this.sdk.basicEipSign(value);
+    const signature = await this.sdk.signMessage(value);
     const response = await this.fetch(this.nodeUrl, {
       method: 'POST',
       mode: 'cors',
@@ -227,7 +227,7 @@ export default class Proposal extends Base {
     const action = 'finalize';
     const { value } = this.action(action);
 
-    const signature = await this.sdk.basicEipSign(value);
+    const signature = await this.sdk.signMessage(value);
 
     const response = await this.fetch(this.nodeUrl, {
       method: 'PATCH',

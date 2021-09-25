@@ -534,7 +534,7 @@ export class SDK extends Subscribable {
    * @returns signature
    */
 
-  basicEipSign(value) {
+  signMessage(value) {
     return new Promise((resolve, reject) => {
       console.log('EIP 191 Signature Request');
       this.signer.signMessage(JSON.stringify(value)).then(resolve, reject);

@@ -94,7 +94,7 @@ export default class Vote extends Base {
       nonce: this.nonce,
     };
 
-    const signature = await this._api.sdk.basicEipSign(value);
+    const signature = await this._api.sdk.signMessage(value);
     console.log('signature: ', signature);
     console.log('signature: ', value);
 

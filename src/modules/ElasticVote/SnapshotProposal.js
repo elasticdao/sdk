@@ -173,7 +173,7 @@ export default class SnapshotProposal extends Base {
 
     const action = 'finalize';
     const { value } = this.action(action);
-    const signature = await this.sdk.basicEipSign(value);
+    const signature = await this.sdk.signMessage(value);
 
     const response = await this.fetch(this.nodeUrl, {
       method: 'PATCH',
