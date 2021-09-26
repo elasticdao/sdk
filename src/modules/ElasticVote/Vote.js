@@ -89,7 +89,7 @@ export default class Vote extends Base {
 
     const value = {
       choice: this.choice,
-      voter: address,
+      voter: address.toLowerCase(),
       proposal: this.proposal.id,
       nonce: this.nonce,
     };

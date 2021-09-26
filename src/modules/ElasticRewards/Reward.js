@@ -140,8 +140,8 @@ export default class Reward extends Base {
     const value = {
       action,
       amount: wadAmount.toString(),
-      fromAddress: this.from,
-      toAddress,
+      fromAddress: this.from.toLowerCase(),
+      toAddress : toAddress.toLowerCase(),
       nonce: validNonce,
     };
 
