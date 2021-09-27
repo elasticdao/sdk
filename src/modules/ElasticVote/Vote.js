@@ -89,15 +89,12 @@ export default class Vote extends Base {
 
     const value = {
       choice: this.choice,
-      voter: address,
+      voter: address.toLowerCase(),
       proposal: this.proposal.id,
       nonce: this.nonce,
     };
 
-    const signature = await this._api.sdk.signTypedDataOrMessage(
-      Vote.types(),
-      value,
-    );
+    const signature = await this._api.sdk.signMessage(value);
 
     const response = await this.fetch(this.nodeUrl, {
       method: 'POST',

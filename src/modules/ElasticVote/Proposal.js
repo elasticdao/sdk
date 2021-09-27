@@ -36,7 +36,7 @@ export default class Proposal extends Base {
   }
 
   get abstain() {
-    return BigNumber(this._raw.abstain);
+    return BigNumber(this._raw.abstainCount);
   }
 
   get active() {
@@ -71,10 +71,6 @@ export default class Proposal extends Base {
     return this.api.space;
   }
 
-  get finalized() {
-    return this._raw.finalized;
-  }
-
   get id() {
     return this._raw.id;
   }
@@ -92,7 +88,7 @@ export default class Proposal extends Base {
   }
 
   get no() {
-    return BigNumber(this._raw.no);
+    return BigNumber(this._raw.noCount);
   }
 
   get pending() {
@@ -138,7 +134,7 @@ export default class Proposal extends Base {
   }
 
   get yes() {
-    return BigNumber(this._raw.yes);
+    return BigNumber(this._raw.yesCount);
   }
 
   action(action) {
@@ -193,9 +189,15 @@ export default class Proposal extends Base {
     const action = 'create';
 
     this._raw.nonce = await this.sdk.getNonceForAddress(address);
-    const { types, value } = this.action(action);
+    const { value } = this.action(action);
 
-    const signature = await this.sdk.signTypedDataOrMessage(types, value);
+    const signature = await this.sdk.signMessage(value);
+
+    const requestBody = {
+      author: address,
+      signature,
+      ...value,
+    };
     const response = await this.fetch(this.nodeUrl, {
       method: 'POST',
       mode: 'cors',
@@ -203,14 +205,8 @@ export default class Proposal extends Base {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        action,
-        address,
-        proposal: value,
-        signature,
-      }),
+      body: JSON.stringify(requestBody),
     });
-
     return response.json();
   }
 
@@ -225,9 +221,9 @@ export default class Proposal extends Base {
 
     const address = this.sdk.account;
     const action = 'finalize';
-    const { types, value } = this.action(action);
+    const { value } = this.action(action);
 
-    const signature = await this.sdk.signTypedDataOrMessage(types, value);
+    const signature = await this.sdk.signMessage(value);
 
     const response = await this.fetch(this.nodeUrl, {
       method: 'PATCH',

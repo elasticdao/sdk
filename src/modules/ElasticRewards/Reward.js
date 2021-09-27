@@ -140,15 +140,12 @@ export default class Reward extends Base {
     const value = {
       action,
       amount: wadAmount.toString(),
-      fromAddress: this.from,
-      toAddress,
+      fromAddress: this.from.toLowerCase(),
+      toAddress : toAddress.toLowerCase(),
       nonce: validNonce,
     };
 
-    const signature = await this.sdk.signTypedDataOrMessage(
-      Reward.types(),
-      value,
-    );
+    const signature = await this.sdk.signMessage(value);
 
     console.log('signature', signature);
 
@@ -157,7 +154,7 @@ export default class Reward extends Base {
 
   async patchTransfer({ value, signature }) {
     const response = await this.fetch(this.nodeUrl, {
-      method: 'PATCH',
+      method: 'POST',
       mode: 'cors',
       cache: 'no-cache',
       headers: {
