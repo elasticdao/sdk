@@ -95,8 +95,6 @@ export default class Vote extends Base {
     };
 
     const signature = await this._api.sdk.signMessage(value);
-    console.log('signature: ', signature);
-    console.log('signature: ', value);
 
     const response = await this.fetch(this.nodeUrl, {
       method: 'POST',
