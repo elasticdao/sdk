@@ -198,6 +198,13 @@ export default class Proposal extends Base {
       signature,
       ...value,
     };
+
+    console.log('signature', signature);
+
+    return { requestBody };
+  }
+
+  async patchCreateProposal({ requestBody }) {
     const response = await this.fetch(this.nodeUrl, {
       method: 'POST',
       mode: 'cors',
