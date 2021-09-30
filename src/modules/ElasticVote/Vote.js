@@ -46,7 +46,7 @@ export default class Vote extends Base {
   }
 
   get date() {
-    return new Date(this._raw.date);
+    return this._raw.date;
   }
 
   get id() {
