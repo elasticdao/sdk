@@ -285,6 +285,14 @@ export const truncate = (str, opts = {}) => {
 
   const ending = opts.ending || '...';
   const length = opts.length || 40;
+  const truncateNumber = opts.truncateNumber || false;
+  const decimalPlaces = opts.decimalPlaces || 0;
+
+  if (truncateNumber) {
+    // When trucating a number, it must be passed as a string
+    const re = new RegExp(`^-?\\d+(?:.\\d{0,${decimalPlaces || -1}})?`);
+    return str.match(re)[0];
+  }
 
   if (str.length > length) {
     return str.substring(0, length - ending.length) + ending;
