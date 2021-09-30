@@ -141,7 +141,7 @@ export default class Reward extends Base {
       action,
       amount: wadAmount.toString(),
       fromAddress: this.from.toLowerCase(),
-      toAddress : toAddress.toLowerCase(),
+      toAddress: toAddress.toLowerCase(),
       nonce: validNonce,
     };
 
