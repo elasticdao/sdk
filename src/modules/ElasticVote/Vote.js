@@ -95,7 +95,10 @@ export default class Vote extends Base {
     };
 
     const signature = await this._api.sdk.signMessage(value);
+    return { action, value, signature };
+  }
 
+  async patchVote({ action, value, signature }) {
     const response = await this.fetch(this.nodeUrl, {
       method: 'POST',
       mode: 'cors',
@@ -105,11 +108,11 @@ export default class Vote extends Base {
       },
       body: JSON.stringify({
         action,
-        choice: this.choice,
-        voter: address,
-        proposal: this.proposal.id,
+        choice: value.choice,
+        voter: value.voter,
+        proposal: value.proposal,
         signature,
-        nonce: this.nonce,
+        nonce: value.nonce,
       }),
     });
 
