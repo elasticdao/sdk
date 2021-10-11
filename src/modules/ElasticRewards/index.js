@@ -3,6 +3,7 @@ import BlockClass from './Block';
 import Cachable from '../../Cachable';
 import RewardClass from './Reward';
 import IPFSRewardClass from './IPFSReward';
+import { toBigNumber } from '../../utils';
 
 class ElasticRewards extends Cachable {
   constructor(sdk, ens) {
@@ -47,7 +48,7 @@ class ElasticRewards extends Cachable {
       this._balances[account] = await this.api.getRewardsBalance(account);
     } catch (e) {
       this._rewards[account] = [];
-      this._balances[account] = [];
+      this._balances[account] = toBigNumber(0);
       console.warn('ElasticRewards unavailable', e);
     }
     return this;
