@@ -320,27 +320,10 @@ Rounding Types:
 */
 
 export const round = (value, type = 1, decimalPlaces) => {
-  const roundingModes = {
-    0: BigNumber.ROUND_UP,
-    1: BigNumber.ROUND_DOWN,
-    2: BigNumber.ROUND_CEIL,
-    3: BigNumber.ROUND_FLOOR,
-    4: BigNumber.ROUND_HALF_UP,
-    5: BigNumber.ROUND_HALF_DOWN,
-    6: BigNumber.ROUND_HALF_EVEN,
-    7: BigNumber.ROUND_HALF_CEIL,
-    8: BigNumber.ROUND_HALF_FLOOR,
-  };
-
   const config = {
     DECIMAL_PLACES: decimalPlaces,
+    ROUDING_MODE: type,
   };
-
-  if (roundingModes[type]) {
-    config.ROUNDING_MODE = roundingModes[type];
-  } else {
-    config.ROUNDING_MODE = type;
-  }
 
   const BN = BigNumber.clone(config);
 
