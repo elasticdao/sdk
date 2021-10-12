@@ -319,7 +319,7 @@ Rounding Types:
   If equidistant, rounds towards -Infinity
 */
 
-export const round = (value, type, decimalPlaces) => {
+export const round = (value, type = 1, decimalPlaces) => {
   const roundingModes = {
     0: BigNumber.ROUND_UP,
     1: BigNumber.ROUND_DOWN,
@@ -332,10 +332,17 @@ export const round = (value, type, decimalPlaces) => {
     8: BigNumber.ROUND_HALF_FLOOR,
   };
 
-  const BN = BigNumber.clone({
-    ROUNDING_MODE: roundingModes[type],
+  const config = {
     DECIMAL_PLACES: decimalPlaces,
-  });
+  };
+
+  if (roundingModes[type]) {
+    config.ROUNDING_MODE = roundingModes[type];
+  } else {
+    config.ROUNDING_MODE = type;
+  }
+
+  const BN = BigNumber.clone(config);
 
   const roundedNumber = new BN(value, 10);
   return roundedNumber;
