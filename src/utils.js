@@ -337,9 +337,7 @@ export const round = (value, type, decimalPlaces) => {
     DECIMAL_PLACES: decimalPlaces,
   });
 
-  console.log('value', value);
   const roundedNumber = new BN(value, 10);
-  console.log('roundedNumber', roundedNumber);
   return roundedNumber;
 };
 
