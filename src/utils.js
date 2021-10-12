@@ -320,12 +320,26 @@ Rounding Types:
 */
 
 export const round = (value, type, decimalPlaces) => {
-  BigNumber.config({
-    ROUNDING_MODE: type,
+  const roundingModes = {
+    0: BigNumber.ROUND_UP,
+    1: BigNumber.ROUND_DOWN,
+    2: BigNumber.ROUND_CEIL,
+    3: BigNumber.ROUND_FLOOR,
+    4: BigNumber.ROUND_HALF_UP,
+    5: BigNumber.ROUND_HALF_DOWN,
+    6: BigNumber.ROUND_HALF_EVEN,
+    7: BigNumber.ROUND_HALF_CEIL,
+    8: BigNumber.ROUND_HALF_FLOOR,
+  };
+
+  const BN = BigNumber.clone({
+    ROUNDING_MODE: roundingModes[type],
     DECIMAL_PLACES: decimalPlaces,
   });
 
-  const roundedNumber = new BigNumber(value, 10);
+  console.log('value', value);
+  const roundedNumber = new BN(value, 10);
+  console.log('roundedNumber', roundedNumber);
   return roundedNumber;
 };
 
