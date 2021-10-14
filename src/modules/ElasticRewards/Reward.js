@@ -147,8 +147,6 @@ export default class Reward extends Base {
 
     const signature = await this.sdk.signMessage(value);
 
-    console.log('signature', signature);
-
     return { value, signature };
   }
 

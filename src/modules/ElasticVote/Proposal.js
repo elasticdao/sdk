@@ -269,6 +269,7 @@ export default class Proposal extends Base {
     }
 
     this._votes = votes;
+    this.touch();
     return this;
   }
 

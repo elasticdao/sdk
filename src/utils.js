@@ -301,6 +301,36 @@ export const truncate = (str, opts = {}) => {
   return str;
 };
 
+/*
+Rounding Types:
+  ROUND_UP: 0 - Rounds away from zero
+  ROUND_DOWN: 1 - Rounds towards zero
+  ROUND_CEIL: 2 - Rounds towards Infinity
+  ROUND_FLOOR: 3 - Rounds towards -Infinity
+  ROUND_HALF_UP: 4 - Rounds towards nearest neighbour.
+  If equidistant, rounds away from zero
+  ROUND_HALF_DOWN: 5 - Rounds towards nearest neighbour.
+  If equidistant, rounds towards zero
+  ROUND_HALF_EVEN: 6 - Rounds towards nearest neighbour.
+  If equidistant, rounds towards even neighbour
+  ROUND_HALF_CEIL: 7 - Rounds towards nearest neighbour.
+  If equidistant, rounds towards Infinity
+  ROUND_HALF_FLOOR: 8 - Rounds towards nearest neighbour.
+  If equidistant, rounds towards -Infinity
+*/
+
+export const round = (value, type = 1, decimalPlaces) => {
+  const config = {
+    DECIMAL_PLACES: decimalPlaces,
+    ROUDING_MODE: type,
+  };
+
+  const BN = BigNumber.clone(config);
+
+  const roundedNumber = new BN(value, 10);
+  return roundedNumber;
+};
+
 export default {
   amountFormatter,
   buildError,
@@ -314,4 +344,5 @@ export default {
   truncate,
   upTo,
   validate,
+  round,
 };
