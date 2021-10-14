@@ -1,12 +1,11 @@
 import { ethers } from 'ethers';
 import { validateIsAddress } from '@pie-dao/utils';
-import { toKey, validate } from '../utils';
+import { sanitizeOverrides, toKey, validate } from '../utils';
 import EcosystemContract from '../../artifacts/Ecosystem.json';
-import ElasticDAO from '../ElasticDAO';
+import ElasticDAO from '../core/ElasticDAO';
 import ElasticModel from './ElasticModel';
 import BaseEvents from '../BaseEvents';
 
-const cache = {};
 const prefix = '@elastic-dao/sdk - Ecosystem';
 
 export const isEcosystem = (thing) =>
@@ -27,91 +26,141 @@ class Events extends BaseEvents {
   }
 }
 
-const listen = async (ecosystem) => {
-  const key = toKey(ecosystem.id, 'SerializedListener');
-  if (cache[key]) {
-    return;
-  }
-  const listenerSubject = await ecosystem.events.Serialized();
-  listenerSubject.subscribe(ecosystem.refresh.bind(ecosystem));
-  cache[key] = true;
-};
-
 export default class Ecosystem extends ElasticModel {
-  constructor(
-    sdk,
-    {
-      daoAddress,
-      daoModelAddress,
-      ecosystemModelAddress,
-      governanceTokenAddress,
-      tokenHolderModelAddress,
-      tokenModelAddress,
-    },
-  ) {
+  constructor(sdk, attributes, keyAddition = '') {
     super(sdk);
-    this.id = toKey(daoAddress || ethers.constants.AddressZero);
-    cache[this.id] = {
-      daoAddress,
-      daoModelAddress,
-      ecosystemModelAddress,
-      governanceTokenAddress,
-      tokenHolderModelAddress,
-      tokenModelAddress,
-    };
-    this.subject.next(this);
-    if (sdk.live) {
-      listen(this);
+
+    const { daoAddress } = attributes;
+
+    this._id = toKey(daoAddress || ethers.constants.AddressZero, keyAddition);
+
+    let cached = this.cache.get(this.id);
+
+    if (Object.keys(attributes).length > 1) {
+      const {
+        daoModelAddress,
+        ecosystemModelAddress,
+        governanceTokenAddress,
+        tokenHolderModelAddress,
+        tokenModelAddress,
+        ttl,
+      } = attributes;
+
+      cached = {
+        ttl: ttl || this.sdk.blockNumber + 120, // expire the cache in 120 blocks
+        daoAddress,
+        daoModelAddress,
+        ecosystemModelAddress,
+        governanceTokenAddress,
+        tokenHolderModelAddress,
+        tokenModelAddress,
+      };
+
+      this.cache.set(this.id, cached);
+    }
+
+    if (cached) {
+      this._loaded = true;
+    }
+
+    if (this.loaded) {
+      this.sdk.integrations.coinGecko.addContractAddress(
+        this.governanceTokenAddress,
+      );
+
+      if (keyAddition === '' && cached.ttl < this.sdk.blockNumber) {
+        this.refresh();
+      }
+
+      this.touch();
+
+      if (this.sdk.live && `${keyAddition}`.length === 0) {
+        const key = toKey(this.id, 'SerializedListener');
+
+        if (this.cache.get(key)) {
+          return;
+        }
+
+        this.cache.set(key, true, { persist: false });
+
+        this.events.Serialized().then(
+          (listenerSubject) => {
+            listenerSubject.subscribe(this.refresh.bind(this));
+          },
+          () => {
+            this.cache.set(key, false, { persist: false });
+          },
+        );
+      }
     }
   }
 
   // Class functions
 
-  static contract(sdk, address) {
+  static contract(sdk, address, readonly = false) {
     validateIsAddress(address, { prefix });
-    return sdk.contract({ abi: EcosystemContract.abi, address });
+    return sdk.contract({ abi: EcosystemContract.abi, address, readonly });
   }
 
-  static async deserialize(sdk, daoAddress) {
+  static async deserialize(sdk, daoAddress, overrides = {}) {
     validateIsAddress(daoAddress, { prefix });
 
+    const saneOverrides = sanitizeOverrides(overrides, true);
+
     const ecosystemModelAddress = await (
-      await ElasticDAO.contract(sdk, daoAddress)
-    ).ecosystemModelAddress();
-    const ecosystemModel = await this.contract(sdk, ecosystemModelAddress);
+      await ElasticDAO.contract(sdk, daoAddress, true)
+    ).ecosystemModelAddress(saneOverrides);
+    const ecosystemModel = await this.contract(
+      sdk,
+      ecosystemModelAddress,
+      true,
+    );
 
     const {
       daoModelAddress,
       governanceTokenAddress,
       tokenHolderModelAddress,
       tokenModelAddress,
-    } = await ecosystemModel.deserialize(daoAddress);
+    } = await ecosystemModel.deserialize(daoAddress, saneOverrides);
 
-    return new Ecosystem(sdk, {
-      daoAddress,
-      daoModelAddress,
-      ecosystemModelAddress,
-      governanceTokenAddress,
-      tokenHolderModelAddress,
-      tokenModelAddress,
-    });
+    return new Ecosystem(
+      sdk,
+      {
+        daoAddress,
+        daoModelAddress,
+        ecosystemModelAddress,
+        governanceTokenAddress,
+        tokenHolderModelAddress,
+        tokenModelAddress,
+      },
+      overrides.blockTag,
+    );
   }
 
-  static async exists(sdk, daoAddress) {
+  static async exists(sdk, daoAddress, overrides = {}) {
     validateIsAddress(daoAddress, { prefix });
 
     const ecosystemModel = await this.contract(
       sdk,
       sdk.env.elasticDAO.ecosystemModelAddress,
+      true,
     );
 
-    return ecosystemModel.exists(daoAddress);
+    return ecosystemModel.exists(
+      daoAddress,
+      sanitizeOverrides(overrides, true),
+    );
+  }
+
+  static fromCache(sdk, cached) {
+    const idParts = cached.id.split('|');
+    return new Ecosystem(sdk, cached, idParts[1]);
   }
 
   // Getters
 
   get address() {
-    return cache[this.id].ecosystemModelAddress;
+    return this.cache.get(this.id).ecosystemModelAddress;
   }
 
   get contract() {
@@ -119,36 +168,40 @@ export default class Ecosystem extends ElasticModel {
   }
 
   get daoAddress() {
-    return cache[this.id].daoAddress;
+    return this.cache.get(this.id).daoAddress;
   }
 
   get daoModelAddress() {
-    return cache[this.id].daoModelAddress;
+    return this.cache.get(this.id).daoModelAddress;
   }
 
   get ecosystemModelAddress() {
-    return cache[this.id].ecosystemModelAddress;
+    return this.cache.get(this.id).ecosystemModelAddress;
   }
 
   get events() {
     const key = toKey(this.id, 'Events');
-    if (cache[key]) {
-      return cache[key];
+    if (this.cache.has(key)) {
+      return this.cache.get(key);
     }
-    cache[key] = new Events(this);
-    return cache[key];
+    this.cache.set(key, new Events(this), { persist: false });
+    return this.cache.get(key);
   }
 
   get governanceTokenAddress() {
-    return cache[this.id].governanceTokenAddress;
+    return this.cache.get(this.id).governanceTokenAddress;
+  }
+
+  get readonlyContract() {
+    return this.constructor.contract(this.sdk, this.address, true);
   }
 
   get tokenHolderModelAddress() {
-    return cache[this.id].tokenHolderModelAddress;
+    return this.cache.get(this.id).tokenHolderModelAddress;
   }
 
   get tokenModelAddress() {
-    return cache[this.id].tokenModelAddress;
+    return this.cache.get(this.id).tokenModelAddress;
   }
 
   // Instance functions
@@ -161,7 +214,7 @@ export default class Ecosystem extends ElasticModel {
     const { id } = this;
 
     return this.sanitize({
-      ...cache[id],
+      ...this.cache.get(id),
       id,
     });
   }

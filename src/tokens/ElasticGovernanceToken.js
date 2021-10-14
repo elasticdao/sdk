@@ -1,10 +1,8 @@
-// import { subject } from '../observables';
-import { toKey } from '../utils';
-import Base from '../Base';
+import { ethers } from 'ethers';
+import { sanitizeOverrides, toKey } from '../utils';
 import BaseEvents from '../BaseEvents';
 import ElasticGovernanceTokenContract from '../../artifacts/ElasticGovernanceToken.json';
-
-const cache = {};
+import QueryFilterable from '../QueryFilterable';
 
 class Events extends BaseEvents {
   async Approval() {
@@ -24,14 +22,18 @@ class Events extends BaseEvents {
   }
 }
 
-export default class ElasticGovernanceToken extends Base {
+export default class ElasticGovernanceToken extends QueryFilterable {
   constructor(dao) {
     super(dao.sdk);
     this.dao = dao;
   }
 
-  static contract(sdk, address) {
-    return sdk.contract({ abi: ElasticGovernanceTokenContract.abi, address });
+  static contract(sdk, address, readonly = false) {
+    return sdk.contract({
+      abi: ElasticGovernanceTokenContract.abi,
+      address,
+      readonly,
+    });
   }
 
   get address() {
@@ -44,11 +46,15 @@ export default class ElasticGovernanceToken extends Base {
 
   get events() {
     const key = toKey(this.address, 'Events');
-    if (cache[key]) {
-      return cache[key];
+    if (this.cache.has(key)) {
+      return this.cache.get(key);
     }
-    cache[key] = new Events(this);
-    return cache[key];
+    this.cache.set(key, new Events(this));
+    return this.cache.get(key);
+  }
+
+  get readonlyContract() {
+    return this.constructor.contract(this.sdk, this.address, true);
   }
 
   async getEcosystem() {
@@ -56,11 +62,11 @@ export default class ElasticGovernanceToken extends Base {
   }
 
   async allowance(ownerAddress, spenderAddress, overrides = {}) {
-    const elasticGovernanceToken = await this.contract;
+    const elasticGovernanceToken = await this.readonlyContract;
     const allowance = await elasticGovernanceToken.allowance(
       ownerAddress,
       spenderAddress,
-      this.sanitizeOverrides(overrides),
+      sanitizeOverrides(overrides, true),
     );
     return this.toBigNumber(allowance.toString(), 18);
   }
@@ -76,51 +82,29 @@ export default class ElasticGovernanceToken extends Base {
   }
 
   async balanceOf(accountAddress, overrides = {}) {
-    const elasticGovernanceToken = await this.contract;
+    const elasticGovernanceToken = await this.readonlyContract;
     const balance = await elasticGovernanceToken.balanceOf(
       accountAddress,
-      this.sanitizeOverrides(overrides),
+      sanitizeOverrides(overrides, true),
     );
 
     return this.toBigNumber(balance.toString(), 18);
   }
 
   async balanceOfInShares(accountAddress, overrides = {}) {
-    const elasticGovernanceToken = await this.contract;
+    const elasticGovernanceToken = await this.readonlyContract;
     const balanceOfInShares = await elasticGovernanceToken.balanceOfInShares(
       accountAddress,
-      this.sanitizeOverrides(overrides),
+      sanitizeOverrides(overrides, true),
     );
     return this.toBigNumber(balanceOfInShares.toString(), 18);
   }
 
-  async balanceOfAt(accountAddress, blockNumber, overrides = {}) {
-    const elasticGovernanceToken = await this.contract;
-    const balanceOfAt = await elasticGovernanceToken.balanceOfAt(
-      accountAddress,
-      blockNumber,
-      this.sanitizeOverrides(overrides),
-    );
-
-    return this.toBigNumber(balanceOfAt.toString(), 18);
-  }
-
-  async balanceOfInSharesAt(accountAddress, blockNumber, overrides = {}) {
-    const elasticGovernanceToken = await this.contract;
-    const balanceOfInSharesAt = await elasticGovernanceToken.balanceOfInSharesAt(
-      accountAddress,
-      blockNumber,
-      this.sanitizeOverrides(overrides),
-    );
-
-    return this.toBigNumber(balanceOfInSharesAt.toString(), 18);
-  }
-
   async balanceOfVoting(accountAddress, overrides = {}) {
-    const elasticGovernanceToken = await this.contract;
+    const elasticGovernanceToken = await this.readonlyContract;
     const balanceOfVoting = await elasticGovernanceToken.balanceOfVoting(
       accountAddress,
-      this.sanitizeOverrides(overrides),
+      sanitizeOverrides(overrides, true),
     );
 
     return this.toBigNumber(balanceOfVoting.toString(), 18);
@@ -148,27 +132,54 @@ export default class ElasticGovernanceToken extends Base {
 
   async decreaseAllowance(spenderAddress, subtractedValue, overrides = {}) {
     const elasticGovernanceToken = await this.contract;
-    const decreaseAllowanceStatus = await elasticGovernanceToken.decreaseAllowance(
-      spenderAddress,
-      this.toEthersBigNumber(subtractedValue, 18),
-      this.sanitizeOverrides(overrides),
-    );
+    const decreaseAllowanceStatus =
+      await elasticGovernanceToken.decreaseAllowance(
+        spenderAddress,
+        this.toEthersBigNumber(subtractedValue, 18),
+        this.sanitizeOverrides(overrides),
+      );
     return decreaseAllowanceStatus;
   }
 
   async decimals() {
-    const elasticGovernanceToken = await this.contract;
+    const elasticGovernanceToken = await this.readonlyContract;
     const decimals = await elasticGovernanceToken.decimals();
     return decimals;
   }
 
+  async holders(overrides = {}) {
+    let endingBlock = overrides.blockTag;
+    if (!endingBlock) {
+      endingBlock = await this.sdk.provider.getBlockNumber();
+    }
+    const tokenHolderModelContract =
+      await this.sdk.models.TokenHolder.readonlyContract(
+        this.dao.ecosystem.tokenHolderModelAddress,
+      );
+    const holders = new Set();
+    const results = await tokenHolderModelContract.queryFilter(
+      'Serialized',
+      12056930, // 4 blocks before the first DAO was created
+      endingBlock,
+    );
+    results.forEach(({ topics }) =>
+      holders.add(
+        ethers.utils
+          .getAddress(`${topics[1].substr(26, topics[1].length - 1)}`)
+          .toLowerCase(),
+      ),
+    );
+    return Array.from(holders);
+  }
+
   async increaseAllowance(spenderAddress, addedValue, overrides = {}) {
     const elasticGovernanceToken = await this.contract;
-    const increaseAllowanceStatus = await elasticGovernanceToken.increaseAllowance(
-      spenderAddress,
-      this.toEthersBigNumber(addedValue, 18),
-      this.sanitizeOverrides(overrides),
-    );
+    const increaseAllowanceStatus =
+      await elasticGovernanceToken.increaseAllowance(
+        spenderAddress,
+        this.toEthersBigNumber(addedValue, 18),
+        this.sanitizeOverrides(overrides),
+      );
     return increaseAllowanceStatus;
   }
 
@@ -193,44 +204,45 @@ export default class ElasticGovernanceToken extends Base {
   }
 
   async name(overrides = {}) {
-    const elasticGovernanceToken = await this.contract;
+    const elasticGovernanceToken = await this.readonlyContract;
     const name = await elasticGovernanceToken.name(
-      this.sanitizeOverrides(overrides),
+      sanitizeOverrides(overrides, true),
     );
     return name;
   }
 
   async numberOfTokenHolders(overrides = {}) {
-    const elasticGovernanceToken = await this.contract;
+    const elasticGovernanceToken = await this.readonlyContract;
     const number = await elasticGovernanceToken.numberOfTokenHolders(
-      this.sanitizeOverrides(overrides),
+      sanitizeOverrides(overrides, true),
     );
 
     return this.toBigNumber(number.toString());
   }
 
   async symbol(overrides = {}) {
-    const elasticGovernanceToken = await this.contract;
+    const elasticGovernanceToken = await this.readonlyContract;
     const symbol = await elasticGovernanceToken.symbol(
-      this.sanitizeOverrides(overrides),
+      sanitizeOverrides(overrides, true),
     );
 
     return symbol;
   }
 
   async totalSupply(overrides = {}) {
-    const elasticGovernanceToken = await this.contract;
+    const elasticGovernanceToken = await this.readonlyContract;
     const totalSupply = await elasticGovernanceToken.totalSupply(
-      this.sanitizeOverrides(overrides),
+      sanitizeOverrides(overrides, true),
     );
     return this.toBigNumber(totalSupply.toString(), 18);
   }
 
   async totalSupplyInShares(overrides = {}) {
-    const elasticGovernanceToken = await this.contract;
-    const totalSupplyInShares = await elasticGovernanceToken.totalSupplyInShares(
-      this.sanitizeOverrides(overrides),
-    );
+    const elasticGovernanceToken = await this.readonlyContract;
+    const totalSupplyInShares =
+      await elasticGovernanceToken.totalSupplyInShares(
+        sanitizeOverrides(overrides, true),
+      );
     return this.toBigNumber(totalSupplyInShares.toString(), 18);
   }
 

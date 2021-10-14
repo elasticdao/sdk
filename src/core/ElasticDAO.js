@@ -1,16 +1,16 @@
+/* eslint no-await-in-loop: 0 */
+import { isAddress } from '@pie-dao/utils';
 import BigNumber from 'bignumber.js';
-import BaseEvents from './BaseEvents';
 
-import { toKey, upTo } from './utils';
-import Base from './Base';
-import ElasticDAOContract from '../artifacts/ElasticDAO.json';
+import { sanitizeOverrides, toKey, upTo } from '../utils';
+import BaseEvents from '../BaseEvents';
+import QueryFilterable from '../QueryFilterable';
+import ElasticDAOContract from '../../artifacts/ElasticDAO.json';
 
 const onlyAfterSummoning = 'DAO must be summoned';
 const onlyBeforeSummoning = 'DAO must not be summoned';
 const prefix = '@elastic-dao/sdk - ElasticDAO';
 const valueGreaterThanZero = 'a value greater than 0 must be provided';
-
-const cache = {};
 
 class Events extends BaseEvents {
   get keyBase() {
@@ -85,14 +85,14 @@ class Events extends BaseEvents {
   }
 }
 
-export default class ElasticDAO extends Base {
+export default class ElasticDAO extends QueryFilterable {
   constructor(dao) {
-    super(dao.sdk);
+    super(dao.sdk, { persist: false });
     this.dao = dao;
   }
 
-  static contract(sdk, address) {
-    return sdk.contract({ abi: ElasticDAOContract.abi, address });
+  static contract(sdk, address, readonly = false) {
+    return sdk.contract({ abi: ElasticDAOContract.abi, address, readonly });
   }
 
   get contract() {
@@ -101,11 +101,19 @@ export default class ElasticDAO extends Base {
 
   get events() {
     const key = toKey(this.dao.uuid, 'Events');
-    if (cache[key]) {
-      return cache[key];
+    if (this.cache.has(key)) {
+      return this.cache.get(key);
     }
-    cache[key] = new Events(this);
-    return cache[key];
+    this.cache.set(key, new Events(this), { persist: false });
+    return this.cache.get(key);
+  }
+
+  get id() {
+    return this.dao.uuid;
+  }
+
+  get readonlyContract() {
+    return this.constructor.contract(this.sdk, this.dao.uuid, true);
   }
 
   async exit(deltaLambda, overrides = {}) {
@@ -141,6 +149,29 @@ export default class ElasticDAO extends Base {
     return this._handleTransaction(
       await elasticDAO.join(this.sanitizeOverrides(overrides)),
     );
+  }
+
+  async liquidityPools(overrides = {}) {
+    const pools = [];
+    const saneOverrides = sanitizeOverrides(overrides, true);
+    let i = 0;
+    let pool = `${await this.readonlyContract.liquidityPools(
+      i,
+      saneOverrides,
+    )}`.toLowerCase();
+    try {
+      while (isAddress(pool)) {
+        pools.push(pool);
+        i += 1;
+        pool = `${await this.readonlyContract.liquidityPools(
+          i,
+          saneOverrides,
+        )}`.toLowerCase();
+      }
+    } catch (e) {
+      // nothing to do
+    }
+    return pools;
   }
 
   onlyAfterSummoning() {
@@ -180,11 +211,12 @@ export default class ElasticDAO extends Base {
     );
   }
 
-  async summoners() {
-    const elasticDAO = await this.contract;
-
+  async summoners(overrides = {}) {
+    const elasticDAO = await this.readonlyContract;
     return Promise.all(
-      upTo(this.dao.numberOfSummoners).map((i) => elasticDAO.summoners(i)),
+      upTo(this.dao.numberOfSummoners).map((i) =>
+        elasticDAO.summoners(i, sanitizeOverrides(overrides, true)),
+      ),
     );
   }
 

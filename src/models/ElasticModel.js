@@ -1,16 +1,24 @@
 /* eslint class-methods-use-this: 0 */
 import { isBigNumber } from '@pie-dao/utils';
-import { swapBigNumber, toKey } from '../utils';
-import { subject } from '../observables';
-import Base from '../Base';
+import { toKey } from '../utils';
+import QueryFilterable from '../QueryFilterable';
 
-export default class ElasticModel extends Base {
+export default class ElasticModel extends QueryFilterable {
+  constructor(sdk) {
+    super(sdk);
+    this._loaded = false;
+  }
+
+  get id() {
+    return this._id;
+  }
+
   get key() {
     return toKey(this.constructor.name, this.id);
   }
 
-  get subject() {
-    return subject(this.key);
+  get loaded() {
+    return this._loaded;
   }
 
   async refresh() {
@@ -33,10 +41,11 @@ export default class ElasticModel extends Base {
     return clean;
   }
 
-  subscribe(callback) {
-    callback(swapBigNumber(this.toObject(false)));
-    return this.subject.subscribe((dao) => {
-      callback(swapBigNumber(dao.toObject(false)));
-    });
+  toJSON() {
+    return this.toObject();
+  }
+
+  toObject() {
+    throw new Error(`${this.constructor.name}: 'toObject' must be defined!`);
   }
 }

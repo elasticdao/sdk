@@ -1,79 +1,49 @@
 /* eslint class-methods-use-this: 0 */
 
-import { isAddress, isNumber } from '@pie-dao/utils';
+import {
+  sanitizeOverrides,
+  toBigNumber,
+  toEthersBigNumber,
+  toNumber,
+} from './utils';
+import Subscribable from './Subscribable';
 
-import { toBigNumber, toEthersBigNumber, toNumber } from './utils';
-
-const prefix = '@elastic-dao/sdk';
-const validKeys = ['from', 'gasLimit', 'gasPrice', 'nonce', 'value'];
-
-export default class Base {
+export default class Base extends Subscribable {
   constructor(sdk) {
+    super();
     this._sdk = sdk;
+  }
+
+  get fetch() {
+    return this.sdk.fetch;
   }
 
   get sdk() {
     return this._sdk;
   }
 
+  async cachedValue(key, lookup) {
+    const promiseKey = `${key}Promise`;
+    const deletePromise = () => {
+      delete this[promiseKey];
+    };
+
+    if (this[promiseKey]) {
+      await this[promiseKey].catch(deletePromise);
+    }
+
+    if (this[key]) {
+      return this[key];
+    }
+
+    this[promiseKey] = lookup();
+    await this[promiseKey].then(deletePromise, deletePromise);
+
+    return this[key];
+  }
+
   sanitizeOverrides(requested = {}) {
-    const overrides = {};
-
-    if (requested.from && isAddress(requested.from)) {
-      overrides.from = requested.from;
-    } else if (requested.from) {
-      console.warn(
-        `${prefix}: Requested override 'from' (${requested.from}) is not a valid address and was excluded`,
-      );
-    }
-
-    if (requested.gasLimit) {
-      try {
-        overrides.gasLimit = this.toEthersBigNumber(requested.gasLimit);
-      } catch (e) {
-        console.warn(
-          `${prefix}: Requested override 'gasLimit' (${requested.gasLimit}) is invalid and was excluded (${e.message})`,
-        );
-      }
-    }
-
-    if (requested.gasPrice) {
-      try {
-        overrides.gasPrice = this.toEthersBigNumber(requested.gasPrice);
-      } catch (e) {
-        console.warn(
-          `${prefix}: Requested override 'gasPrice' (${requested.gasPrice}) is invalid and was excluded (${e.message})`,
-        );
-      }
-    }
-
-    if (requested.nonce && isNumber(requested.nonce)) {
-      overrides.nonce = requested.nonce;
-    } else if (requested.nonce) {
-      console.warn(
-        `${prefix}: Requested override 'nonce' (${requested.nonce}) is not a valid number and was excluded`,
-      );
-    }
-
-    if (requested.value) {
-      try {
-        overrides.value = this.toEthersBigNumber(requested.value, 18);
-      } catch (e) {
-        console.warn(
-          `${prefix}: Requested override 'value' (${requested.value}) is invalid and was excluded (${e.message})`,
-        );
-      }
-    }
-
-    Object.keys(requested).forEach((key) => {
-      if (!validKeys.includes(key)) {
-        console.warn(
-          `${prefix}: Requested override '${key}' is not supported and was excluded`,
-        );
-      }
-    });
-
-    return overrides;
+    return sanitizeOverrides(requested);
   }
 
   toBigNumber(value, decimalShift = 0) {
