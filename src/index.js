@@ -1,10 +1,8 @@
-/* eslint-disable import/no-extraneous-dependencies */
 /* eslint consistent-return: 0 */
 
 import { ethers } from 'ethers';
 import { shortenAddress, validateIsAddress } from '@pie-dao/utils';
 import Notify from 'bnc-notify';
-import fetch from 'unfetch';
 
 import Base from './Base';
 import Cache from './Cache';
@@ -265,7 +263,7 @@ export class SDK extends Subscribable {
     });
 
     if (customFetch) {
-      this._fetch = fetch;
+      this._fetch = customFetch;
     } else if (window && window.fetch) {
       this._fetch = window.fetch.bind(window);
     } else {
