@@ -22,7 +22,7 @@ describe('Reward', () => {
       },
       "message":"Transfer 0.1 from 0xE16584424F34380DBf798f547Af684597788FbC7 to 0xe16584424f34380dbf798f547af684597788fbc7"
     },
-    "from":"0xe16584424f34380dbf798f547af684597788fbc7",
+    "from":"0x9FF1Cf4491fc84F8e29c4b52dd6ECE5d60275814",
     "hash":"QmRowqfrJZNnEtYsw4vWPMd97kLsqJPfb8scUWKnu2BCZ2",
     "k":"100",
     "lambda":"0.000271078620754349",
@@ -76,6 +76,10 @@ describe('Reward', () => {
     assert.isTrue(isAddress(reward.from));
   });
 
+  it('From is correct', async () => {
+    assert.equal(reward.from, '0x9FF1Cf4491fc84F8e29c4b52dd6ECE5d60275814');
+  });
+
   it('Locked is undefined', async () => {
     assert.isTrue(reward.locked === undefined);
   });
@@ -101,6 +105,10 @@ describe('Reward', () => {
 
   it('To is Address', async () => {
     assert.isTrue(isAddress(reward.to));
+  });
+
+  it('To is correct', async () => {
+    assert.equal(reward.to, '0xe16584424f34380dbf798f547af684597788fbc7');
   });
 
   it('Signature is HexString', async () => {
