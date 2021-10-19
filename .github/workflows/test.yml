@@ -1,0 +1,24 @@
+name: Test
+
+on:
+  pull_request:
+    branches: ['*']
+
+jobs:
+  test:
+    name: with mocha and chai
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [16.6.1]
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: elasticdao/actions-yarn@2f55c1f55f57a53165cbd153318c10b7c7c43c2b
+        with:
+          cmd: install # will run `yarn install` command
+      - uses: elasticdao/actions-yarn@2f55c1f55f57a53165cbd153318c10b7c7c43c2b
+        with:
+          cmd: test:only # will run `yarn test:only` command
+
