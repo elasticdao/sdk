@@ -16,15 +16,20 @@
     "prerelease": "yarn build",
     "prettier": "npx prettier --write src/*.js --write src/**/*.js --write src/**/**/*.js --write src/**/**/**/*.js",
     "release": "npm publish --access=public",
-    "stats": "npx webpack -c ./webpack.config.js --json > stats.json"
+    "stats": "npx webpack -c ./webpack.config.js --json > stats.json",
+    "test:only": "mocha  -r esm './**/*.test.mjs'",
+    "test": "yarn build && yarn test:only"
   },
   "devDependencies": {
     "@babel/core": "^7.12.9",
     "@babel/preset-env": "^7.12.7",
     "babel-loader": "^8.2.2",
+    "chai": "^4.3.4",
     "eslint": "^7.10.0",
     "eslint-config-airbnb-base": "^14.2.0",
     "eslint-plugin-import": "^2.22.1",
+    "esm": "^3.2.25",
+    "mocha": "^9.1.3",
     "prettier": "^2.1.1",
     "terser-webpack-plugin": "^5.0.3",
     "webpack": "^5.10.0",
