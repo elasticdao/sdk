@@ -396,7 +396,7 @@ export class SDK extends Subscribable {
       return contract;
     }
 
-    return new MulticallContract(this, contract, abi);
+    return new MulticallContract(this, contract, abi || erc20);
   }
 
   async disconnectSigner() {
