@@ -5,11 +5,6 @@ import { chunkArray, toBigNumber } from '../../utils';
 import { t } from '../../elasticMath';
 import APIClass from './API';
 import Cachable from '../../Cachable';
-import IPFSBlockClass from './IPFSBlock';
-import IPFSBlockDataClass from './IPFSBlockData';
-import IPFSProposalClass from './IPFSProposal';
-import IPFSProposalIndexClass from './IPFSProposalIndex';
-import IPFSVoteClass from './IPFSVote';
 import ProposalClass from './Proposal';
 import SnapshotAPIClass from './SnapshotAPI';
 import SnapshotProposalClass from './SnapshotProposal';
@@ -350,34 +345,6 @@ class ElasticVote extends Cachable {
     return this;
   }
 
-  async loadIPFS(blockHash) {
-    try {
-      const pendingBlock = await this.sdk.storageAdapter.load(
-        'elasticVotePendingBlock',
-      );
-      let block;
-      if (pendingBlock) {
-        block = new IPFSBlockClass(
-          this.sdk,
-          'pendingElasticVoteBlock',
-          pendingBlock,
-        );
-        await block.promise;
-        block.load(true, pendingBlock);
-      } else {
-        block = new IPFSBlockClass(this.sdk, blockHash);
-      }
-      await block.promise; // this awaits the load of all underlying child objects
-      this._ipfsBlock = block;
-      this._ipfsProposals = block.proposals;
-    } catch (e) {
-      this._ipfsProposals = [];
-      this._ipfsBlock = [];
-      console.warn('ElasticVote IPFS unavailable', e);
-    }
-    return this;
-  }
-
   async loadSnapshot(reload = false) {
     try {
       if (this._proposals.length > 0 && !reload) {
@@ -404,11 +371,6 @@ class ElasticVote extends Cachable {
 }
 
 ElasticVote.API = APIClass;
-ElasticVote.IPFSBlock = IPFSBlockClass;
-ElasticVote.IPFSBlockData = IPFSBlockDataClass;
-ElasticVote.IPFSProposal = IPFSProposalClass;
-ElasticVote.IPFSProposalIndex = IPFSProposalIndexClass;
-ElasticVote.IPFSVote = IPFSVoteClass;
 ElasticVote.Proposal = ProposalClass;
 ElasticVote.SnapshotAPI = SnapshotAPIClass;
 ElasticVote.SnapshotProposal = SnapshotProposalClass;
