@@ -254,10 +254,7 @@ export default class Proposal extends Base {
     return BigNumber(vote ? vote.weight : 0);
   }
 
-  async load(args) {
-    this._eligibleVoteCreators = args.stats.eligibleVoteCreators;
-    this._fullQuorum = args.stats.quorum;
-
+  async load() {
     const votes = {};
 
     if (this.isValid) {
