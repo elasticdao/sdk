@@ -15,7 +15,6 @@ import ElasticGovernanceTokenClass from './tokens/ElasticGovernanceToken';
 import ElasticRewardsClass from './modules/ElasticRewards';
 import ElasticVoteClass from './modules/ElasticVote';
 import erc20 from './abis/ERC20.json';
-import IPFS from './integrations/IPFS';
 import LocalStorageAdapter from './adapters/LocalStorageAdapter';
 import MulticallContract from './MulticallContract';
 import MulticallQueue from './MulticallQueue';
@@ -97,15 +96,10 @@ export class Integrations extends Base {
   constructor(sdk) {
     super(sdk);
     this._coinGecko = new CoinGecko(this.sdk);
-    this._ipfs = new IPFS(this.sdk);
   }
 
   get coinGecko() {
     return this._coinGecko;
-  }
-
-  ipfs(...args) {
-    return this._ipfs.get(...args);
   }
 }
 
@@ -214,7 +208,6 @@ export class SDK extends Subscribable {
     customFetch,
     elasticNodeURL,
     env,
-    ipfsGateways,
     live,
     multicall,
     provider,
@@ -239,12 +232,6 @@ export class SDK extends Subscribable {
     this._balancesToTrack = [];
     this._blockNumber = 0;
     this._elasticNodeURL = elasticNodeURL;
-    this._ipfsGateways = ipfsGateways || [
-      'https://gateway.pinata.cloud',
-      'https://cloudflare-ipfs.com',
-      'https://ipfs.fleek.co',
-      'https://ipfs.io',
-    ];
 
     if (this.account) {
       this.balanceOf(this.account);
@@ -313,10 +300,6 @@ export class SDK extends Subscribable {
 
   get integrations() {
     return this._integrations;
-  }
-
-  get ipfsGateways() {
-    return this._ipfsGateways;
   }
 
   get models() {
