@@ -21,6 +21,7 @@ import MulticallQueue from './MulticallQueue';
 import Subscribable from './Subscribable';
 import TokenClass from './models/Token';
 import TokenHolderClass from './models/TokenHolder';
+import MulticallABI from './abis/Multicall.json';
 
 import {
   amountFormatter,
@@ -227,6 +228,7 @@ export class SDK extends Subscribable {
     this.signer = signer;
     this.account = account;
     this.setName();
+    this.loadMulticall();
 
     this._balances = {};
     this._balancesToTrack = [];
@@ -237,9 +239,9 @@ export class SDK extends Subscribable {
       this.balanceOf(this.account);
     }
 
-    this.provider.getBlockNumber().then((blockNumber) => {
+    setTimeout(() => this.provider.getBlockNumber().then((blockNumber) => {
       this._blockNumber = blockNumber;
-    });
+    }), 300);
 
     this.provider.on('block', (blockNumber) => {
       this._blockNumber = blockNumber;
@@ -343,13 +345,20 @@ export class SDK extends Subscribable {
     return this._storageAdapter;
   }
 
+  get multicallContract() {
+    return this._multicallContract;
+  }
+
   async balanceOf(address) {
     validateIsAddress(address);
     const key = address.toLowerCase();
     if (this._balances[key]) {
       return this._balances[key];
     }
-    this._balances[key] = toBigNumber(await this.provider.getBalance(key), 18);
+    this._balances[key] = toBigNumber(
+      await this.multicallContract.getEthBalance(key),
+      18,
+    );
     this.touch();
     if (!this._balancesToTrack.includes(key)) {
       this._balancesToTrack.push(key);
@@ -420,6 +429,14 @@ export class SDK extends Subscribable {
     }
   }
 
+  async loadMulticall() {
+    this._multicallContract = await this.contract({
+      address: '0xeefba1e63905ef1d7acba5a8513c70307c1ce441',
+      abi: MulticallABI,
+    });
+    console.log('multicall contract', this._multicallContract);
+  }
+
   async sendETH(recipient, value) {
     let to = recipient;
     if (!ethers.utils.isAddress(to)) {
@@ -472,7 +489,9 @@ export class SDK extends Subscribable {
 
   async updateBalances() {
     const balances = await Promise.all(
-      this._balancesToTrack.map((address) => this.provider.getBalance(address)),
+      this._balancesToTrack.map((address) =>
+        this.multicallContract.getEthBalance(address),
+      ),
     );
     for (let i = 0; i < balances.length; i += 1) {
       this._balances[this._balancesToTrack[i]] = toBigNumber(balances[i], 18);

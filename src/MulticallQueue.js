@@ -50,7 +50,7 @@ export default class MulticallQueue {
     }
 
     if (calls.length > 0) {
-      // console.log('Multicall Queue Calls', calls);
+      console.log('Multicall Queue Calls', calls);
       const { data, to } = await this.multicall.populateTransaction.aggregate(
         calls,
       );
@@ -60,7 +60,7 @@ export default class MulticallQueue {
       for (let i = 0; i < decoded.returnData.length; i += 1) {
         const result = this.abiCoder.decode(outputs[i], decoded.returnData[i]);
         callbacks[i](outputs[i].length === 1 ? result[0] : result);
-        // console.log('Multicall Queue Result', result);
+        console.log('Multicall Queue Result', result);
       }
     }
   }
