@@ -239,9 +239,13 @@ export class SDK extends Subscribable {
       this.balanceOf(this.account);
     }
 
-    setTimeout(() => this.provider.getBlockNumber().then((blockNumber) => {
-      this._blockNumber = blockNumber;
-    }), 300);
+    setTimeout(
+      () =>
+        this.provider.getBlockNumber().then((blockNumber) => {
+          this._blockNumber = blockNumber;
+        }),
+      300,
+    );
 
     this.provider.on('block', (blockNumber) => {
       this._blockNumber = blockNumber;
