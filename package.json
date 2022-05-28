@@ -41,6 +41,6 @@
     "bignumber.js": "^9.0.0",
     "bnc-notify": "^1.5.1",
     "ethers": "^5.0.9",
-    "rxjs": "^6.6.3"
+    "rxjs": "^7.0.0"
   }
 }
